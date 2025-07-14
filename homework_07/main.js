@@ -35,3 +35,8 @@ function buildFrequencyWithDynamicArray(text) {
 
   return resultArray;
 }
+
+const myText = "Hallo, ich bin Nataliia, Junior Fullstack-Entwicklerin. Mein Ziel ist es, praktische Erfahrungen zu sammeln und mich weiterhin als Fullstack-Entwicklerin weiterzuentwickeln."
+
+console.log(buildGermanLetterFrequency(myText));
+console.log(buildFrequencyWithDynamicArray(myText));
