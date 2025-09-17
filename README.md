@@ -1197,7 +1197,7 @@ ORDER BY is_primary DESC, id ASC;
 
 ```
 
-##### Редактировать организацию: `PUT /orgs/:orgId`
+#### Редактировать организацию: `PUT /orgs/:orgId`
 
 суперадмин, админ (только свою организацию)
 
@@ -1372,7 +1372,7 @@ ORDER BY is_primary DESC, id ASC;
 
 ```
 
-##### Удалить организацию: `DELETE /orgs/:orgId`
+#### Удалить организацию: `DELETE /orgs/:orgId`
 
 суперадмин
 
@@ -1497,7 +1497,7 @@ LIMIT 1;
 
 ```
 
-##### Изменить статус организации  `PUT /orgs/:orgId/status`
+#### Изменить статус организации  `PUT /orgs/:orgId/status`
 
 суперадмин
 
