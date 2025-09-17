@@ -274,7 +274,8 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
   - **Body:**
 
 ```json
-{"type": "totp|sms|email|webauthn|backup_code", 
+{
+  "type": "totp|sms|email|webauthn|backup_code", 
   "code": "123456", 
   "mfa_token": "<token>"
 }
@@ -295,13 +296,13 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
   - Frontend:
 
-    - `type` - `totp\|sms\|email\|webauthn\|backup_code`- обязательное поле
+    - `type` - `totp|sms|email|webauthn|backup_code`- обязательное поле
     - `code` - `string` - формат зависи от типа, обязательное поле
     - `mfa_token` - `string` - обязательное поле
 
   - Backend:
 
-    - `type` - `totp\|sms\|email\|webauthn\|backup_code`- обязательное поле
+    - `type` - `totp|sms|email|webauthn|backup_code`- обязательное поле
     - `code` - `string` - формат зависи от типа, обязательное поле
     - `mfa_token` - `string` - обязательное поле
 
@@ -311,11 +312,11 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
 ```json
 { "user": 
-  { 
-  "id": 1054, 
-  "email": "user@example.com", 
-  "full_name": "Ivan Petrov" 
-  },
+    { 
+    "id": 1054, 
+    "email": "user@example.com", 
+    "full_name": "Ivan Petrov" 
+    },
   "access_token": "<jwt>",
   "token_type": "Bearer",
  }
@@ -394,11 +395,13 @@ VALUES (:user_id, :email, :ip, :ua, FALSE, 'MFA_INVALID', NOW());
 INSERT INTO user_sessions (user_id, token_hash, ip, ua, created_at, last_seen_at, expires_at, revoked_at)
 VALUES (:user_id, :token_hash, :ip, :ua, NOW(), NOW(), DATE_ADD(NOW(), INTERVAL :session_hours HOUR), NULL);
 
+
 UPDATE user_auth_counters
 SET failed_attempts = 0,
     locked_until    = NULL,
     updated_at      = NOW()
 WHERE user_id = :user_id;
+
 
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, TRUE, 'MFA_SUCCESS', NOW());
@@ -420,157 +423,159 @@ WHERE id = :id;
 
 Авторизован (любой пользователь)
 
-- POST /auth/logout
+- `POST /auth/logout`
 
-  - **Content-type:** application/json
+  - **Content-type:** `application/json`
 
-  - **Authorization:** Bearer \<jwt\>
+  - **Authorization:** `Bearer <jwt>`
 
-  - **Body:** {}
+  - **Body:** `{}`
 
   - **Validation**:
 
     - Frontend: нет параметров
-
     - Backend: нет параметров
 
   - **Responses**:
 
     - **200 OK**
-
-> {"message": "Logged out"}
+```json
+{ "message": "Logged out" }
+```
 
 - **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
+```json
+{ "message": "Authorization header missing" }
+```
 
 - **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
+```json
+{ "message": "jwt expired" }
+```
 
 - **SQL**
 
 > закрываем сессию
->
-> UPDATE user_sessions
->
-> SET revoked_at = COALESCE(revoked_at, NOW())
->
-> WHERE user_id = :user_id
->
-> AND token_hash = :token_hash;
->
+
+```sql
+UPDATE user_sessions
+SET revoked_at = COALESCE(revoked_at, NOW())
+WHERE user_id = :user_id
+  AND token_hash = :token_hash;
+
+```
+
 > записываем в лог
->
-> INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
->
-> VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
+
+```sql
+INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
+VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
+
+```
 
 #### Забыли пароль (инициировать сброс):
 
 Публично (без авторизации)
 
-- POST /auth/password/forgot
+- `POST /auth/password/forgot`
 
-  - **Content-type:** application/json
+  - **Content-type:** `application/json`
 
   - **Body:**
 
-> {
->
-> "email": "user@example.com",
->
-> }
+```json
+{ "email": "user@example.com", }
+```
 
 - **Бизнес-правила:**
 
-  - всегда возвращаем 200 с одинаковым текстом
-
-  - Если пользователь существует и не deleted, создаем запись в password_resets и отправляем письмо
+  - всегда возвращаем `200` с одинаковым текстом
+  - Если пользователь существует и не `deleted`, создаем запись в `password_resets` и отправляем письмо
 
 - **Backend-правила:**
 
-  - Для email проверка на формат email, длина ≤ 255
-
+  - Для email проверка на формат `email`, длина `≤ 255`
   - Проверка на частоту запросов
 
 - **Validation**:
 
   - Frontend:
 
-    - email - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, trim
+    - email - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, `trim`
 
   - Backend:
 
-    - email - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, trim
+    - email - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, `trim`
 
 - **Responses**:
 
   - **200 OK**
-
-> {"message": "If an account with this email exists, you will receive a password reset link shortly."}
+```json
+{ "message": "If an account with this email exists, you will receive a password reset link shortly." }
+```
 
 - **400 Bad Request** некорректное тело запроса
-
-> {"message": "Invalid request body"}
+```json
+{ "message": "Invalid request body" }
+```
 
 - **429 Too Many Requests**
-
-> {“message”: ”Too many login attempts. Please try again later.”}
+```json
+{ "message": "Too many login attempts. Please try again later." }
+```
 
 - **SQL**
 
 > Найти пользователя
->
-> SELECT id, email, status
->
-> FROM users
->
-> WHERE LOWER(email) = :email
->
-> LIMIT 1;
->
-> Если найден и status \<\> 'deleted' - создать reset
->
-> INSERT INTO password_resets (user_id, token, expires_at, used_at, created_at)
->
-> VALUES (:user_id, :token_hash, DATE_ADD(NOW(), INTERVAL :ttl_minutes MINUTE), NULL, NOW());
->
+
+```sql
+SELECT id, email, status
+FROM users
+WHERE LOWER(email) = :email
+LIMIT 1;
+
+```
+
+> Если найден и `status <> 'deleted'` - создать reset
+
+```sql
+INSERT INTO password_resets (user_id, token, expires_at, used_at, created_at)
+VALUES (:user_id, :token_hash, DATE_ADD(NOW(), INTERVAL :ttl_minutes MINUTE), NULL, NOW());
+
+```
+
 > Запись в лог
->
-> INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
->
-> VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NOW());
+
+```sql
+INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
+VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NOW());
+
+```
 
 #### Сброс пароля по токену из email:
 
 Публично (без авторизации)
 
-- POST /auth/password/reset
+- `POST /auth/password/reset`
 
-  - **Content-type:** application/json
+  - **Content-type:** `application/json`
 
   - **Body:**
 
-> {
->
-> "token": "\<raw-token\>",
->
-> "password": "\*\*\*\*\*\*\*\*",
->
-> }
+```json
+{ 
+  "token": "<raw-token>",
+  "password": "********",
+ }
+```
 
 - **Бизнес-правила:**
 
-  - Токен валиден: соответствует token_hash, не просрочен, не использован
-
-  - Обновить users.password_hash
-
-  - Пометить password_resets.used_at = NOW()
-
+  - Токен валиден: соответствует `token_hash`, не просрочен, не использован
+  - Обновить `users.password_hash`
+  - Пометить `password_resets.used_at = NOW()`
   - Ревокировать все активные сессии пользователя (безопасность)
-
-  - Сбросить счётчики user_auth_counters
+  - Сбросить счeтчики `user_auth_counters`
 
 - **Backend-правила:**
 
@@ -579,103 +584,108 @@ WHERE id = :id;
 - **Validation**:
 
   - Frontend:
-
-    - password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, trim
+    - password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, `trim`
 
   - Backend:
-
-    - password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, trim
-
+    - password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, `trim`
     - проверка токена
 
 - **Responses**:
 
   - **200 OK** :
-
-> {"message": "Password has been reset successfully. You can now sign in."}
+```json
+{ "message": "Password has been reset successfully. You can now sign in." }
+```
 
 - **400 Bad Request**
-
-> {"message": "Invalid request body"}
+```json
+{ "message": "Invalid request body" }
+```
 
 - **401 Unauthorized**
-
-> {"message": "Reset token has expired or has already been used"}
+```json
+{ "message": "Reset token has expired or has already been used" }
+```
 
 - **404 Not Found**
-
-> {“message”: ”Invalid or unknown reset token”}
+```json
+{ "message": "Invalid or unknown reset token" }
+```
 
 - **SQL**
 
 > Найти валидный reset
->
-> SELECT id, user_id, expires_at, used_at
->
-> FROM password_resets
->
-> WHERE token = :token_hash
->
-> LIMIT 1;
->
-> used_at IS NULL и expires_at \> NOW()
->
+
+```sql
+SELECT id, user_id, expires_at, used_at
+FROM password_resets
+WHERE token = :token_hash
+LIMIT 1;
+
+```
+> `used_at IS NULL` и `expires_at > NOW()`
+
 > Обновляем пароль
->
-> UPDATE users
->
-> SET password_hash = :new_password_hash,
->
-> updated_at = NOW()
->
-> WHERE id = :user_id;
->
+
+```sql
+UPDATE users
+SET password_hash = :new_password_hash,
+    updated_at = NOW()
+WHERE id = :user_id;
+
+```
+
 > Помечаем reset использованным
->
-> UPDATE password_resets
->
-> SET used_at = NOW()
->
-> WHERE id = :reset_id;
->
+
+```sql
+UPDATE password_resets
+SET used_at = NOW()
+WHERE id = :reset_id;
+
+```
+
 > Ревокируем все активные сессии
->
-> UPDATE user_sessions
->
-> SET revoked_at = COALESCE(revoked_at, NOW())
->
-> WHERE user_id = :user_id AND revoked_at IS NULL;
->
+
+```sql
+UPDATE user_sessions
+SET revoked_at = COALESCE(revoked_at, NOW())
+WHERE user_id = :user_id AND revoked_at IS NULL;
+
+```
+
 > Сброс счетчиков
->
-> UPDATE user_auth_counters
->
-> SET failed_attempts = 0, locked_until = NULL
->
-> WHERE user_id = :user_id;
->
+
+```sql
+UPDATE user_auth_counters
+SET failed_attempts = 0, locked_until = NULL
+WHERE user_id = :user_id;
+
+```
+
 > Запись в лог
->
-> INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
->
-> VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
+
+```sql
+INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
+VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
+
+```
 
 ### Организации
 
-POST /orgs регистрация организации
+`POST /orgs` регистрация организации
 
-GET /orgs?q=&status=&country=&page=&limit=  
+`GET /orgs?q=&status=&country=&page=&limit=`  
 получить список организаций
 
-GET /orgs/:orgId получить организацию по id
+`GET /orgs/:orgId` получить организацию по id
 
-PUT /orgs/:orgId редактировать организацию
+`PUT /orgs/:orgId` редактировать организацию
 
-DELETE /orgs/:orgId удалить организацию
+`DELETE /orgs/:orgId` удалить организацию
 
-PUT /orgs/:orgId/status изменить статус организации
+`PUT /orgs/:orgId/status` изменить статус организации
 
-##### Регистрация организации:
+#### Регистрация организации:
 
 Саморегистрация - через лендинг, либо платная, либо бесплатная подписка  
 заполняется форма обратной связи
