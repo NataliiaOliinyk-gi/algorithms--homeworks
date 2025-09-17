@@ -1077,662 +1077,566 @@ LIMIT @limit OFFSET @offset;
 ```
 
 
-#### Получить организацию по id:
+#### Получить организацию по id: `GET /orgs/:orgId`
 
 суперадмин, админ (только своя организация)
 
-- GET /orgs/:orgId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:** `{}`
 
-  - **Body:** {}
+- **Path / Query params:**
 
-  - **Path / Query params:**
+    - `orgId` - целое число
 
-    - orgId - целое число
+- **Backend-правила:**
 
-  - **Backend-правила:**
+  - `orgId` из пути должен совпадать с `org` в JWT  
+      (для `superadmin` - любой `org`)
+  - oрганизация существует
 
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
+- **Validation**:
 
-    - Организация orgId существует
+  - Frontend:
 
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **200 OK**
 
-    - **200 OK**
+```json
+{ 
+  "id": 101,
+  "name": "ICH IT Career Hub",
+  "legal_name": "IT Career Hub GmbH",
+  "country_code": "DE",
+  "status": "active",
+  "created_at": "2025-01-10T09:00:00Z",
+  "updated_at": "2025-01-20T10:00:00Z",
+  "addresses": [
+    {
+      "address_type": "office",
+      "label": null,
+      "line1": "Genthiner Str. 59",
+      "line2": null,
+      "city": "Berlin",
+      "state_region": null,
+      "zip_code": "10686",
+      "country_code": "DE",
+      "timezone": "Europe/Berlin",
+      "is_primary": true,
+      "latitude": null,
+      "longitude": null
+    }
+  ]
+ }
+```
 
-> {
->
-> "id": 101,
->
-> "name": "ICH IT Career Hub",
->
-> "legal_name": "IT Career Hub GmbH",
->
-> "country_code": "DE",
->
-> "status": "active",
->
-> "created_at": "2025-01-10T09:00:00Z",
->
-> "updated_at": "2025-01-20T10:00:00Z",
->
-> "addresses": \[
->
-> {
->
-> "address_type": "office",
->
-> "label": null,
->
-> "line1": "Genthiner Str. 59",
->
-> "line2": null,
->
-> "city": "Berlin",
->
-> "state_region": null,
->
-> "zip_code": "10686",
->
-> "country_code": "DE",
->
-> "timezone": "Europe/Berlin",
->
-> "is_primary": true,
->
-> "latitude": null,
->
-> "longitude": null
->
-> }
->
-> \]
->
-> }
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view this organization." }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
 
 - **SQL**
 
 > Проверка прав доступа
->
-> SELECT 1
->
-> FROM organizations
->
-> WHERE id = :org_id
->
-> AND ( :is_superadmin = 1 OR id = :jwt_org_id )
->
-> LIMIT 1;
->
-> Карточка организации
->
-> SELECT id, name, legal_name, country_code, status, created_at, updated_at
->
-> FROM organizations
->
-> WHERE id = :org_id
->
-> LIMIT 1;
->
-> Адреса
->
-> SELECT address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude
->
-> FROM org_addresses
->
-> WHERE org_id = :org_id
->
-> ORDER BY is_primary DESC, id ASC;
 
-##### Редактировать организацию:
+```sql
+SELECT 1
+FROM organizations 
+WHERE id = :org_id
+  AND ( :is_superadmin = 1 OR id = :jwt_org_id )
+LIMIT 1;
+
+```
+
+> Карточка организации
+
+```sql
+SELECT id, name, legal_name, country_code, status, created_at, updated_at
+FROM organizations
+WHERE id = :org_id
+LIMIT 1;
+
+```
+
+> Адреса
+
+```sql
+SELECT address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude
+FROM org_addresses
+WHERE org_id = :org_id
+ORDER BY is_primary DESC, id ASC;
+
+```
+
+##### Редактировать организацию: `PUT /orgs/:orgId`
 
 суперадмин, админ (только свою организацию)
 
-- PUT /orgs/:orgId
+- **Content-type:** application/json
 
-  - **Content-type:** application/json
+- **Authorization:** Bearer \<jwt\>
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "name": "ICH IT Career Hub",
->
-> "legal_name": "IT Career Hub GmbH",
->
-> "country_code": "DE"
->
-> }
+```json
+{ 
+  "name": "ICH IT Career Hub",
+  "legal_name": "IT Career Hub GmbH",
+  "country_code": "DE"
+ }
+```
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - subjectId - целое число
+  - `orgId` - целое число
 
 - **Бизнес-правила:**
 
-  - name - уникален в системе
-
-  - country_code - ISO-2
+  - `name` - уникален в системе
+  - `country_code` - ISO-2
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и не имеет status='deleted'
-
-  - name - уникален в системе
-
-  - country_code - ISO-2
+  - `orgId` из пути должен совпадать с `org` в JWT  
+    (для `superadmin` - любой `org`)
+  - Организация `orgId` существует и не имеет `status='deleted'`
+  - `name` - уникален в системе
+  - `country_code` - ISO-2
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - name - string\[2..200\], trim
-
-  - legal_name - string\[0..255\], trim
-
-  - country_code - /^\[A-Z\]{2}\$/
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `name` - `string[2..200]`, `trim`
+    - `legal_name` - `string[0..255]`, `trim`
+    - `country_code` - /^\[A-Z\]{2}\$/
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - name - string\[2..200\], trim
-
-    - legal_name - string\[0..255\], trim
-
-    - country_code - /^\[A-Z\]{2}\$/
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `name` - `string[2..200]`, `trim`
+    - `legal_name` - `string[0..255]`, `trim`
+    - `country_code` - /^\[A-Z\]{2}\$/
 
   - DB:
 
-    - name - UNIQUE проверка уникальности
+    - `name` - `UNIQUE` проверка уникальности
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **200 OK**
 
-    - **200 OK**
+```json
+{ 
+  "id": 101,
+  "name": "ICH IT Career Hub",
+  "legal_name": "IT Career Hub GmbH",
+  "country_code": "DE",
+  "status": "active",
+  "created_at": "2025-01-10T09:00:00Z",
+  "updated_at": "2025-01-20T10:00:00Z",
+  "addresses": [
+    {
+      "address_type": "office",
+      "label": null,
+      "line1": "Genthiner Str. 59",
+      "line2": null,
+      "city": "Berlin",
+      "state_region": null,
+      "zip_code": "10686",
+      "country_code": "DE",
+      "timezone": "Europe/Berlin",
+      "is_primary": true,
+      "latitude": null,
+      "longitude": null
+    }
+  ]
+ }
+```
 
-> {
->
-> "id": 101,
->
-> "name": "ICH IT Career Hub",
->
-> "legal_name": "IT Career Hub GmbH",
->
-> "country_code": "DE",
->
-> "status": "active",
->
-> "created_at": "2025-01-10T09:00:00Z",
->
-> "updated_at": "2025-01-20T10:00:00Z",
->
-> "addresses": \[
->
-> {
->
-> "address_type": "office",
->
-> "label": null,
->
-> "line1": "Genthiner Str. 59",
->
-> "line2": null,
->
-> "city": "Berlin",
->
-> "state_region": null,
->
-> "zip_code": "10686",
->
-> "country_code": "DE",
->
-> "timezone": "Europe/Berlin",
->
-> "is_primary": true,
->
-> "latitude": null,
->
-> "longitude": null
->
-> }
->
-> \]
->
-> }
 
-- **400 Bad Request** некорректное тело запроса
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "country_code must be a 2-letter ISO code" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {"message": "country_code must be a 2-letter ISO code"}
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to edit this organization" }
+```
 
-- **401 Unauthorized** токен просрочен
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
 
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to edit this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”The name 'ICH IT Career Hub' is already in use.”}
+  - **409 Conflict** дубликат
+```json
+{ "message": "The name 'ICH IT Career Hub' is already in use." }
+```
 
 - **SQL**
 
 > Право на редактирование
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id
->
-> AND ( :is_superadmin = 1 OR id = :jwt_org_id )
->
-> AND status \<\> 'deleted'
->
-> LIMIT 1;
->
+
+```sql
+SELECT 1 FROM organizations 
+WHERE id = :org_id
+  AND ( :is_superadmin = 1 OR id = :jwt_org_id )
+  AND status <> 'deleted'
+LIMIT 1;
+
+```
+
 > Проверка уникальности name, если name передан
->
-> SELECT 1 FROM organizations
->
-> WHERE name = :name AND id \<\> :org_id
->
-> LIMIT 1;
->
+
+```sql
+SELECT 1 FROM organizations 
+WHERE name = :name AND id <> :org_id
+LIMIT 1;
+
+```
+
 > Обновление
->
-> UPDATE organizations
->
-> SET name = COALESCE(:name, name),
->
-> legal_name = COALESCE(:legal_name, legal_name),
->
-> country_code = COALESCE(:country_code, country_code),
->
-> updated_at = NOW()
->
-> WHERE id = :org_id;
->
+
+```sql
+UPDATE organizations
+SET name         = COALESCE(:name, name),
+    legal_name   = COALESCE(:legal_name, legal_name),
+    country_code = COALESCE(:country_code, country_code),
+    updated_at   = NOW()
+WHERE id = :org_id;
+
+```
+
 > Возврат
->
-> SELECT id, name, legal_name, country_code, status, created_at, updated_at
->
-> FROM organizations
->
-> WHERE id = :org_id
->
-> LIMIT 1;
->
+
+```sql
+SELECT id, name, legal_name, country_code, status, created_at, updated_at
+FROM organizations
+WHERE id = :org_id
+LIMIT 1;
+
+```
+
 > Адреса
->
-> SELECT address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude
->
-> FROM org_addresses
->
-> WHERE org_id = :org_id
->
-> ORDER BY is_primary DESC, id ASC;
 
-##### Удалить организацию:
+```sql
+SELECT address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude
+FROM org_addresses
+WHERE org_id = :org_id
+ORDER BY is_primary DESC, id ASC;
 
-суперадмин
+```
 
-- DELETE /orgs/:orgId
-
-  - **Content-type:** application/json
-
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:** {}
-
-  - **Path / Query params:**
-
-    - orgId - целое число
-
-  - **Бизнес-правила:**
-
-    - Не удаляем, если существует текущая подписка (is_current=1) из current_period_end \> NOW()
-
-    - Мягкое удаление: status='deleted'
-
-    - Повторное удаление — idempotent (если уже deleted - возвращаем 200 с тем же статусом)
-
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
-
-    - Организация orgId существует
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK** организация деактивирована
-
-> {
->
-> "id": 101,
->
-> "name": "ICH IT Career Hub",
->
-> "status": "deleted",
->
-> "deleted_at": "2025-09-02T10:11:12Z"
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: Only superadmins can delete organizations.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
-
-- **409 Conflict** есть активная подписка
-
-> {“message”: ”Deletion blocked: the organization has an active subscription. Deletion is not allowed while a subscription is active.”}
-
-- **SQL**
-
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id
->
-> LIMIT 1;
->
-> Проверка на подписку
->
-> SELECT id, status, current_period_end, cancel_at_period_end
->
-> FROM org_subscriptions
->
-> WHERE org_id = :org_id
->
-> AND is_current = 1
->
-> AND status IN ('trialing','active','past_due','paused')
->
-> AND current_period_end \> NOW()
->
-> LIMIT 1;
->
-> если вернулась строка -\> 409 Conflict
->
-> Обновление статуса
->
-> UPDATE organizations
->
-> SET status = 'deleted',
->
-> approved_by = NULL,
->
-> approved_at = NULL,
->
-> updated_at = NOW()
->
-> WHERE id = :org_id;
->
-> Ответ
->
-> SELECT id, name, status, NOW() AS deleted_at
->
-> FROM organizations
->
-> WHERE id = :org_id
->
-> LIMIT 1;
-
-##### Изменить статус организации 
+##### Удалить организацию: `DELETE /orgs/:orgId`
 
 суперадмин
 
-- PUT /orgs/:orgId/status
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:**
-
-> {
->
-> "status": "active"
->
-> }
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
 
 - **Бизнес-правила:**
 
-  - Поддерживаемые значения: active, pending, suspended
-
-  - Разрешенные переходы:
-
-    - pending → active
-
-    - active → suspended
-
-    - suspended → active
-
-  - При переводе в active из pending — проставляем approved_by = текущий супер-админ, approved_at = NOW()
-
-  - В pending из active/suspended возвращать нельзя
+  - Не удаляем, если существует текущая подписка (`is_current=1`) из `current_period_end > NOW()`
+  - Мягкое удаление: `status='deleted'`
+  - Повторное удаление — `idempotent` (если уже `deleted` - возвращаем 200 с тем же статусом)
 
 - **Backend-правила:**
 
-  - Только superadmin
-
-  - Организация orgId существует
-
-  - Для deleted — 409
+  - `orgId` из пути должен совпадать с `org` в JWT  
+      (для `superadmin` - любой org)
+  - Организация `orgId` существует
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-- status - active\|pending\|suspended
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - status - active\|pending\|suspended
+- **Responses**:
 
-  <!-- -->
+  - **200 OK** организация деактивирована
 
-  - **Responses**:
+```json
+{ 
+  "id": 101,
+  "name": "ICH IT Career Hub",
+  "status": "deleted",
+  "deleted_at": "2025-09-02T10:11:12Z"
+ }
+```
 
-    - **200 OK**
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
 
-> {
->
-> "id": 101,
->
-> "name": "ICH IT Career Hub",
->
-> "status": "active",
->
-> "approved_by": 1,
->
-> "approved_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> }
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid status value. Must be one of \[active,pending,suspended\].”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: Only superadmins can delete organizations." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: Only superadmins can update organization status.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
-
-- **409 Conflict** есть активная подписка
-
-> {“message”: ”Invalid status transition.”}
->
-> {“message”: ”Organization is deleted and cannot change status.”}
+  - **409 Conflict** есть активная подписка
+```json
+{ "message": "Deletion blocked: the organization has an active subscription. Deletion is not allowed while a subscription is active" }
+```
 
 - **SQL**
 
 > Проверка организации
->
-> SELECT status FROM organizations
->
-> WHERE id = :org_id
->
-> LIMIT 1;
->
-> если status = 'deleted' -\> 409
->
-> Обновление статуса
->
-> UPDATE organizations
->
-> SET status = :new_status,
->
-> approved_by = CASE
->
-> WHEN :new_status = 'active' AND @old_status = 'pending' THEN :current_user_id
->
-> ELSE approved_by
->
-> END,
->
-> approved_at = CASE
->
-> WHEN :new_status = 'active' AND @old_status = 'pending' THEN NOW()
->
-> ELSE approved_at
->
-> END,
->
-> updated_at = NOW()
->
-> WHERE id = :org_id;
->
-> Ответ
->
-> SELECT id, name, status, approved_by, approved_at, updated_at
->
-> FROM organizations
->
-> WHERE id = :org_id
->
-> LIMIT 1;
 
-#### Роли
+```sql
+SELECT 1 FROM organizations 
+WHERE id = :org_id 
+LIMIT 1;
+
+```
+
+> Проверка на подписку
+
+```sql
+SELECT id, status, current_period_end, cancel_at_period_end
+FROM org_subscriptions
+WHERE org_id = :org_id
+  AND is_current = 1
+  AND status IN ('trialing','active','past_due','paused')
+  AND current_period_end > NOW()
+LIMIT 1;
+
+```
+> если вернулась строка -\> 409 Conflict
+
+> Обновление статуса
+
+```sql
+UPDATE organizations
+SET status = 'deleted',
+    approved_by = NULL,
+    approved_at = NULL,
+    updated_at = NOW()
+WHERE id = :org_id;
+
+```
+
+> Ответ
+```sql
+SELECT id, name, status, NOW() AS deleted_at
+FROM organizations
+WHERE id = :org_id
+LIMIT 1;
+
+```
+
+##### Изменить статус организации  `PUT /orgs/:orgId/status`
+
+суперадмин
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:**
+
+```json
+{ 
+  "status": "active"
+ }
+```
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+
+- **Бизнес-правила:**
+
+  - Поддерживаемые значения: `active, pending, suspended`
+  - Разрешенные переходы:
+    - `pending` → `active`
+    - `active` → `suspended`
+    - `suspended` → `active`
+  - При переводе в `active` из `pending` — проставляем `approved_by` = текущий супер-админ, `approved_at = NOW()`
+  - В `pending` из `active/suspended` возвращать нельзя
+
+- **Backend-правила:**
+
+  - Только `superadmin`
+  - Организация `orgId` существует
+  - Для `deleted` — `409`
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `status` - `active|pending|suspended`
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `status` - `active|pending|suspended`
+
+- **Responses**:
+
+  - **200 OK**
+
+```json
+{ 
+  "id": 101,
+  "name": "ICH IT Career Hub",
+  "status": "active",
+  "approved_by": 1,
+  "approved_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z"
+}
+```
+
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid status value. Must be one of [active,pending,suspended]." }
+```
+
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: Only superadmins can update organization status." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+
+  - **409 Conflict** есть активная подписка
+```json
+{ "message": "Invalid status transition." }
+```
+```json
+{ "message": "Organization is deleted and cannot change status." }
+```
+
+- **SQL**
+
+> Проверка организации
+
+```sql
+SELECT status FROM organizations 
+WHERE id = :org_id 
+LIMIT 1;
+
+```
+> если status = 'deleted' -\> 409
+
+> Обновление статуса
+
+```sql
+UPDATE organizations
+SET status = :new_status,
+    approved_by = CASE 
+        WHEN :new_status = 'active' AND @old_status = 'pending' THEN :current_user_id
+        ELSE approved_by
+    END,
+    approved_at = CASE 
+        WHEN :new_status = 'active' AND @old_status = 'pending' THEN NOW()
+        ELSE approved_at
+    END,
+    updated_at = NOW()
+WHERE id = :org_id;
+
+```
+
+> Ответ
+
+```sql
+SELECT id, name, status, approved_by, approved_at, updated_at
+FROM organizations
+WHERE id = :org_id
+LIMIT 1;
+
+```
+
+### Роли
 
 GET /roles получить список ролей
 
