@@ -749,16 +749,14 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 
   - Frontend:
 
-  - **organization**
+    - **organization**
 
       - `name` - `string[2..200]` - обязательное поле
       - `legal_name` - `string[0..255]` опционально
-      - `country_code` - `string == /^[A-Z]{2}\$/ `
-        только `ISO-3166-1` (DE, UA, PL, FR, …)
-      - `signup_source` - `string[0..50] ` 
-        (опционально, например `self|admin|import`)
+      - `country_code` - `string == /^[A-Z]{2}\$/ ` только `ISO-3166-1` (DE, UA, PL, FR, …)
+      - `signup_source` - `string[0..50] ` (опционально, например `self|admin|import`)
 
-  - **org_address**
+    - **org_address**
 
       - `address_type` - в наборе: `registered|office|campus|billing|other`
       - `line1` - `string[1..200]` - обязательное поле
@@ -767,7 +765,7 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
       - `timezone` -`string[1..50]` из списка IANA
       - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
 
-  - **admin**
+    - **admin**
 
       - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
       - `full_name` - `string[1..150]` - обязательное поле
@@ -783,14 +781,12 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 
   - Backend:
 
-  - **organization**
+    - **organization**
 
       - `name` - `string[2..200]` - обязательное поле
       - `legal_name` - `string[0..255]` опционально
-      - `country_code` - `string == /^[A-Z]{2}\$/ `
-        только `ISO-3166-1` (DE, UA, PL, FR, …)
-      - `signup_source` - `string[0..50] ` 
-        (опционально, например `self|admin|import`)
+      - `country_code` - `string == /^[A-Z]{2}\$/ ` только `ISO-3166-1` (DE, UA, PL, FR, …)
+      - `signup_source` - `string[0..50] ` (опционально, например `self|admin|import`)
 
     - **org_address**
 
