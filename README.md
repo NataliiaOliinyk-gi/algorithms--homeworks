@@ -97,11 +97,11 @@
 
 Публично (без авторизации)
 
-- `POST /auth/login`
+**`POST /auth/login`**
 
-  - **Content-type:** `application/json`
+- **Content-type:** `application/json`
 
-  - **Body:**
+- **Body:**
 
 ```json
 {
@@ -153,7 +153,7 @@
  }
 ```
 
-- **200 OK** (MFA требуется):
+  - **200 OK** (MFA требуется):
 
 ```json
 { "mfa_required": true,
@@ -162,19 +162,19 @@
  }
 ```
 
-- **400 Bad Request** некорректное тело запроса
+  - **400 Bad Request** некорректное тело запроса
 ```json
  {"message": "Invalid request body"}
 ```
-- **401 Unauthorized** не различаем неверный email/пароль
+  - **401 Unauthorized** не различаем неверный email/пароль
 ```json
  {"message": "Invalid email or password"}
 ```
-- **403 Forbidden** аккаунт заблокирован/удален
+  - **403 Forbidden** аккаунт заблокирован/удален
 ```json
  {"message": "Account is not allowed to sign in."}
 ```
-- **429 Too Many Requests**
+  - **429 Too Many Requests**
 ```json
  {"message": "Too many login attempts. Please try again later."}
 ```
@@ -231,7 +231,6 @@ INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, FALSE, 'INVALID_CREDENTIALS', NOW());
 ```
 
-
 > Если OK и MFA включена -\> mfa_token из кода
 > и запись в лог
 
@@ -267,11 +266,11 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
 Публично (по mfa_token)
 
-- `POST /auth/mfa/verify`
+**`POST /auth/mfa/verify`**
 
-  - **Content-type:** `application/json`
+- **Content-type:** `application/json`
 
-  - **Body:**
+- **Body:**
 
 ```json
 {
@@ -322,13 +321,13 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
  }
 ```
 
-- **400 Bad Request** некорректное тело запроса
+  - **400 Bad Request** некорректное тело запроса
 
 ```json
 { "message": "Invalid MFA token" }
 ```
 
-- **401 Unauthorized**
+  - **401 Unauthorized**
 ```json
 { "message": "Invalid or incorrect MFA code" }
 ```
@@ -336,12 +335,12 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 { "message": "MFA code has expired" }
 ```
 
-- **403 Forbidden**
+  - **403 Forbidden**
 ```json
 { "message": "MFA is not enabled for this account" }
 ```
 
-- **429 Too Many Requests**
+  - **429 Too Many Requests**
 ```json
 { "message": "Too many login attempts. Please try again later." }
 ```
@@ -423,32 +422,30 @@ WHERE id = :id;
 
 Авторизован (любой пользователь)
 
-- `POST /auth/logout`
+**`POST /auth/logout`**
 
-  - **Content-type:** `application/json`
+- **Content-type:** `application/json`
 
-  - **Authorization:** `Bearer <jwt>`
+- **Authorization:** `Bearer <jwt>`
 
-  - **Body:** `{}`
+- **Body:** `{}`
 
-  - **Validation**:
+- **Validation**:
 
-    - Frontend: нет параметров
-    - Backend: нет параметров
+  - Frontend: нет параметров
+  - Backend: нет параметров
 
-  - **Responses**:
+- **Responses**:
 
-    - **200 OK**
+  - **200 OK**
 ```json
 { "message": "Logged out" }
 ```
-
-- **401 Unauthorized** отсутствует Authorization
+  - **401 Unauthorized** отсутствует Authorization
 ```json
 { "message": "Authorization header missing" }
 ```
-
-- **401 Unauthorized** токен просрочен
+  - **401 Unauthorized** токен просрочен
 ```json
 { "message": "jwt expired" }
 ```
@@ -477,11 +474,11 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 
 Публично (без авторизации)
 
-- `POST /auth/password/forgot`
+**`POST /auth/password/forgot`**
 
-  - **Content-type:** `application/json`
+- **Content-type:** `application/json`
 
-  - **Body:**
+- **Body:**
 
 ```json
 { "email": "user@example.com" }
@@ -514,12 +511,12 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 { "message": "If an account with this email exists, you will receive a password reset link shortly." }
 ```
 
-- **400 Bad Request** некорректное тело запроса
+  - **400 Bad Request** некорректное тело запроса
 ```json
 { "message": "Invalid request body" }
 ```
 
-- **429 Too Many Requests**
+  - **429 Too Many Requests**
 ```json
 { "message": "Too many login attempts. Please try again later." }
 ```
@@ -556,11 +553,11 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 
 Публично (без авторизации)
 
-- `POST /auth/password/reset`
+**`POST /auth/password/reset`**
 
-  - **Content-type:** `application/json`
+- **Content-type:** `application/json`
 
-  - **Body:**
+- **Body:**
 
 ```json
 { 
@@ -597,17 +594,17 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 { "message": "Password has been reset successfully. You can now sign in." }
 ```
 
-- **400 Bad Request**
+  - **400 Bad Request**
 ```json
 { "message": "Invalid request body" }
 ```
 
-- **401 Unauthorized**
+  - **401 Unauthorized**
 ```json
 { "message": "Reset token has expired or has already been used" }
 ```
 
-- **404 Not Found**
+  - **404 Not Found**
 ```json
 { "message": "Invalid or unknown reset token" }
 ```
@@ -689,13 +686,13 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 Саморегистрация - через лендинг, либо платная, либо бесплатная подписка  
 заполняется форма обратной связи
 
-- `POST /orgs`
+**`POST /orgs`**
 
-  - **Content-type:** `application/json`
+- **Content-type:** `application/json`
 
-  - **Authorization:** отсутствует
+- **Authorization:** отсутствует
 
-  - **Body:**
+- **Body:**
 
 ```json
 { 
@@ -754,90 +751,89 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 
   **organization**
 
-  - `name` - `string[2..200]` - обязательное поле
-  - `legal_name` - `string[0..255]` опционально
-  - `country_code` - `string == /^[A-Z]{2}\$/ `
-      только `ISO-3166-1` (DE, UA, PL, FR, …)
-  - `signup_source` - `string[0..50] ` 
-      (опционально, например `self|admin|import`)
+    - `name` - `string[2..200]` - обязательное поле
+    - `legal_name` - `string[0..255]` опционально
+    - `country_code` - `string == /^[A-Z]{2}\$/ `
+       только `ISO-3166-1` (DE, UA, PL, FR, …)
+    - `signup_source` - `string[0..50] ` 
+        (опционально, например `self|admin|import`)
 
   **org_address**
 
-  - `address_type` - в наборе: `registered|office|campus|billing|other`
-  - `line1` - `string[1..200]` - обязательное поле
-  - `city`  - `string[1..100]` - обязательное поле
-  - `country_code` - `ISO-2` - обязательное поле
-  - `timezone` -`string[1..50]` из списка IANA
-  - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
+    - `address_type` - в наборе: `registered|office|campus|billing|other`
+    - `line1` - `string[1..200]` - обязательное поле
+    - `city`  - `string[1..100]` - обязательное поле
+    - `country_code` - `ISO-2` - обязательное поле
+    - `timezone` -`string[1..50]` из списка IANA
+    - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
 
- **admin**
+  **admin**
 
-  - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
-  - `full_name` - `string[1..150]` - обязательное поле
-  - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
-  - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
+    - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
+    - `full_name` - `string[1..150]` - обязательное поле
+    - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
+    - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
 
- **admin_profile** опционально
+  **admin_profile** опционально
 
-  - `date_of_birth` - ISO `YYYY-MM-DD`
-  - `phone` - E.164 (рекомендуется)
-  - Address-поля - обычные строки с лимитами длины
-
-
-- Backend:
-
-**organization**
-
-  - `name` - `string[2..200]` - обязательное поле
-  - `legal_name` - `string[0..255]` опционально
-  - `country_code` - `string == /^[A-Z]{2}\$/ `
-      только `ISO-3166-1` (DE, UA, PL, FR, …)
-  - `signup_source` - `string[0..50] ` 
-      (опционально, например `self|admin|import`)
-
-  **org_address**
-
-  - `address_type` - в наборе: `registered|office|campus|billing|other`
-  - `line1` - `string[1..200]` - обязательное поле
-  - `city`  - `string[1..100]` - обязательное поле
-  - `country_code` - `ISO-2` - обязательное поле
-  - `timezone` -`string[1..50]` из списка IANA
-  - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
-
- **admin**
-
-  - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
-  - `full_name` - `string[1..150]` - обязательное поле
-  - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
-  - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
-
- **admin_profile** опционально
-
-  - `date_of_birth` - ISO `YYYY-MM-DD`
-  - `phone` - E.164 (рекомендуется)
-  - Address-поля - обычные строки с лимитами длины
+    - `date_of_birth` - ISO `YYYY-MM-DD`
+    - `phone` - E.164 (рекомендуется)
+    - Address-поля - обычные строки с лимитами длины
 
 
-- DB: проверка уникальности полей:
+  - Backend:
+
+  **organization**
+
+    - `name` - `string[2..200]` - обязательное поле
+    - `legal_name` - `string[0..255]` опционально
+    - `country_code` - `string == /^[A-Z]{2}\$/ `
+        только `ISO-3166-1` (DE, UA, PL, FR, …)
+    - `signup_source` - `string[0..50] ` 
+        (опционально, например `self|admin|import`)
+
+    **org_address**
+
+    - `address_type` - в наборе: `registered|office|campus|billing|other`
+    - `line1` - `string[1..200]` - обязательное поле
+    - `city`  - `string[1..100]` - обязательное поле
+    - `country_code` - `ISO-2` - обязательное поле
+    - `timezone` -`string[1..50]` из списка IANA
+    - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
+
+    **admin**
+
+    - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
+    - `full_name` - `string[1..150]` - обязательное поле
+    - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
+    - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
+
+    **admin_profile** опционально
+
+    - `date_of_birth` - ISO `YYYY-MM-DD`
+    - `phone` - E.164 (рекомендуется)
+    - Address-поля - обычные строки с лимитами длины
+
+  - DB: проверка уникальности полей:
 
     - `name` - для организации
     - `email` - для юзера (админа)
 
 
-  - **Responses**:
+- **Responses**:
 
-    - **201 Created** организация + админ созданы
+  - **201 Created** организация + админ созданы
 
 ```json
 { "message": "Welcome! You have successfully registered with the email admin@itcareerhub.de. \nPlease confirm your email by clicking the link sent to your inbox." }
 ```
 
-- **400 Bad Request** некорректное тело запроса
+  - **400 Bad Request** некорректное тело запроса
 ```json
 { "message": "fullName is a required field" }
 ```
 
-- **409 Conflict** дубликаты
+  - **409 Conflict** дубликаты
 ```json
 { "message": "The name 'ICH IT Career Hub' is already in use." }
 ```
@@ -956,7 +952,7 @@ SET @org_subscription_id = LAST_INSERT_ID();
 
 суперадмин
 
-- `GET /orgs?q=&status=&country=&page=&limit=`
+**`GET /orgs?q=&status=&country=&page=&limit=`**
 
  `q` - поиск по `name/legal_name` (опционально)
  `status` - `active|pending|suspended|deleted` (опционально)
@@ -1033,22 +1029,22 @@ SET @org_subscription_id = LAST_INSERT_ID();
  }
 ```
 
-- **400 Bad Request** некорректное тело запроса
+  - **400 Bad Request** некорректное тело запроса
 ```json
 { "message": "Invalid query parameter: status must be one of [active,pending,suspended,deleted]" }
 ```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **401 Unauthorized** отсутствует Authorization
 ```json
 { "message": "Authorization header missing" }
 ```
 
-- **401 Unauthorized** токен просрочен
+  - **401 Unauthorized** токен просрочен
 ```json
 { "message": "jwt expired" }
 ```
 
-- **403 Forbidden** отказано в доступе
+  - **403 Forbidden** отказано в доступе
 ```json
 { "message": "Permission denied: You are not allowed to view organizations." }
 ```
