@@ -129,20 +129,21 @@
 
   - Frontend:
 
-    - `email` - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, trim
-    - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, trim
+    - `email` - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, `trim`
+    - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, `trim`
 
   - Backend:
 
-    - `email` - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, trim
-    - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, trim
+    - `email` - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, `trim`
+    - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, `trim`
 
 - **Responses**:
 
   - **200 OK** (MFA не требуется):
 
 ```json
-{ "user": { 
+{ "user": 
+  { 
     "id": 1054, 
     "email": "user@example.com", 
     "full_name": "Ivan Petrov" 
@@ -210,7 +211,6 @@ ON DUPLICATE KEY UPDATE user_id = user_id;
 > если locked_until \> NOW() -\> 429
 
 > Если неверный пароль
-
 > счетчик
 
 ```sql
@@ -267,179 +267,154 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
 Публично (по mfa_token)
 
-- POST /auth/mfa/verify
+- `POST /auth/mfa/verify`
 
-  - **Content-type:** application/json
+  - **Content-type:** `application/json`
 
   - **Body:**
 
-> {
->
-> "type": "totp\|sms\|email\|webauthn\|backup_code",
->
-> "code": "123456",
->
-> "mfa_token": "\<token\>"
->
-> }
+```json
+{"type": "totp|sms|email|webauthn|backup_code", 
+  "code": "123456", 
+  "mfa_token": "<token>"
+}
+```
 
 - **Бизнес-правила:**
 
-  - mfa_token валиден, не просрочен, не использован, привязан к user_id
-
+  - `mfa_token` валиден, не просрочен, не использован, привязан к `user_id`
   - Проверка кода:
-
-    - totp: вычислить по секрету из user_mfa (в коде)
-
-    - sms/email: проверить с текущим активным кодом/окном
-
-    - webauthn: проверить через WebAuthn (в коде)
-
-    - backup_code: найти хэш в user_mfa_backup_codes, не использован - отметить used_at=NOW()
-
-  - В случае успеха: создать user_sessions, выдать access_token
-
-  - Лимит неправильных MFA-попыток (аналогично login)
+    - `totp`: вычислить по секрету из `user_mfa` (в коде)
+    - `sms/email`: проверить с текущим активным кодом
+    - `webauthn`: проверить через WebAuthn (в коде)
+    - `backup_code`: найти хэш в `user_mfa_backup_codes`, не использован - отметить `used_at=NOW()`
+  - В случае успеха: создать `user_sessions`, выдать `access_token`
+  - Лимит неправильных MFA-попыток (аналогично `login`)
 
 - **Validation**:
 
   - Frontend:
 
-    - type - totp\|sms\|email\|webauthn\|backup_code - обязательное поле
-
-    - code - string - формат зависи от типа, обязательное поле
-
-    - mfa_token - string - обязательное поле
+    - `type` - `totp\|sms\|email\|webauthn\|backup_code`- обязательное поле
+    - `code` - `string` - формат зависи от типа, обязательное поле
+    - `mfa_token` - `string` - обязательное поле
 
   - Backend:
 
-    - type - totp\|sms\|email\|webauthn\|backup_code - обязательное поле
-
-    - code - string - формат зависи от типа, обязательное поле
-
-    - mfa_token - string - обязательное поле
+    - `type` - `totp\|sms\|email\|webauthn\|backup_code`- обязательное поле
+    - `code` - `string` - формат зависи от типа, обязательное поле
+    - `mfa_token` - `string` - обязательное поле
 
 - **Responses**:
 
   - **200 OK**
 
-> {
->
-> "user": {
->
-> "id": 1054,
->
-> "email": "user@example.com",
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "access_token": "\<jwt\>",
->
-> "token_type": "Bearer",
->
-> }
+```json
+{ "user": 
+  { 
+  "id": 1054, 
+  "email": "user@example.com", 
+  "full_name": "Ivan Petrov" 
+  },
+  "access_token": "<jwt>",
+  "token_type": "Bearer",
+ }
+```
 
 - **400 Bad Request** некорректное тело запроса
 
-> {"message": "Invalid MFA token"}
+```json
+{ "message": "Invalid MFA token" }
+```
 
 - **401 Unauthorized**
-
-> {"message": "Invalid or incorrect MFA code"}
->
-> {"message": "MFA code has expired"}
+```json
+{ "message": "Invalid or incorrect MFA code" }
+```
+```json
+{ "message": "MFA code has expired" }
+```
 
 - **403 Forbidden**
-
-> {“message”: ”MFA is not enabled for this account”}
+```json
+{ "message": "MFA is not enabled for this account" }
+```
 
 - **429 Too Many Requests**
-
-> {“message”: ”Too many login attempts. Please try again later.”}
+```json
+{ "message": "Too many login attempts. Please try again later." }
+```
 
 - **SQL**
 
 > Достаем настройки MFA
->
-> SELECT type, secret, enabled
->
-> FROM user_mfa
->
-> WHERE user_id = :user_id;
->
+
+```sql
+SELECT type, secret, enabled
+FROM user_mfa
+WHERE user_id = :user_id;
+
+```
+
 > Для backup-кода
->
-> SELECT id, code_hash, used_at
->
-> FROM user_mfa_backup_codes
->
-> WHERE user_id = :user_id
->
-> AND code_hash = :code_hash
->
-> LIMIT 1;
->
+
+```sql
+SELECT id, code_hash, used_at
+FROM user_mfa_backup_codes
+WHERE user_id = :user_id
+  AND code_hash = :code_hash
+LIMIT 1;
+
+```
 > Если found && used_at IS NULL -\> OK
->
+
 > Неудачная проверка кода -\> инкремент + лог
->
-> UPDATE user_auth_counters
->
-> SET failed_attempts = failed_attempts + 1,
->
-> last_failed_at = NOW(),
->
-> updated_at = NOW(),
->
-> locked_until = CASE
->
-> WHEN failed_attempts + 1 \>= :max_attempts
->
-> THEN DATE_ADD(NOW(), INTERVAL :lock_minutes MINUTE)
->
-> ELSE locked_until
->
-> END
->
-> WHERE user_id = :user_id;
->
-> INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
->
-> VALUES (:user_id, :email, :ip, :ua, FALSE, 'MFA_INVALID', NOW());
->
+
+```sql
+UPDATE user_auth_counters
+SET failed_attempts = failed_attempts + 1,
+    last_failed_at  = NOW(),
+    updated_at      = NOW(),
+    locked_until    = CASE
+      WHEN failed_attempts + 1 >= :max_attempts
+        THEN DATE_ADD(NOW(), INTERVAL :lock_minutes MINUTE)
+      ELSE locked_until
+    END
+WHERE user_id = :user_id;
+
+
+INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
+VALUES (:user_id, :email, :ip, :ua, FALSE, 'MFA_INVALID', NOW());
+
+```
+
 > Успех -\> создать сессию, сбросить счетчики, залогировать
->
-> INSERT INTO user_sessions (user_id, token_hash, ip, ua, created_at, last_seen_at, expires_at, revoked_at)
->
-> VALUES (:user_id, :token_hash, :ip, :ua, NOW(), NOW(), DATE_ADD(NOW(), INTERVAL :session_hours HOUR), NULL);
->
-> UPDATE user_auth_counters
->
-> SET failed_attempts = 0,
->
-> locked_until = NULL,
->
-> updated_at = NOW()
->
-> WHERE user_id = :user_id;
->
-> INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
->
-> VALUES (:user_id, :email, :ip, :ua, TRUE, 'MFA_SUCCESS', NOW());
->
+
+```sql
+INSERT INTO user_sessions (user_id, token_hash, ip, ua, created_at, last_seen_at, expires_at, revoked_at)
+VALUES (:user_id, :token_hash, :ip, :ua, NOW(), NOW(), DATE_ADD(NOW(), INTERVAL :session_hours HOUR), NULL);
+
+UPDATE user_auth_counters
+SET failed_attempts = 0,
+    locked_until    = NULL,
+    updated_at      = NOW()
+WHERE user_id = :user_id;
+
+INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
+VALUES (:user_id, :email, :ip, :ua, TRUE, 'MFA_SUCCESS', NOW());
+
+```
+
 > Для backup-кода помечаем использованный
->
-> UPDATE user_mfa_backup_codes
->
-> SET used_at = NOW(),
->
-> used_ip = :ip,
->
-> used_session_id = LAST_INSERT_ID()
->
-> WHERE id = :id;
+
+```sql
+UPDATE user_mfa_backup_codes
+SET used_at = NOW(),
+    used_ip = :ip,
+    used_session_id = LAST_INSERT_ID()
+WHERE id = :id;
+
+```
 
 #### Выход:
 
