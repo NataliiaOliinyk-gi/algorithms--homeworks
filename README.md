@@ -97,7 +97,7 @@
 
 Публично (без авторизации)
 
-**`POST /auth/login`**
+##### `POST /auth/login`
 
 - **Content-type:** `application/json`
 
@@ -266,7 +266,7 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
 Публично (по mfa_token)
 
-**`POST /auth/mfa/verify`**
+##### `POST /auth/mfa/verify`
 
 - **Content-type:** `application/json`
 
@@ -422,7 +422,7 @@ WHERE id = :id;
 
 Авторизован (любой пользователь)
 
-**`POST /auth/logout`**
+##### `POST /auth/logout`
 
 - **Content-type:** `application/json`
 
@@ -474,7 +474,7 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 
 Публично (без авторизации)
 
-**`POST /auth/password/forgot`**
+##### `POST /auth/password/forgot`
 
 - **Content-type:** `application/json`
 
@@ -553,7 +553,7 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 
 Публично (без авторизации)
 
-**`POST /auth/password/reset`**
+##### `POST /auth/password/reset`
 
 - **Content-type:** `application/json`
 
@@ -686,7 +686,7 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 Саморегистрация - через лендинг, либо платная, либо бесплатная подписка  
 заполняется форма обратной связи
 
-**`POST /orgs`**
+##### `POST /orgs`
 
 - **Content-type:** `application/json`
 
@@ -749,70 +749,70 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 
   - Frontend:
 
-  **organization**
+  - **organization**
 
-    - `name` - `string[2..200]` - обязательное поле
-    - `legal_name` - `string[0..255]` опционально
-    - `country_code` - `string == /^[A-Z]{2}\$/ `
-       только `ISO-3166-1` (DE, UA, PL, FR, …)
-    - `signup_source` - `string[0..50] ` 
+      - `name` - `string[2..200]` - обязательное поле
+      - `legal_name` - `string[0..255]` опционально
+      - `country_code` - `string == /^[A-Z]{2}\$/ `
+        только `ISO-3166-1` (DE, UA, PL, FR, …)
+      - `signup_source` - `string[0..50] ` 
         (опционально, например `self|admin|import`)
 
-  **org_address**
+  - **org_address**
 
-    - `address_type` - в наборе: `registered|office|campus|billing|other`
-    - `line1` - `string[1..200]` - обязательное поле
-    - `city`  - `string[1..100]` - обязательное поле
-    - `country_code` - `ISO-2` - обязательное поле
-    - `timezone` -`string[1..50]` из списка IANA
-    - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
+      - `address_type` - в наборе: `registered|office|campus|billing|other`
+      - `line1` - `string[1..200]` - обязательное поле
+      - `city`  - `string[1..100]` - обязательное поле
+      - `country_code` - `ISO-2` - обязательное поле
+      - `timezone` -`string[1..50]` из списка IANA
+      - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
 
-  **admin**
+  - **admin**
 
-    - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
-    - `full_name` - `string[1..150]` - обязательное поле
-    - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
-    - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
+      - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
+      - `full_name` - `string[1..150]` - обязательное поле
+      - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
+      - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
 
-  **admin_profile** опционально
+    - **admin_profile** опционально
 
-    - `date_of_birth` - ISO `YYYY-MM-DD`
-    - `phone` - E.164 (рекомендуется)
-    - Address-поля - обычные строки с лимитами длины
+      - `date_of_birth` - ISO `YYYY-MM-DD`
+      - `phone` - E.164 (рекомендуется)
+      - Address-поля - обычные строки с лимитами длины
 
 
   - Backend:
 
-  **organization**
+  - **organization**
 
-    - `name` - `string[2..200]` - обязательное поле
-    - `legal_name` - `string[0..255]` опционально
-    - `country_code` - `string == /^[A-Z]{2}\$/ `
+      - `name` - `string[2..200]` - обязательное поле
+      - `legal_name` - `string[0..255]` опционально
+      - `country_code` - `string == /^[A-Z]{2}\$/ `
         только `ISO-3166-1` (DE, UA, PL, FR, …)
-    - `signup_source` - `string[0..50] ` 
+      - `signup_source` - `string[0..50] ` 
         (опционально, например `self|admin|import`)
 
-    **org_address**
+    - **org_address**
 
-    - `address_type` - в наборе: `registered|office|campus|billing|other`
-    - `line1` - `string[1..200]` - обязательное поле
-    - `city`  - `string[1..100]` - обязательное поле
-    - `country_code` - `ISO-2` - обязательное поле
-    - `timezone` -`string[1..50]` из списка IANA
-    - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
+      - `address_type` - в наборе: `registered|office|campus|billing|other`
+      - `line1` - `string[1..200]` - обязательное поле
+      - `city`  - `string[1..100]` - обязательное поле
+      - `country_code` - `ISO-2` - обязательное поле
+      - `timezone` -`string[1..50]` из списка IANA
+      - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
 
-    **admin**
+    - **admin**
 
-    - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
-    - `full_name` - `string[1..150]` - обязательное поле
-    - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
-    - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
+      - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
+      - `full_name` - `string[1..150]` - обязательное поле
+      - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
+      - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
 
-    **admin_profile** опционально
+    - **admin_profile** опционально
 
-    - `date_of_birth` - ISO `YYYY-MM-DD`
-    - `phone` - E.164 (рекомендуется)
-    - Address-поля - обычные строки с лимитами длины
+      - `date_of_birth` - ISO `YYYY-MM-DD`
+      - `phone` - E.164 (рекомендуется)
+      - Address-поля - обычные строки с лимитами длины
 
   - DB: проверка уникальности полей:
 
@@ -952,13 +952,13 @@ SET @org_subscription_id = LAST_INSERT_ID();
 
 суперадмин
 
-**`GET /orgs?q=&status=&country=&page=&limit=`**
+##### `GET /orgs?q=&status=&country=&page=&limit=`
 
- `q` - поиск по `name/legal_name` (опционально)
- `status` - `active|pending|suspended|deleted` (опционально)
- `country` - ISO-2 (опционально)
- `page` - номер страницы, по умолчанию 1
- `limit` - количество на странице (по умолчанию 50, ≤ 200)
+ `q` - поиск по `name/legal_name` (опционально)  
+ `status` - `active|pending|suspended|deleted` (опционально)  
+ `country` - ISO-2 (опционально)  
+ `page` - номер страницы, по умолчанию 1  
+ `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
 - **Content-type:** `application/json`
 
