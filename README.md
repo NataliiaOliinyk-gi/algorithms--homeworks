@@ -484,7 +484,7 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
   - **Body:**
 
 ```json
-{ "email": "user@example.com", }
+{ "email": "user@example.com" }
 ```
 
 - **Бизнес-правила:**
@@ -674,8 +674,7 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 
 `POST /orgs` регистрация организации
 
-`GET /orgs?q=&status=&country=&page=&limit=`  
-получить список организаций
+`GET /orgs?q=&status=&country=&page=&limit=`  получить список организаций
 
 `GET /orgs/:orgId` получить организацию по id
 
