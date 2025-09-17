@@ -1662,21 +1662,21 @@ LIMIT 1;
 { 
   [
   {
-    "id": 02,
+    "id": 102,
     "code": "org_admin",
     "name": "администратор учебной организации",
     "created_at": "2025-09-02T10:11:12Z",
     "updated_at": "2025-09-02T10:11:12Z"
   },
   {
-    "id": 03,
+    "id": 103,
     "code": "org_staff",
     "name": "сотрудник учебной организации",
     "created_at": "2025-09-02T10:11:12Z",
     "updated_at": "2025-09-02T10:11:12Z"
   },
   {
-    "id": 04,
+    "id": 104,
     "code": "teacher",
     "name": "преподаватель учебной организации",
     "created_at": "2025-09-02T10:11:12Z",
@@ -1761,7 +1761,7 @@ ORDER BY code ASC;
 ```json
 { 
   "org_id": {
-	  "id": 023,
+	  "id": 123,
 	  "name": "ICH IT Career Hub", 
 	  },
   "user_id": {
@@ -1769,7 +1769,7 @@ ORDER BY code ASC;
 	  "full_name": "Petr Sidorov",
 	  },
   "role_id": {
-	  "id": 03,
+	  "id": 103,
     "code": "org_staff",
     "name": "сотрудник учебной организации",
 	  },
