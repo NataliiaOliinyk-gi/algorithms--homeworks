@@ -1,4 +1,4 @@
-# Документация Pinguin Tracker 
+# Документация API Pinguin Tracker 
 
 **версия v_01**
 
@@ -689,559 +689,417 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 Саморегистрация - через лендинг, либо платная, либо бесплатная подписка  
 заполняется форма обратной связи
 
-- POST /orgs
+- `POST /orgs`
 
-  - **Content-type:** application/json
+  - **Content-type:** `application/json`
 
   - **Authorization:** отсутствует
 
   - **Body:**
 
-> {
->
-> "organizations": {
->
-> "name": "ICH IT Career Hub",
->
-> "legal_name": "IT Career Hub GmbH",
->
-> "country_code": "DE",
->
-> "signup_source": "self",
->
-> },
->
-> "org_addresses": {
->
-> "address_type": "office",
->
-> "label"?,
->
-> "line1": "Genthiner Str. 59",
->
-> "line2"?,
->
-> "city": "Berlin",
->
-> "state_region"?,
->
-> "zip_code": "10686",
->
-> "country_code": "DE",
->
-> "timezone": "Europe/Berlin",
->
-> "is_primary": true,
->
-> "latitude"?,
->
-> "longitude"?,
->
-> },
->
-> "admin": {
->
-> "email": "admin@itcareerhub.de",
->
-> "full_name": "Ivan Petrov",
->
-> "password": "xxxxxxxxxxx",
->
-> "preferred_lang": "de",
->
-> },
->
-> "user_profiles": {
->
-> "date_of_birth": "1990-05-10",
->
-> "phone": "+49301234567",
->
-> "address_line1": "Adalbert Str. 40",
->
-> "address_line2"?,
->
-> "city": "Berlin",
->
-> "zip_code": "10785",
->
-> "country_code": "DE",
->
-> },
->
-> }
+```json
+{ 
+  "organizations": {
+	  "name": "ICH IT Career Hub", 
+	  "legal_name": "IT Career Hub GmbH", 
+	  "country_code": "DE",
+    "signup_source": "self",
+	  },
+  "org_addresses": {
+	  "address_type": "office",
+	  "line1": "Genthiner Str. 59",
+	  "city": "Berlin",
+	  "zip_code": "10686",
+	  "country_code": "DE",
+	  "timezone": "Europe/Berlin",
+	  "is_primary": true,
+	  },
+  "admin": {
+	  "email": "admin@itcareerhub.de",
+	  "full_name": "Ivan Petrov",
+	  "password": "xxxxxxxxxxx",
+	  "preferred_lang": "de",
+	  },
+  "user_profiles": {
+	  "date_of_birth": "1990-05-10",
+	  "phone": "+49301234567",
+	  "address_line1": "Adalbert Str. 40",
+	  "city": "Berlin",
+	  "zip_code": "10785",
+	  "country_code": "DE",
+	  },
+ }
+```
+
 
 - **Backend-правила:**
 
-  - name уникален;
-
-  - создается org_admin пользователю-инициатору; email уникален
-
-  - создается org_subscriptions на план free/trial.
-
+  - `name` уникален;
+  - создается `org_admin` пользователю-инициатору; `email` уникален
+  - создается `org_subscriptions` на план `free/trial`.
   - отправляет письмо на почту для подтверждения
 
 - **Бизнес-правила**
 
-  - При саморегистрации: status='pending'  
-    При создании супер-админом: status='active' + approved_by/approved_at
-
-  - Пользователь-админ получает роль org_admin в созданной организации
-
-  - Создаётся подписка org_subscriptions на план code = 'free', is_current=true  
-    current_period_start = CURDATE(), current_period_end - по subscription_plans.interval (месяц/год)  
-    status='trialing' если план пробный, иначе 'active’
+  - При саморегистрации: `status='pending'`  
+    При создании супер-админом: `status='active'` + `approved_by/approved_at`
+  - Пользователь-админ получает роль `org_admin` в созданной организации
+  - Создаeтся подписка `org_subscriptions` на план `code = 'free'`, `is_current=true ` 
+    `current_period_start = CURDATE()`, `current_period_end` - по `subscription_plans.interval` (месяц/год)  
+    `status='trialing'` если план пробный, иначе `'active’`
 
 - **Validation**:
 
   - Frontend:
 
-> **organization**
+  **organization**
 
-- name - string\[2..200\] - обязательное поле
+  - `name` - `string[2..200]` - обязательное поле
+  - `legal_name` - `string[0..255]` опционально
+  - `country_code` - `string == /^[A-Z]{2}\$/ `
+      только `ISO-3166-1` (DE, UA, PL, FR, …)
+  - `signup_source` - `string[0..50] ` 
+      (опционально, например `self|admin|import`)
 
-- legal_name - string\[0..255\] (optional)
+  **org_address**
 
-- country_code - string == /^\[A-Z\]{2}\$/  
-  только ISO-3166-1 (DE, UA, PL, FR, …)
+  - `address_type` - в наборе: `registered|office|campus|billing|other`
+  - `line1` - `string[1..200]` - обязательное поле
+  - `city`  - `string[1..100]` - обязательное поле
+  - `country_code` - `ISO-2` - обязательное поле
+  - `timezone` -`string[1..50]` из списка IANA
+  - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
 
-- signup_source - string\[0..50\]  
-  (optional, например self\|admin\|import)
+ **admin**
 
-> **org_address**
+  - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
+  - `full_name` - `string[1..150]` - обязательное поле
+  - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
+  - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
 
-- address_type - в наборе: registered\|office\|campus\|billing\|other
+ **admin_profile** опционально
 
-- line1, city, country_code, timezone - обязательные поля  
-  country_code - ISO-2, timezone - из списка IANA
+  - `date_of_birth` - ISO `YYYY-MM-DD`
+  - `phone` - E.164 (рекомендуется)
+  - Address-поля - обычные строки с лимитами длины
 
-- is_primary - boolean  
-  (для первой адресной записи допустимо сразу true)
-
-> **admin**
-
-- email - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат email - обязательное поле
-
-- full_name - string\[1..150\] - обязательное поле
-
-- password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
-
-- preferred_lang - ru\|de\|en (optional, по умолчанию 'en')
-
-> **admin_profile** (optional)
-
-- date_of_birth - ISO YYYY-MM-DD
-
-- phone - E.164 (рекомендуется)
-
-- Address-поля - обычные строки с лимитами длины
-
-<!-- -->
 
 - Backend:
 
-> **organization**
+**organization**
 
-- name - string\[2..200\], **уникален** (по БД)
+  - `name` - `string[2..200]` - обязательное поле
+  - `legal_name` - `string[0..255]` опционально
+  - `country_code` - `string == /^[A-Z]{2}\$/ `
+      только `ISO-3166-1` (DE, UA, PL, FR, …)
+  - `signup_source` - `string[0..50] ` 
+      (опционально, например `self|admin|import`)
 
-- legal_name - string\[0..255\] (optional)  
-  country_code - string == /^\[A-Z\]{2}\$/  
-  только ISO-3166-1 (DE, UA, PL, FR, …)
+  **org_address**
 
-- signup_source - string\[0..50\]  
-  (optional, например self\|admin\|import)
+  - `address_type` - в наборе: `registered|office|campus|billing|other`
+  - `line1` - `string[1..200]` - обязательное поле
+  - `city`  - `string[1..100]` - обязательное поле
+  - `country_code` - `ISO-2` - обязательное поле
+  - `timezone` -`string[1..50]` из списка IANA
+  - `is_primary` - boolean (для первой адресной записи допустимо сразу `true`)
 
-> **org_address**
+ **admin**
 
-- address_type - в наборе: registered\|office\|campus\|billing\|other
+  - `email` - /^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат `email` - обязательное поле
+  - `full_name` - `string[1..150]` - обязательное поле
+  - `password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
+  - `preferred_lang` - `ru|de|en` (optional, по умолчанию 'en')
 
-- line1, city, country_code, timezone - обязательны при создании  
-  country_code - ISO-2, timezone - из списка IANA
+ **admin_profile** опционально
 
-- is_primary - boolean  
-  (для первой адресной записи допустимо сразу true)
+  - `date_of_birth` - ISO `YYYY-MM-DD`
+  - `phone` - E.164 (рекомендуется)
+  - Address-поля - обычные строки с лимитами длины
 
-> **admin**
 
-- email -/^\[a-zA-Z0-9.\_%+-\]+@\[a-zA-Z0-9.-\]+\\\[a-zA-Z\]{2,}\$/ - формат email, **уникален** (по БД)
+- DB: проверка уникальности полей:
 
-- full_name - string\[1..150\]
+    - `name` - для организации
+    - `email` - для юзера (админа)
 
-  - password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - минимальная длина 8, хотя бы 1 буква и 1 цифра - обязательное поле
-
-- preferred_lang - ru\|de\|en (optional, по умолчанию 'en')
-
-> **admin_profile** (optional)
-
-- date_of_birth - ISO YYYY-MM-DD
-
-- phone - E.164 (рекомендуется)
-
-- Address-поля - обычные строки с лимитами длины
-
-  - DB: проверка уникальности полей:
-
-    - name - для организации
-
-    - email - для юзера (админа)
-
-  <!-- -->
 
   - **Responses**:
 
     - **201 Created** организация + админ созданы
 
-> {
->
-> “message”: ”Welcome! You have successfully registered with the email admin@itcareerhub.de. \nPlease confirm your email by clicking the link sent to your inbox.”
->
-> }
+```json
+{ "message": "Welcome! You have successfully registered with the email admin@itcareerhub.de. \nPlease confirm your email by clicking the link sent to your inbox." }
+```
 
 - **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”fullName is a required field”}
+```json
+{ "message": "fullName is a required field" }
+```
 
 - **409 Conflict** дубликаты
+```json
+{ "message": "The name 'ICH IT Career Hub' is already in use." }
+```
+```json
+{ "message": "The email 'admin@itcareerhub.de' is already in use." }
+```
+```json
+{ "message": "The username 'admin.ich' is already in use." }
+```
 
-> {“message”: ”The name 'ICH IT Career Hub' is already in use.”}
->
-> {“message”: ”The email 'admin@itcareerhub.de' is already in use.”}
->
-> {“message”: ”The username 'admin.ich' is already in use.”}
 
 - **SQL**  
   организация =\> адрес =\> админ =\> профиль админа =\> роль =\> подписка организации  
   (в одном запросе последовательно)
 
-1\) Организация
+> Организация
 
+```sql
 INSERT INTO organizations
-
-(name, legal_name, country_code, status, approved_by, approved_at, signup_source, created_at, updated_at)
-
+  (name, legal_name, country_code, status, approved_by, approved_at, signup_source, created_at, updated_at)
 VALUES
-
-(:org_name, :org_legal_name, :org_country_code,
-
-CASE WHEN :is_superadmin THEN 'active' ELSE 'pending' END,
-
-CASE WHEN :is_superadmin THEN :approved_by ELSE NULL END,
-
-CASE WHEN :is_superadmin THEN NOW() ELSE NULL END,
-
-:signup_source, NOW(), NOW());
+  (:org_name, :org_legal_name, :org_country_code,
+   CASE WHEN :is_superadmin THEN 'active' ELSE 'pending' END,
+   CASE WHEN :is_superadmin THEN :approved_by ELSE NULL END,
+   CASE WHEN :is_superadmin THEN NOW() ELSE NULL END,
+   :signup_source, NOW(), NOW());
 
 SET @org_id = LAST_INSERT_ID();
 
-2\) Адрес (office / primary)
+```
 
+> Адрес (office / primary)
+
+```sql
 INSERT INTO org_addresses
-
-(org_id, address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude, created_at, updated_at)
-
+  (org_id, address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude, created_at, updated_at)
 VALUES
+  (@org_id, :addr_type, :addr_label, :addr_line1, :addr_line2, :addr_city, :addr_region, :addr_zip, :addr_country, :addr_tz, :addr_is_primary, :addr_lat, :addr_lng, NOW(), NOW());
 
-(@org_id, :addr_type, :addr_label, :addr_line1, :addr_line2, :addr_city, :addr_region, :addr_zip, :addr_country, :addr_tz, :addr_is_primary, :addr_lat, :addr_lng, NOW(), NOW());
+```
 
-3\) Админ-пользователь
+> Админ-пользователь
 
+```sql
 INSERT INTO users
-
-(email, full_name, password_hash, preferred_lang, status, avatar_url, created_at, updated_at)
-
+  (email, full_name, password_hash, preferred_lang, status, avatar_url, created_at, updated_at)
 VALUES
-
-(:admin_email, :admin_full_name, :password_hash, COALESCE(:preferred_lang,'en'),
-
-'active', NULL, NOW(), NOW());
+  (:admin_email, :admin_full_name, :password_hash, COALESCE(:preferred_lang,'en'),
+   'active', NULL, NOW(), NOW());
 
 SET @admin_user_id = LAST_INSERT_ID();
 
-4\) Профиль админа (опционально)
+```
 
+> Профиль админа (опционально)
+
+```sql
 INSERT INTO user_profiles
-
-(user_id, date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code, created_at, updated_at)
-
+  (user_id, date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code, created_at, updated_at)
 VALUES
+  (@admin_user_id, :dob, :phone, :upro_line1, :upro_line2, :upro_city, :upro_zip, :upro_country, NOW(), NOW());
 
-(@admin_user_id, :dob, :phone, :upro_line1, :upro_line2, :upro_city, :upro_zip, :upro_country, NOW(), NOW());
+```
 
-5\) Назначение роли org_admin
+> Назначение роли org_admin
 
+```sql
 SET @role_admin_id = (SELECT id FROM roles WHERE code = 'org_admin' LIMIT 1);
-
 IF @role_admin_id IS NULL THEN
-
-SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Role org_admin missing';
-
+  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Role org_admin missing';
 END IF;
 
 INSERT INTO user_roles (user_id, org_id, role_id, assigned_at, created_at, updated_at)
-
 VALUES (@admin_user_id, @org_id, @role_admin_id, NOW(), NOW(), NOW());
 
-6\) Создание подписки (на free)
+```
 
+> Создание подписки (на free)
+
+```sql
 SET @plan_id = (SELECT id FROM subscription_plans WHERE code = :plan_code AND is_active = 1 LIMIT 1);
-
 IF @plan_id IS NULL THEN
-
-SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Subscription plan not found';
-
+  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Subscription plan not found';
 END IF;
 
-вычисляем конец периода: месяц/год
+```
+> вычисляем конец периода: месяц/год
 
+```sql
 SET @period_end =
-
-(SELECT CASE interval
-
-WHEN 'month' THEN DATE_ADD(CURDATE(), INTERVAL 1 MONTH)
-
-WHEN 'year' THEN DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
-
-ELSE DATE_ADD(CURDATE(), INTERVAL 1 MONTH)
-
-END
-
-FROM subscription_plans WHERE id = @plan_id);
+  (SELECT CASE interval
+           WHEN 'month' THEN DATE_ADD(CURDATE(), INTERVAL 1 MONTH)
+           WHEN 'year'  THEN DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
+           ELSE DATE_ADD(CURDATE(), INTERVAL 1 MONTH)
+         END
+   FROM subscription_plans WHERE id = @plan_id);
 
 INSERT INTO org_subscriptions
-
-(org_id, plan_id, status, is_current, auto_renew, cancel_at_period_end,
-
-current_period_start, current_period_end, trial_end_at,
-
-provider, external_subscription_id, created_at, updated_at)
-
+ (org_id, plan_id, status, is_current, auto_renew, cancel_at_period_end,
+  current_period_start, current_period_end, trial_end_at,
+  provider, external_subscription_id, created_at, updated_at)
 VALUES
-
-(@org_id, @plan_id,
-
-CASE WHEN :plan_code = 'free' THEN 'trialing' ELSE 'active' END,
-
-TRUE, TRUE, FALSE,
-
-CURDATE(), @period_end,
-
-CASE WHEN :plan_code = 'free' THEN DATE_ADD(CURDATE(), INTERVAL :trial_days DAY) ELSE NULL END,
-
-'manual', NULL, NOW(), NOW());
+ (@org_id, @plan_id,
+  CASE WHEN :plan_code = 'free' THEN 'trialing' ELSE 'active' END,
+  TRUE, TRUE, FALSE,
+  CURDATE(), @period_end,
+  CASE WHEN :plan_code = 'free' THEN DATE_ADD(CURDATE(), INTERVAL :trial_days DAY) ELSE NULL END,
+  'manual', NULL, NOW(), NOW());
 
 SET @org_subscription_id = LAST_INSERT_ID();
 
-##### Получить список организаций:
+```
+
+
+#### Получить список организаций:
 
 суперадмин
 
-- GET /orgs?q=&status=&country=&page=&limit=
+- `GET /orgs?q=&status=&country=&page=&limit=`
 
-> q - поиск по name/legal_name (опционально)
->
-> status - active\|pending\|suspended\|deleted (опционально)
->
-> country - ISO-2 (опционально)
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+ `q` - поиск по `name/legal_name` (опционально)
+ `status` - `active|pending|suspended|deleted` (опционально)
+ `country` - ISO-2 (опционально)
+ `page` - номер страницы, по умолчанию 1
+ `limit` - количество на странице (по умолчанию 50, ≤ 200)
 
-- **Content-type:** application/json
+- **Content-type:** `application/json`
 
-- **Authorization:** Bearer \<jwt\>
+- **Authorization:** `Bearer <jwt>`
 
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - q - строка
-
-  - status - active\|pending\|suspended\|deleted
-
-  - country - ISO-2
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `q` - строка
+  - `status` - active\|pending\|suspended\|deleted
+  - `country` - ISO-2
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - Для superadmin - видит все организации
-
-  - Организация учитывается, если status='pending'/'active'/'suspended'
-
-  - status=‘deleted’ по умолчанию не показываем
+  - Для `superadmin` - видит все организации
+  - Организация учитывается, если `status='pending'/'active'/'suspended'`
+  - `status=‘deleted’` по умолчанию не показываем
 
 - **Validation**:
 
   - Frontend:
 
-    - q - string\[0..200\] - trim
-
-    - status - enum: active\|pending\|suspended\|deleted
-
-    - country - /^\[A-Z\]{2}\$/
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `q` - `string[0..200]` - `trim`
+    - `status` - `enum: active|pending|suspended|deleted`
+    - `country` - /^\[A-Z\]{2}\$/
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - q - string\[0..100\] - trim
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - orgId - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..200]` - `trim`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
 - **Responses**:
 
   - **200 OK**
 
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "organizations":
->
-> \[
->
-> {
->
-> "id": 101,
->
-> "name": "ICH IT Career Hub",
->
-> "legal_name": "IT Career Hub GmbH",
->
-> "country_code": "DE",
->
-> "status": "active",
->
-> "created_at": "2025-01-10T09:00:00Z",
->
-> "updated_at": "2025-01-20T10:00:00Z",
->
-> "primary_address": {
->
-> "address_type": "office",
->
-> "line1": "Genthiner Str. 59",
->
-> "city": "Berlin",
->
-> "zip_code": "10686",
->
-> "country_code": "DE",
->
-> "timezone": "Europe/Berlin"
->
-> },
->
-> \],
->
-> }
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "organizations": 
+  [
+    {
+  	 "id": 101,
+      "name": "ICH IT Career Hub",
+      "legal_name": "IT Career Hub GmbH",
+      "country_code": "DE",
+      "status": "active",
+      "created_at": "2025-01-10T09:00:00Z",
+      "updated_at": "2025-01-20T10:00:00Z",
+      "primary_address": {
+        "address_type": "office",
+        "line1": "Genthiner Str. 59",
+        "city": "Berlin",
+        "zip_code": "10686",
+        "country_code": "DE",
+        "timezone": "Europe/Berlin"
+        },
+    },
+  ]
+ }
+```
 
 - **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid query parameter: status must be one of \[active,pending,suspended,deleted\]”}
+```json
+{ "message": "Invalid query parameter: status must be one of [active,pending,suspended,deleted]" }
+```
 
 - **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
+```json
+{ "message": "Authorization header missing" }
+```
 
 - **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
+```json
+{ "message": "jwt expired" }
+```
 
 - **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view organizations.”}
+```json
+{ "message": "Permission denied: You are not allowed to view organizations." }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM organizations
->
-> WHERE (COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR organizations.name LIKE CONCAT('%', :q, '%')
->
-> OR organizations.legal_name LIKE CONCAT('%', :q, '%'))
->
-> AND (
->
-> (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL
->
-> AND organizations.status IN ('pending','active','suspended'))
->
-> OR (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NOT NULL
->
-> AND organizations.status = :status)
->
-> )
->
-> AND (COALESCE(NULLIF(TRIM(:country), ''), NULL) IS NULL
->
-> OR organizations.country_code = :country);
->
-> page
->
-> SELECT
->
-> organizations.id, organizations.name, organizations.legal_name, organizations.country_code, organizations.status, organizations.created_at, organizations.updated_at,
->
-> org_addresses.address_type, org_addresses.line1, org_addresses.city, org_addresses.zip_code, org_addresses.country_code AS addr_country_code, org_addresses.timezone
->
-> FROM organizations
->
-> LEFT JOIN org_addresses
->
-> ON org_addresses.org_id = organizations.id AND org_addresses.is_primary = 1
->
-> WHERE (COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR organizations.name LIKE CONCAT('%', :q, '%')
->
-> OR organizations.legal_name LIKE CONCAT('%', :q, '%'))
->
-> AND (
->
-> (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL
->
-> AND organizations.status IN ('pending','active','suspended'))
->
-> OR (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NOT NULL
->
-> AND organizations.status = :status)
->
-> )
->
-> AND (COALESCE(NULLIF(TRIM(:country), ''), NULL) IS NULL
->
-> OR organizations.country_code = :country)
->
-> ORDER BY organizations.created_at DESC, organizations.id DESC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить организацию по id:
+--total
+SELECT COUNT(*) AS total
+FROM organizations
+WHERE (COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+       OR organizations.name LIKE CONCAT('%', :q, '%')
+       OR organizations.legal_name LIKE CONCAT('%', :q, '%'))
+  AND (
+(COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL 
+       AND organizations.status IN ('pending','active','suspended'))
+      OR (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NOT NULL 
+         AND organizations.status = :status)
+      )
+  AND (COALESCE(NULLIF(TRIM(:country), ''), NULL) IS NULL
+       OR organizations.country_code = :country);
+
+--page
+SELECT 
+  organizations.id, organizations.name, organizations.legal_name, organizations.country_code, organizations.status, organizations.created_at, organizations.updated_at,
+  org_addresses.address_type, org_addresses.line1, org_addresses.city, org_addresses.zip_code, org_addresses.country_code AS addr_country_code, org_addresses.timezone
+FROM organizations 
+LEFT JOIN org_addresses
+  ON org_addresses.org_id = organizations.id AND org_addresses.is_primary = 1
+WHERE (COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+       OR organizations.name LIKE CONCAT('%', :q, '%')
+       OR organizations.legal_name LIKE CONCAT('%', :q, '%'))
+  AND (
+(COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL 
+       AND organizations.status IN ('pending','active','suspended'))
+      OR (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NOT NULL 
+         AND organizations.status = :status)
+      )
+  AND (COALESCE(NULLIF(TRIM(:country), ''), NULL) IS NULL
+       OR organizations.country_code = :country)
+ORDER BY organizations.created_at DESC, organizations.id DESC
+LIMIT @limit OFFSET @offset;
+
+```
+
+
+#### Получить организацию по id:
 
 суперадмин, админ (только своя организация)
 
