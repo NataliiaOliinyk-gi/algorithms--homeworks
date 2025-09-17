@@ -93,11 +93,9 @@
 
 `POST /auth/password/reset` сброс пароля (по токену из email)
 
-#### Вход в систему:
+#### Вход в систему: `POST /auth/login`
 
 Публично (без авторизации)
-
-##### `POST /auth/login`
 
 - **Content-type:** `application/json`
 
@@ -262,11 +260,9 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 ```
 
 
-#### Подтверждение MFA:
+#### Подтверждение MFA: `POST /auth/mfa/verify`
 
 Публично (по mfa_token)
-
-##### `POST /auth/mfa/verify`
 
 - **Content-type:** `application/json`
 
@@ -418,11 +414,9 @@ WHERE id = :id;
 
 ```
 
-#### Выход:
+#### Выход: `POST /auth/logout`
 
 Авторизован (любой пользователь)
-
-##### `POST /auth/logout`
 
 - **Content-type:** `application/json`
 
@@ -470,11 +464,9 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 
 ```
 
-#### Забыли пароль (инициировать сброс):
+#### Забыли пароль (инициировать сброс): `POST /auth/password/forgot`
 
-Публично (без авторизации)
-
-##### `POST /auth/password/forgot`
+публично (без авторизации)
 
 - **Content-type:** `application/json`
 
@@ -549,11 +541,9 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 
 ```
 
-#### Сброс пароля по токену из email:
+#### Сброс пароля по токену из email: `POST /auth/password/reset`
 
 Публично (без авторизации)
-
-##### `POST /auth/password/reset`
 
 - **Content-type:** `application/json`
 
@@ -681,12 +671,10 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 
 `PUT /orgs/:orgId/status` изменить статус организации
 
-#### Регистрация организации:
+#### Регистрация организации: `POST /orgs`
 
 Саморегистрация - через лендинг, либо платная, либо бесплатная подписка  
 заполняется форма обратной связи
-
-##### `POST /orgs`
 
 - **Content-type:** `application/json`
 
@@ -944,11 +932,9 @@ SET @org_subscription_id = LAST_INSERT_ID();
 ```
 
 
-#### Получить список организаций:
+#### Получить список организаций: `GET /orgs?q=&status=&country=&page=&limit=`
 
 суперадмин
-
-##### `GET /orgs?q=&status=&country=&page=&limit=`
 
  `q` - поиск по `name/legal_name` (опционально)  
  `status` - `active|pending|suspended|deleted` (опционально)  
