@@ -5024,7 +5024,7 @@ FROM groups WHERE id = :group_id AND org_id = :org_id;
 
 `DELETE /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  
   «закрыть» запись (поставить effective_to)
-  
+
 
 #### Получить список предметов направления:  `GET /orgs/:orgId/directions/:directionId/subjects?q=&only_active=&page=&limit=`
 
@@ -5407,8 +5407,9 @@ LIMIT 1;
 ```
 
   - **409 Conflict** пересечение периода
-
-> {“message”: ”Period overlap: this subject is already assigned to the direction for an active or overlapping period. Close or adjust the existing period before creating a new one”}
+```json
+{ "message": "Period overlap: this subject is already assigned to the direction for an active or overlapping period. Close or adjust the existing period before creating a new one" }
+```
 
 - **SQL**
 
@@ -5837,7 +5838,7 @@ WHERE group_subjects.org_id = :org_id
     {
       "group": { 
         "id": 112,
-  		  "direction_id": 08,
+  		  "direction_id": 108,
   		  "name": "Web-Development-2025-10",
         "code": "281025-wdm", 
         },
@@ -6006,7 +6007,7 @@ LIMIT @limit OFFSET @offset;
 { 
   "group": { 
     "id": 112,
-  	"direction_id": 08,
+  	"direction_id": 108,
   	"name": "Web-Development-2025-10",
     "code": "281025-wdm", 
     },
@@ -6178,7 +6179,7 @@ LIMIT 1;
 { 
   "group": { 
     "id": 112,
-  	"direction_id": 08,
+  	"direction_id": 108,
   	"name": "Web-Development-2025-10",
     "code": "281025-wdm", 
     },
@@ -6350,7 +6351,7 @@ WHERE org_id = :org_id AND group_id = :group_id AND subject_id = :subject_id;
     {
       "group": { 
         "id": 112,
-  	    "direction_id": 08,
+  	    "direction_id": 108,
   	    "name": "Web-Development-2025-10",
         "code": "281025-wdm", 
         },
@@ -6515,7 +6516,7 @@ LIMIT @limit OFFSET @offset;
 { 
   "group": { 
     "id": 112,
-  	"direction_id": 08,
+  	"direction_id": 108,
   	"name": "Web-Development-2025-10",
     "code": "281025-wdm", 
     },
@@ -6667,7 +6668,7 @@ LIMIT 1;
 { 
   "group": { 
     "id": 112,
-  	"direction_id": 08,
+  	"direction_id": 108,
   	"name": "Web-Development-2025-10",
     "code": "281025-wdm", 
     },
@@ -6857,7 +6858,7 @@ LIMIT 1;
 { 
   "group": { 
     "id": 112,
-  	"direction_id": 08,
+  	"direction_id": 108,
   	"name": "Web-Development-2025-10",
     "code": "281025-wdm", 
     },
@@ -7039,7 +7040,7 @@ LIMIT 1;
 { 
   "group": { 
     "id": 112,
-  	"direction_id": 08,
+  	"direction_id": 108,
   	"name": "Web-Development-2025-10",
     "code": "281025-wdm", 
     },
