@@ -1788,7 +1788,7 @@ ORDER BY code ASC;
 ```json
 { 
   "org_id": {
-	  "id": 023,
+	  "id": 123,
 	  "name": "ICH IT Career Hub", 
 	  },
   "user_id": {
@@ -1796,7 +1796,7 @@ ORDER BY code ASC;
 	  "full_name": "Petr Sidorov",
 	  },
   "role_id": {
-	  "id": 03,
+	  "id": 103,
     "code": "org_staff",
     "name": "сотрудник учебной организации",
 	  },
@@ -1956,7 +1956,28 @@ WHERE user_roles.user_id = :user_id AND user_roles.org_id = :org_id AND user_rol
   - **200 OK** роль отозвана
 ```json
 { 
-
+  "org_id": {
+	  "id": 123,
+	  "name": "ICH IT Career Hub", 
+	  },
+  "user_id": {
+	  "id": 2054,
+	  "username": "sidorov_p",
+	  "full_name": "Petr Sidorov",
+	  },
+  "role_id": {
+	  "id": 103,
+    "code": "org_staff",
+    "name": "сотрудник учебной организации",
+	  },
+  "operator_id": {
+	  "id": 120,
+	  "username": "admin.ich",
+	  "full_name": "Ivan Petrov",
+	  },
+  "assigned_at": "2025-08-02T10:11:12Z",
+  "revoked_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z"
  }
 ```
 
@@ -2045,563 +2066,446 @@ WHERE user_roles.user_id = :user_id AND user_roles.org_id = :org_id AND user_rol
 
 ```
 
-#### Пользователи
+### Пользователи
 
-POST /orgs/:orgsId/users регистрация пользователя в организации с  
-одновременным назначением роли и отправкой  
-приглашения на email
+`POST /orgs/:orgsId/users` регистрация пользователя в организации с  одновременным назначением роли и отправкой приглашения на email
 
-GET /orgs/:orgId/users/:userId получить профиль юзера
+`GET /orgs/:orgId/users/:userId` получить профиль юзера
 
-DELETE /orgs/:orgsId/users/:userId удалить пользователя
+`DELETE /orgs/:orgsId/users/:userId` удалить пользователя
 
-GET /orgs/:org_id/users?role=&q=&include_revoked=&page=&limit=
+`GET /orgs/:org_id/users?role=&q=&include_revoked=&page=&limit=`  получить список преподавателей/ студентов/сотрудников в учебной организации
 
-> получить список преподавателей/ студентов/сотрудников в учебной организации
+`GET /orgs/:orgsId/users/me` получить профиль (свой)
 
-GET /orgs/:orgsId/users/me получить профиль (свой)
+`PUT /orgs/:orgsId/users/me` редактировать свой профиль
 
-PUT /orgs/:orgsId/users/me редактировать свой профиль
+`POST /orgs/:orgId/users/me/password` сменить пароль
 
-POST /orgs/:orgId/users/me/password сменить пароль
-
-##### Регистрация пользователя:
+#### Регистрация пользователя:  `POST /orgs/:orgsId/users`
 
 суперадмин, админ - регистрация преподавателя, сотрудника организации, студента;
 
 при регистрации одновременно назначается роль и формируется приглашение для пользователя с одноразовым паролем для входа в систему.
 
-- POST /orgs/:orgsId/users
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "email": “ivan.petrov@example.com”,
->
-> "full_name": “Ivan Petrov”,
->
-> "role_id": 03,
->
-> }
+```json
+{ 
+  "email": "ivan.petrov@example.com",
+  "full_name": "Ivan Petrov",
+  "role_id": 103,
+ }
+```
 
 - **Правила:**
 
-  - email - обязательное поле, формат email
-
-  - full_name - обязательное поле
-
-  - role_id - обязательное поле
+  - `email` - обязательное поле, формат `email`
+  - `full_name` - обязательное поле
+  - `role_id` - обязательное поле
 
 - **Backend-правила:**
 
-  - orgId из пути:
-
-    - для org_admin должен совпадать с org в его JWT
-
-    - superadmin — любой org
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - email глобально уникален, один email - ровно одна учетная запись во всей системе
-
-  - Роль role_id существует (roles), запрещено через этот роут назначать глобальные роли (например, superadmin) - только в рамках учебной организации (org_admin, org_staff, teacher, student)
-
+  - `orgId` из пути:
+    - для `org_admin` должен совпадать с `org` в его `JWT`
+    - `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `email` глобально уникален, один `email` - ровно одна учетная запись во всей системе
+  - Роль `role_id` существует (`roles`), запрещено через этот роут назначать глобальные роли (например `superadmin`) - только в рамках учебной организации (`org_admin`, `org_staff`, `teacher`, `student`)
   - Проверка лимита плана для роли
-
-  - Пароль от клиента не принимаем, генерируем приглашение - пишем запись в org_invitations и отправляем письмо
+  - Пароль от клиента не принимаем, генерируем приглашение - пишем запись в `org_invitations` и отправляем письмо
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-- email - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, trim
-
-  - full_name - string\[0..150\] - обязательное поле, trim
-
-  - role_id - integer - обязательное поле
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `email` - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, `trim`
+    - `full_name` - `string[0..150]` - обязательное поле, `trim`
+    - `role_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - обязательно, число
-
-    - email - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, trim
-
-    - full_name - string\[0..150\] - обязательное поле, trim
-
-    - role_id - integer - обязательное поле
-
-    - orgId - организация существует
-
-    - roleId - роль существует
-
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - обязательно, число
+    - `email` - /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/ - обязательное поле, trim
+    - `full_name` - `string[0..150]` - обязательное поле, trim
+    - `role_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `orgId` - организация существует
+    - `roleId` - роль существует
     - лимит плана для роли
 
   - DB:
 
-    - email - UNIQUE проверка уникальности
+    - `email` - `UNIQUE` проверка уникальности
+    - `user_roles` `(user_id, org_id, role_id)` - `UNIQUE` проверка уникальности - уникальность одной роли на одну организацию для одного юзера
 
-    - user_roles (user_id, org_id, role_id) - UNIQUE проверка уникальности - уникальность одной роли на одну организацию для одного юзера
+- **Responses**:
 
-  <!-- -->
+  - **201 Created** создан новый пользователь, назначена роль, создано приглашение
 
-  - **Responses**:
+```json
+{ 
+  "user": {
+    "id": 2054,
+    "email": "ivan.petrov@example.com",
+    "full_name": "Ivan Petrov",
+    "preferred_lang": "en",
+    "status": "pending",
+    "created_at": "2025-09-02T10:11:12Z",
+    "updated_at": "2025-09-02T10:11:12Z"
+    },
+  "organization": { 
+    "id": 123, 
+    "name": "ICH IT Career Hub" 
+    },
+  "role": { 
+    "id": 103, 
+    "code": "org_staff", 
+    "name": "сотрудник учебной организации" 
+   },
+  "assignment": {
+    "operator_id": 120,
+    "assigned_at": "2025-09-02T10:11:12Z",
+    "created_at": "2025-09-02T10:11:12Z",
+    "updated_at": "2025-09-02T10:11:12Z"
+  },
+  "invitation": {
+    "expires_at": "2025-09-09T10:11:12Z",
+    "status": "pending"
+  }
+ }
+```
 
-    - **201 Created** создан новый пользователь, назначена роль, создано приглашение
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "full_name is a required field" }
+```
 
-> {
->
-> "user": {
->
-> "id": 2054,
->
-> "email": "ivan.petrov@example.com",
->
-> "full_name": "Ivan Petrov",
->
-> "preferred_lang": "en",
->
-> "status": "pending",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> "organization": {
->
-> "id": 23,
->
-> "name": "ICH IT Career Hub"
->
-> },
->
-> "role": {
->
-> "id": 03,
->
-> "code": "org_staff",
->
-> "name": "сотрудник учебной организации"
->
-> },
->
-> "assignment": {
->
-> "operator_id": 120,
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> "invitation": {
->
-> "expires_at": "2025-09-09T10:11:12Z",
->
-> "status": "pending"
->
-> }
->
-> }
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”full_name is a required field”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to create users in this organization." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Role not found" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **409 Conflict** дубликат
+```json
+{ "message": "The email 'ivan.petrov@example.com' is already in use." }
+```
 
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to create users in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Role not found”}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”The email 'ivan.petrov@example.com' is already in use.”}
-
-- **409 Conflict** превышен лимит (согласно тарифного плана)
-
-> {“message”: ”Plan limits exceeded for role 'org_staff.”}
+  - **409 Conflict** превышен лимит (согласно тарифного плана)
+```json
+{ "message": "Plan limits exceeded for role 'org_staff." }
+```
 
 - **SQL**
 
 > Проверки:
->
-> 1\) Организация существует и активна/ожидает подтверждения
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> 2\) Роль существует
->
-> SELECT 1 FROM roles WHERE id = :role_id LIMIT 1;
->
-> 3\) лимиты тарифа по роли
->
-> узнаем код роли
->
-> SELECT code INTO @role_code FROM roles WHERE id = :role_id;
->
-> берем лимит из плана под эту роль
->
-> SELECT
->
-> CASE @role_code
->
-> WHEN 'org_staff' THEN subscription_plans.max_staff
->
-> WHEN 'teacher' THEN subscription_plans.max_teachers
->
-> WHEN 'student' THEN subscription_plans.max_groups \* subscription_plans.max_students_per_group
->
-> ELSE NULL
->
-> END AS max_allowed,
->
-> CASE roles.code
->
-> WHEN 'student' THEN (
->
-> SELECT COUNT(DISTINCT user_roles.user_id)
->
-> FROM user_roles
->
-> WHERE user_roles.org_id = :org_id
->
-> AND user_roles.role_id = roles.id
->
-> AND user_roles.revoked_at IS NULL
->
-> )
->
-> ELSE (
->
-> SELECT COUNT(\*)
->
-> FROM user_roles
->
-> WHERE user_roles.org_id = :org_id
->
-> AND user_roles.role_id = :role_id
->
-> AND user_roles.revoked_at IS NULL
->
-> )
->
-> END AS currently_used
->
-> FROM org_subscriptions
->
-> JOIN subscription_plans ON subscription_plans.id = org_subscriptions.plan_id
->
-> JOIN roles ON roles.id = :role_id
->
-> WHERE org_subscriptions.org_id = :org_id
->
-> AND org_subscriptions.is_current = 1
->
-> LIMIT 1;
->
-> 4)существует ли юзер
->
-> SELECT id INTO @user_id
->
-> FROM users
->
-> WHERE email = :email AND status \<\> 'deleted'
->
-> LIMIT 1;
->
-> Создать пользователя
->
-> INSERT INTO users (email, full_name, password_hash, preferred_lang, status, created_at, updated_at)
->
-> SELECT :email, :full_name, NULL, COALESCE(:preferred_lang, 'en'), 'pending', NOW(), NOW()
->
-> WHERE @user_id IS NULL;
->
-> Получаем id
->
-> SET @user_id = COALESCE(@user_id, LAST_INSERT_ID());
->
-> Назначить роль (идемпотентно) + кто назначил
->
-> INSERT INTO user_roles (user_id, org_id, role_id, operator_id, assigned_at, created_at, updated_at, revoked_at)
->
-> VALUES (@user_id, :org_id, :role_id, :operator_id, NOW(), NOW(), NOW(), NULL)
->
-> ON DUPLICATE KEY UPDATE
->
-> revoked_at = NULL, реактивация, если была отозвана
->
-> operator_id = :operator_id, фиксируем, кто назначил/изменил
->
-> updated_at = NOW(),
->
-> assigned_at = COALESCE(user_roles.assigned_at, NOW());
->
-> Создать приглашение:
->
-> INSERT INTO org_invitations (org_id, email, role_id, token, status, expires_at, created_by, created_at)
->
-> VALUES (:org_id, :email, :role_id, :token, 'pending', DATE_ADD(NOW(), INTERVAL 7 DAY), :operator_id, NOW());
->
-> Вернуть для ответа:
->
-> SELECT
->
-> users.id AS user_id, users.email, users.full_name, users.preferred_lang, users.status, users.created_at, users.updated_at,
->
-> organizations.id AS org_id, organizations.name AS org_name,
->
-> roles.id AS role_id, roles.code AS role_code, roles.name AS role_name,
->
-> user_roles.assigned_at, user_roles.created_at AS role_created_at, user_roles.updated_at AS role_updated_at
->
-> FROM user_roles
->
-> JOIN users ON users.id = user_roles.user_id
->
-> JOIN organizations ON organizations.id = user_roles.org_id
->
-> JOIN roles ON roles.id = user_roles.role_id
->
-> WHERE user_roles.user_id = @user_id AND user_roles.org_id = :org_id AND user_roles.role_id = :role_id
->
-> LIMIT 1;
+> Организация существует и активна/ожидает подтверждения
 
-##### Получить профиль юзера:
+```sql
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+```
+
+> Роль существует
+
+```sql
+SELECT 1 FROM roles 
+WHERE id = :role_id 
+LIMIT 1;
+```
+
+> лимиты тарифа по роли
+
+```sql
+-- узнаем код роли
+SELECT code INTO @role_code FROM roles WHERE id = :role_id;
+-- берем лимит из плана под эту роль
+SELECT
+  CASE @role_code
+    WHEN 'org_staff' THEN subscription_plans.max_staff
+    WHEN 'teacher'   THEN subscription_plans.max_teachers
+    WHEN 'student'   THEN subscription_plans.max_groups * subscription_plans.max_students_per_group
+    ELSE NULL
+  END AS max_allowed,
+CASE roles.code
+    WHEN 'student' THEN (
+      SELECT COUNT(DISTINCT user_roles.user_id)
+      FROM user_roles
+      WHERE user_roles.org_id = :org_id
+        AND user_roles.role_id = roles.id        
+        AND user_roles.revoked_at IS NULL
+    )
+    ELSE (
+     SELECT COUNT(*)
+         FROM user_roles
+         WHERE user_roles.org_id = :org_id
+           AND user_roles.role_id = :role_id
+           AND user_roles.revoked_at IS NULL
+
+    )
+  END AS currently_used
+FROM org_subscriptions 
+JOIN subscription_plans ON subscription_plans.id = org_subscriptions.plan_id
+JOIN roles ON roles.id = :role_id
+WHERE org_subscriptions.org_id = :org_id
+  AND org_subscriptions.is_current = 1
+LIMIT 1;
+
+```
+
+> существует ли юзер
+
+```sql
+SELECT id INTO @user_id
+FROM users
+WHERE email = :email AND status <> 'deleted'
+LIMIT 1;
+
+```
+
+> Создать пользователя
+
+```sql
+INSERT INTO users (email, full_name, password_hash, preferred_lang, status, created_at, updated_at)
+SELECT :email, :full_name, NULL, COALESCE(:preferred_lang, 'en'), 'pending', NOW(), NOW()
+WHERE @user_id IS NULL;
+
+```
+
+> Получаем id
+
+```sql
+SET @user_id = COALESCE(@user_id, LAST_INSERT_ID());
+
+```
+
+> Назначить роль (идемпотентно) + кто назначил
+
+```sql
+INSERT INTO user_roles (user_id, org_id, role_id, operator_id, assigned_at, created_at, updated_at, revoked_at)
+VALUES (@user_id, :org_id, :role_id, :operator_id, NOW(), NOW(), NOW(), NULL)
+ON DUPLICATE KEY UPDATE
+  revoked_at  = NULL,             -- реактивация, если была отозвана
+  operator_id = :operator_id,     -- фиксируем, кто назначил/изменил
+  updated_at  = NOW(),
+  assigned_at = COALESCE(user_roles.assigned_at, NOW());
+
+```
+
+> Создать приглашение:
+
+```sql
+INSERT INTO org_invitations (org_id, email, role_id, token, status, expires_at, created_by, created_at)
+VALUES (:org_id, :email, :role_id, :token, 'pending', DATE_ADD(NOW(), INTERVAL 7 DAY), :operator_id, NOW());
+
+```
+
+> Вернуть для ответа:
+
+```sql
+SELECT 
+  users.id AS user_id, users.email, users.full_name, users.preferred_lang, users.status, users.created_at, users.updated_at,
+  organizations.id AS org_id, organizations.name AS org_name,
+  roles.id AS role_id, roles.code AS role_code, roles.name AS role_name,
+  user_roles.assigned_at, user_roles.created_at AS role_created_at, user_roles.updated_at AS role_updated_at
+FROM user_roles
+JOIN users ON users.id = user_roles.user_id
+JOIN organizations ON organizations.id = user_roles.org_id
+JOIN roles ON roles.id = user_roles.role_id
+WHERE user_roles.user_id = @user_id AND user_roles.org_id = :org_id AND user_roles.role_id = :role_id
+LIMIT 1;
+
+```
+
+#### Получить профиль юзера:  `GET /orgs/:orgId/users/:userId`
 
 суперадмин, админ, сотрудник организации, преподаватель
 
-- GET /orgs/:orgId/users/:userId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:** `{}`
 
-  - **Body:** {}
+- **Path / Query params:**
 
-  - **Path / Query params:**
+  - `orgId` - целое число
+  - `userId` - целое число
 
-    - orgId - целое число
+- **Назначение:** вернуть базовые данные пользователя, его персональный профиль (`user_profiles`) и активные роли в текущей организации (`user_roles` с `revoked_at IS NULL`)
 
-    - userId - целое число
+- **Backend-правила:**
 
-  - **Назначение:** вернуть базовые данные пользователя, его персональный профиль (user_profiles) и активные роли в текущей организации (user_roles с revoked_at IS NULL)
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - Пользователь существует и имеет хотя бы одну активную роль в этой организации
 
-  - **Backend-правила:**
+- **Validation**:
 
-    - orgId из пути:
+  - Frontend:
 
-      - должен совпадать с org в JWT
-
-      - для superadmin — любой org
-
-    - Организация orgId существует и status IN ('active','pending')
-
-    - Пользователь существует и имеет хотя бы одну активную роль в этой организации
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - userId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `userId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - userId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
+    - `orgId`- /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `userId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
     - Проверка наличия активного назначения в пределах организации
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **200 OK**
+```json
+{ 
+  "user": {
+    "id": 2054,
+    "email": "ivan.petrov@example.com",
+    "full_name": "Ivan Petrov",
+    "preferred_lang": "en",
+    "avatar_url": "https://cdn.app/u/2054.png",
+    "status": "active",
+    "created_at": "2025-09-02T10:11:12Z",
+    "updated_at": "2025-09-05T09:01:02Z"
+    },
+  "profile": {
+    "date_of_birth": "1990-02-20",
+    "phone": "+4915123456789",
+    "address_line1": "Adalbert Str. 40",
+    "address_line2": null,
+    "city": "Berlin",
+    "zip_code": "10785",
+    "country_code": "DE"
+    },
+  "roles_in_org": 
+  [
+    { 
+      "id": 4, 
+      "code": "teacher", 
+      "name": "преподаватель", 
+      "assigned_at": "2025-08-15T10:00:00Z" 
+    }
+  ]
+ }
+```
 
-    - **200 OK**
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: userId must be integer" }
+```
 
-> {
->
-> "user": {
->
-> "id": 2054,
->
-> "email": "ivan.petrov@example.com",
->
-> "full_name": "Ivan Petrov",
->
-> "preferred_lang": "en",
->
-> "avatar_url": "https://cdn.app/u/2054.png",
->
-> "status": "active",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-05T09:01:02Z"
->
-> },
->
-> "profile": {
->
-> "date_of_birth": "1990-02-20",
->
-> "phone": "+4915123456789",
->
-> "address_line1": "Adalbert Str. 40",
->
-> "address_line2": null,
->
-> "city": "Berlin",
->
-> "zip_code": "10785",
->
-> "country_code": "DE"
->
-> },
->
-> "roles_in_org":
->
-> \[
->
-> {
->
-> "id": 4,
->
-> "code": "teacher",
->
-> "name": "преподаватель",
->
-> "assigned_at": "2025-08-15T10:00:00Z"
->
-> }
->
-> \]
->
-> }
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: userId must be integer”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view this profile in this organization." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view this profile in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”User not found”}
->
-> {"message":"User has no active roles in this organization"}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "User not found" }
+```
+```json
+{ "message": "User has no active roles in this organization" }
+```
 
 - **SQL**
 
 > Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка,что пользователь имеет активную роль в этой организации
->
-> SELECT 1
->
-> FROM user_roles
->
-> WHERE org_id = :org_id
->
-> AND user_id = :user_id
->
-> AND revoked_at IS NULL
->
-> LIMIT 1;
->
-> Базовые данные пользователя
->
-> SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
->
-> FROM users
->
-> WHERE id = :user_id
->
-> LIMIT 1;
->
-> Персональный профиль (1:1, может отсутствовать)
->
-> SELECT date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code
->
-> FROM user_profiles
->
-> WHERE user_id = :user_id
->
-> LIMIT 1;
->
-> Активные роли в рамках этой организации
->
-> SELECT roles.id, roles.code, roles.name, user_roles.assigned_at
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id
->
-> WHERE user_roles.user_id = :user_id
->
-> AND user_roles.org_id = :org_id
->
-> AND user_roles.revoked_at IS NULL
->
-> ORDER BY roles.code ASC;
 
-##### Удалить пользователя в организации:
+```sql
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+```
+
+> Проверка,что пользователь имеет активную роль в этой организации
+
+```sql
+SELECT 1
+FROM user_roles
+WHERE org_id = :org_id
+  AND user_id = :user_id
+  AND revoked_at IS NULL
+LIMIT 1;
+
+```
+
+> Базовые данные пользователя
+
+```sql
+SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
+FROM users
+WHERE id = :user_id
+LIMIT 1;
+
+```
+
+> Персональный профиль (1:1, может отсутствовать)
+
+```sql
+SELECT date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code
+FROM user_profiles
+WHERE user_id = :user_id
+LIMIT 1;
+
+```
+
+> Активные роли в рамках этой организации
+
+```sql
+SELECT roles.id, roles.code, roles.name, user_roles.assigned_at
+FROM user_roles 
+JOIN roles ON roles.id = user_roles.role_id
+WHERE user_roles.user_id = :user_id
+  AND user_roles.org_id = :org_id
+  AND user_roles.revoked_at IS NULL
+ORDER BY roles.code ASC;
+
+```
+
+#### Удалить пользователя в организации:
 
 суперадмин, админ
 
