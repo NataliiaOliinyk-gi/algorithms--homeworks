@@ -179,39 +179,28 @@
 
 - **SQL**
 
-> Проверка email
-
 ```sql
+--Проверка email
 SELECT id, email, full_name, password_hash, status
 FROM users
 WHERE LOWER(email) = :email
 LIMIT 1;
-```
-> если status = 'deleted' -\> 401
-> если status = 'blocked' -\> 403
+--если status = 'deleted' -> 401
+--если status = 'blocked' -> 403
 
-> Счетчики/блокировки
-
-```sql
+--Счетчики/блокировки
 SELECT failed_attempts, locked_until
 FROM user_auth_counters
 WHERE user_id = :user_id
 FOR UPDATE;
-```
-
-> если строки нет, создаем
-
-```sql
+--если строки нет, создаем
 INSERT INTO user_auth_counters (user_id, failed_attempts, updated_at)
 VALUES (:user_id, 0, NOW())
 ON DUPLICATE KEY UPDATE user_id = user_id;
-```
-> если locked_until \> NOW() -\> 429
+--если locked_until > NOW() -> 429
 
-> Если неверный пароль
-> счетчик
-
-```sql
+--Если неверный пароль
+--счетчик
 UPDATE user_auth_counters
 SET failed_attempts = failed_attempts + 1,
     last_failed_at  = NOW(),
@@ -221,43 +210,35 @@ SET failed_attempts = failed_attempts + 1,
            ELSE locked_until
                       END
 WHERE user_id = :user_id;
-```
-> и записываем в лог
-
-```sql
+--и записываем в лог
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, FALSE, 'INVALID_CREDENTIALS', NOW());
-```
 
-> Если OK и MFA включена -\> mfa_token из кода
-> и запись в лог
-
-```sql
+--Если OK и MFA включена -> mfa_token из кода
+--и запись в лог
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, FALSE, 'MFA_REQUIRED', NOW());
 
-```
-> Если OK и MFA выключена, создаем сессию
-```sql
+--Если OK и MFA выключена, создаем сессию
 INSERT INTO user_sessions (user_id, token_hash, ip, ua, created_at, last_seen_at, expires_at, revoked_at)
 VALUES (:user_id, :token_hash, :ip, :ua, NOW(), NOW(), DATE_ADD(NOW(), INTERVAL :session_hours HOUR), NULL);
 
-```
-> сбрасываем счетчик
-```sql
+--сбрасываем счетчик
 UPDATE user_auth_counters
 SET failed_attempts = 0,
     locked_until    = NULL,
     updated_at      = NOW()
 WHERE user_id = :user_id;
 
-```
-> запись в лог успешного захода
-```sql
+--запись в лог успешного захода
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
 ```
+> если status = 'deleted' -\> 401
+> если status = 'blocked' -\> 403
+
+> если locked_until \> NOW() -\> 429
 
 
 #### Подтверждение MFA: `POST /auth/mfa/verify`
@@ -343,30 +324,21 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
 - **SQL**
 
-> Достаем настройки MFA
-
 ```sql
+--Достаем настройки MFA
 SELECT type, secret, enabled
 FROM user_mfa
 WHERE user_id = :user_id;
 
-```
-
-> Для backup-кода
-
-```sql
+--Для backup-кода
 SELECT id, code_hash, used_at
 FROM user_mfa_backup_codes
 WHERE user_id = :user_id
   AND code_hash = :code_hash
 LIMIT 1;
+--Если found && used_at IS NULL -> OK 
 
-```
-> Если found && used_at IS NULL -\> OK
-
-> Неудачная проверка кода -\> инкремент + лог
-
-```sql
+--Неудачная проверка кода -> инкремент + лог
 UPDATE user_auth_counters
 SET failed_attempts = failed_attempts + 1,
     last_failed_at  = NOW(),
@@ -378,18 +350,12 @@ SET failed_attempts = failed_attempts + 1,
     END
 WHERE user_id = :user_id;
 
-
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, FALSE, 'MFA_INVALID', NOW());
 
-```
-
-> Успех -\> создать сессию, сбросить счетчики, залогировать
-
-```sql
+--Успех -> создать сессию, сбросить счетчики, залогировать
 INSERT INTO user_sessions (user_id, token_hash, ip, ua, created_at, last_seen_at, expires_at, revoked_at)
 VALUES (:user_id, :token_hash, :ip, :ua, NOW(), NOW(), DATE_ADD(NOW(), INTERVAL :session_hours HOUR), NULL);
-
 
 UPDATE user_auth_counters
 SET failed_attempts = 0,
@@ -397,15 +363,10 @@ SET failed_attempts = 0,
     updated_at      = NOW()
 WHERE user_id = :user_id;
 
-
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, TRUE, 'MFA_SUCCESS', NOW());
 
-```
-
-> Для backup-кода помечаем использованный
-
-```sql
+--Для backup-кода помечаем использованный
 UPDATE user_mfa_backup_codes
 SET used_at = NOW(),
     used_ip = :ip,
@@ -446,19 +407,14 @@ WHERE id = :id;
 
 - **SQL**
 
-> закрываем сессию
-
 ```sql
+--закрываем сессию
 UPDATE user_sessions
 SET revoked_at = COALESCE(revoked_at, NOW())
 WHERE user_id = :user_id
   AND token_hash = :token_hash;
 
-```
-
-> записываем в лог
-
-```sql
+--записываем в лог
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 
@@ -515,27 +471,18 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 
 - **SQL**
 
-> Найти пользователя
-
 ```sql
+--Найти пользователя
 SELECT id, email, status
 FROM users
 WHERE LOWER(email) = :email
 LIMIT 1;
 
-```
-
-> Если найден и `status <> 'deleted'` - создать reset
-
-```sql
+--Если найден и status <> 'deleted' - создать reset
 INSERT INTO password_resets (user_id, token, expires_at, used_at, created_at)
 VALUES (:user_id, :token_hash, DATE_ADD(NOW(), INTERVAL :ttl_minutes MINUTE), NULL, NOW());
 
-```
-
-> Запись в лог
-
-```sql
+--Запись в лог
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NOW());
 
@@ -601,57 +548,36 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 
 - **SQL**
 
-> Найти валидный reset
-
 ```sql
+--Найти валидный reset
 SELECT id, user_id, expires_at, used_at
 FROM password_resets
 WHERE token = :token_hash
 LIMIT 1;
+--used_at IS NULL и expires_at > NOW()
 
-```
-> `used_at IS NULL` и `expires_at > NOW()`
-
-> Обновляем пароль
-
-```sql
+--Обновляем пароль
 UPDATE users
 SET password_hash = :new_password_hash,
     updated_at = NOW()
 WHERE id = :user_id;
 
-```
-
-> Помечаем reset использованным
-
-```sql
+--Помечаем reset использованным
 UPDATE password_resets
 SET used_at = NOW()
 WHERE id = :reset_id;
 
-```
-
-> Ревокируем все активные сессии
-
-```sql
+--Ревокируем все активные сессии
 UPDATE user_sessions
 SET revoked_at = COALESCE(revoked_at, NOW())
 WHERE user_id = :user_id AND revoked_at IS NULL;
 
-```
-
-> Сброс счетчиков
-
-```sql
+--Сброс счетчиков
 UPDATE user_auth_counters
 SET failed_attempts = 0, locked_until = NULL
 WHERE user_id = :user_id;
 
-```
-
-> Запись в лог
-
-```sql
+--Запись в лог
 INSERT INTO auth_logs (user_id, email, ip, ua, success, error_code, created_at)
 VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 
@@ -830,12 +756,12 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_SUCCESS', NOW());
 
 
 - **SQL**  
-  организация =\> адрес =\> админ =\> профиль админа =\> роль =\> подписка организации  
-  (в одном запросе последовательно)
 
-> Организация
+> организация =\> адрес =\> админ =\> профиль админа =\> роль =\> подписка организации  
+>  (в одном запросе последовательно)
 
 ```sql
+-- 1) Организация
 INSERT INTO organizations
   (name, legal_name, country_code, status, approved_by, approved_at, signup_source, created_at, updated_at)
 VALUES
@@ -847,21 +773,13 @@ VALUES
 
 SET @org_id = LAST_INSERT_ID();
 
-```
-
-> Адрес (office / primary)
-
-```sql
+-- 2) Адрес (office / primary)
 INSERT INTO org_addresses
   (org_id, address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude, created_at, updated_at)
 VALUES
   (@org_id, :addr_type, :addr_label, :addr_line1, :addr_line2, :addr_city, :addr_region, :addr_zip, :addr_country, :addr_tz, :addr_is_primary, :addr_lat, :addr_lng, NOW(), NOW());
 
-```
-
-> Админ-пользователь
-
-```sql
+-- 3) Админ-пользователь
 INSERT INTO users
   (email, full_name, password_hash, preferred_lang, status, avatar_url, created_at, updated_at)
 VALUES
@@ -870,21 +788,13 @@ VALUES
 
 SET @admin_user_id = LAST_INSERT_ID();
 
-```
-
-> Профиль админа (опционально)
-
-```sql
+-- 4) Профиль админа (опционально)
 INSERT INTO user_profiles
   (user_id, date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code, created_at, updated_at)
 VALUES
   (@admin_user_id, :dob, :phone, :upro_line1, :upro_line2, :upro_city, :upro_zip, :upro_country, NOW(), NOW());
 
-```
-
-> Назначение роли org_admin
-
-```sql
+-- 5) Назначение роли org_admin
 SET @role_admin_id = (SELECT id FROM roles WHERE code = 'org_admin' LIMIT 1);
 IF @role_admin_id IS NULL THEN
   SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Role org_admin missing';
@@ -893,20 +803,12 @@ END IF;
 INSERT INTO user_roles (user_id, org_id, role_id, assigned_at, created_at, updated_at)
 VALUES (@admin_user_id, @org_id, @role_admin_id, NOW(), NOW(), NOW());
 
-```
-
-> Создание подписки (на free)
-
-```sql
+-- 6) Создание подписки (на free)
 SET @plan_id = (SELECT id FROM subscription_plans WHERE code = :plan_code AND is_active = 1 LIMIT 1);
 IF @plan_id IS NULL THEN
   SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Subscription plan not found';
 END IF;
-
-```
-> вычисляем конец периода: месяц/год
-
-```sql
+-- вычисляем конец периода: месяц/год
 SET @period_end =
   (SELECT CASE interval
            WHEN 'month' THEN DATE_ADD(CURDATE(), INTERVAL 1 MONTH)
@@ -1166,30 +1068,21 @@ LIMIT @limit OFFSET @offset;
 
 - **SQL**
 
-> Проверка прав доступа
-
 ```sql
+--Проверка прав доступа
 SELECT 1
 FROM organizations 
 WHERE id = :org_id
   AND ( :is_superadmin = 1 OR id = :jwt_org_id )
 LIMIT 1;
 
-```
-
-> Карточка организации
-
-```sql
+--Карточка организации
 SELECT id, name, legal_name, country_code, status, created_at, updated_at
 FROM organizations
 WHERE id = :org_id
 LIMIT 1;
 
-```
-
-> Адреса
-
-```sql
+--Адреса
 SELECT address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude
 FROM org_addresses
 WHERE org_id = :org_id
@@ -1320,29 +1213,20 @@ ORDER BY is_primary DESC, id ASC;
 
 - **SQL**
 
-> Право на редактирование
-
 ```sql
+--Право на редактирование
 SELECT 1 FROM organizations 
 WHERE id = :org_id
   AND ( :is_superadmin = 1 OR id = :jwt_org_id )
   AND status <> 'deleted'
 LIMIT 1;
 
-```
-
-> Проверка уникальности name, если name передан
-
-```sql
+--Проверка уникальности name, если name передан
 SELECT 1 FROM organizations 
 WHERE name = :name AND id <> :org_id
 LIMIT 1;
 
-```
-
-> Обновление
-
-```sql
+--Обновление
 UPDATE organizations
 SET name         = COALESCE(:name, name),
     legal_name   = COALESCE(:legal_name, legal_name),
@@ -1350,21 +1234,13 @@ SET name         = COALESCE(:name, name),
     updated_at   = NOW()
 WHERE id = :org_id;
 
-```
-
-> Возврат
-
-```sql
+--Возврат
 SELECT id, name, legal_name, country_code, status, created_at, updated_at
 FROM organizations
 WHERE id = :org_id
 LIMIT 1;
 
-```
-
-> Адреса
-
-```sql
+--Адреса
 SELECT address_type, label, line1, line2, city, state_region, zip_code, country_code, timezone, is_primary, latitude, longitude
 FROM org_addresses
 WHERE org_id = :org_id
@@ -1453,18 +1329,13 @@ ORDER BY is_primary DESC, id ASC;
 
 - **SQL**
 
-> Проверка организации
-
 ```sql
+--Проверка организации
 SELECT 1 FROM organizations 
 WHERE id = :org_id 
 LIMIT 1;
 
-```
-
-> Проверка на подписку
-
-```sql
+--Проверка на подписку
 SELECT id, status, current_period_end, cancel_at_period_end
 FROM org_subscriptions
 WHERE org_id = :org_id
@@ -1472,13 +1343,9 @@ WHERE org_id = :org_id
   AND status IN ('trialing','active','past_due','paused')
   AND current_period_end > NOW()
 LIMIT 1;
+--если вернулась строка -> 409 Conflict
 
-```
-> если вернулась строка -\> 409 Conflict
-
-> Обновление статуса
-
-```sql
+--Обновление статуса
 UPDATE organizations
 SET status = 'deleted',
     approved_by = NULL,
@@ -1486,10 +1353,7 @@ SET status = 'deleted',
     updated_at = NOW()
 WHERE id = :org_id;
 
-```
-
-> Ответ
-```sql
+--Ответ
 SELECT id, name, status, NOW() AS deleted_at
 FROM organizations
 WHERE id = :org_id
@@ -1598,19 +1462,14 @@ LIMIT 1;
 
 - **SQL**
 
-> Проверка организации
-
 ```sql
+--Проверка организации
 SELECT status FROM organizations 
 WHERE id = :org_id 
 LIMIT 1;
+--если status = 'deleted' -> 409
 
-```
-> если status = 'deleted' -\> 409
-
-> Обновление статуса
-
-```sql
+--Обновление статуса
 UPDATE organizations
 SET status = :new_status,
     approved_by = CASE 
@@ -1624,17 +1483,15 @@ SET status = :new_status,
     updated_at = NOW()
 WHERE id = :org_id;
 
-```
-
-> Ответ
-
-```sql
+--Ответ
 SELECT id, name, status, approved_by, approved_at, updated_at
 FROM organizations
 WHERE id = :org_id
 LIMIT 1;
 
 ```
+> если status = 'deleted' -\> 409
+
 
 ### Роли
 
@@ -1699,6 +1556,13 @@ LIMIT 1;
 - **SQL**
 
 ```sql
+--Все роли:
+SELECT id, code, name, created_at, updated_at
+FROM roles
+ORDER BY code ASC;
+
+--Поиск по букве:
+--q = содержит букву,если q пустой/NULL — возвращаем все
 SELECT id, code, name, created_at, updated_at
 FROM roles
 WHERE COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
@@ -1848,36 +1712,23 @@ ORDER BY code ASC;
 
 - **SQL**
 
-> Проверки:  
-> Роль существует
-
 ```sql
-SELECT 1 FROM roles 
-WHERE id = :role_id 
+--Проверки:
+--1) Роль существует
+SELECT 1 FROM roles WHERE id = :role_id 
 LIMIT 1;
-```
 
-> Организация существует и активна/ожидает подтверждения
-
-```sql
+--2) Организация существует и активна/ожидает подтверждения
 SELECT 1 FROM organizations 
 WHERE id = :org_id AND status IN ('active','pending') 
 LIMIT 1;
 
-```
-
-> Пользователь существует и не удален
-
-```sql
+--3) Пользователь существует и не удален
 SELECT 1 FROM users 
 WHERE id = :user_id AND status <> 'deleted' 
 LIMIT 1;
 
-```
-
-> лимиты тарифа по роли (например org_staff)
-
-```sql
+--4) лимиты тарифа по роли (например org_staff)
 SELECT subscription_plans.max_staff AS max_allowed,
        (
          SELECT COUNT(*)
@@ -1892,11 +1743,7 @@ WHERE org_subscriptions.org_id = :org_id
   AND org_subscriptions.is_current = 1
 LIMIT 1;
 
-```
-
-> Вставка (идемпотентность):
-
-```sql
+--Вставка (идемпотентность):
 INSERT INTO user_roles (user_id, org_id, role_id, operator_id, assigned_at, created_at, updated_at, revoked_at)
 VALUES (:user_id, :org_id, :role_id,:operator_id, NOW(), NOW(), NOW(), NULL)
 ON DUPLICATE KEY UPDATE
@@ -1905,14 +1752,10 @@ ON DUPLICATE KEY UPDATE
   -- фиксируем, кто назначил/изменил роль
   operator_id = :operator_id,
   updated_at = NOW(),
-  -- сохраняем самую раннюю дату назначения, чтобы история не «скакала» 
+  -- сохраняем самую раннюю дату назначения (чтобы история не "скакала")
   assigned_at = COALESCE(user_roles.assigned_at, NOW());
 
-```
-
-> Вернуть назначение для ответа:
-
-```sql
+--Вернуть назначение для ответа:
 SELECT user_roles.user_id, user_roles.org_id, user_roles.role_id, user_roles.assigned_at, user_roles.created_at, user_roles.updated_at,
        roles.code AS role_code, roles.name AS role_name,
        users.username, users.full_name,
@@ -2014,46 +1857,27 @@ WHERE user_roles.user_id = :user_id AND user_roles.org_id = :org_id AND user_rol
 
 - **SQL**
 
-> Проверки:  
-> Роль существует
-
 ```sql
-SELECT 1 FROM roles 
-WHERE id = :role_id 
+--Проверки:
+--1) Роль существует
+SELECT 1 FROM roles WHERE id = :role_id 
 LIMIT 1;
-```
 
->  Организация существует и активна/ожидает подтверждения
-
-```sql
+--2) Организация существует и активна/ожидает подтверждения
 SELECT 1 FROM organizations 
 WHERE id = :org_id AND status IN ('active','pending') 
 LIMIT 1;
 
-```
-
-> Пользователь существует и не удален
-
-```sql
+--3) Пользователь существует и не удален
 SELECT 1 FROM users 
-WHERE id = :user_id AND status <> 'deleted' 
-LIMIT 1;
-
-```
-
-> Отзыв роли:
-
-```sql
+WHERE id = :user_id AND status <> 'deleted' LIMIT 1;
+Отзыв роли:
 UPDATE user_roles
 SET revoked_at = NOW(), updated_at = NOW()
 WHERE user_id = :user_id AND org_id = :org_id AND role_id = :role_id
   AND revoked_at IS NULL;
 
-```
-
-> Вернуть назначение для ответа:
-
-```sql
+--Вернуть назначение для ответа:
 SELECT user_roles.user_id, user_roles.org_id, user_roles.role_id, user_roles.revoked_at, user_roles.updated_at,
        roles.code AS role_code, roles.name AS role_name,
        users.username, users.full_name,
@@ -2220,30 +2044,21 @@ WHERE user_roles.user_id = :user_id AND user_roles.org_id = :org_id AND user_rol
 
 - **SQL**
 
-> Проверки:
-> Организация существует и активна/ожидает подтверждения
-
 ```sql
+--Проверки:
+--1) Организация существует и активна/ожидает подтверждения
 SELECT 1 FROM organizations 
 WHERE id = :org_id AND status IN ('active','pending') 
 LIMIT 1;
 
-```
-
-> Роль существует
-
-```sql
-SELECT 1 FROM roles 
-WHERE id = :role_id 
+--2) Роль существует
+SELECT 1 FROM roles WHERE id = :role_id 
 LIMIT 1;
-```
 
-> лимиты тарифа по роли
-
-```sql
+--3) лимиты тарифа по роли 
 -- узнаем код роли
 SELECT code INTO @role_code FROM roles WHERE id = :role_id;
--- берем лимит из плана под эту роль
+--берем лимит из плана под эту роль
 SELECT
   CASE @role_code
     WHEN 'org_staff' THEN subscription_plans.max_staff
@@ -2275,58 +2090,34 @@ WHERE org_subscriptions.org_id = :org_id
   AND org_subscriptions.is_current = 1
 LIMIT 1;
 
-```
-
-> существует ли юзер
-
-```sql
+--4)существует ли юзер
 SELECT id INTO @user_id
 FROM users
 WHERE email = :email AND status <> 'deleted'
 LIMIT 1;
 
-```
-
-> Создать пользователя
-
-```sql
+--Создать пользователя
 INSERT INTO users (email, full_name, password_hash, preferred_lang, status, created_at, updated_at)
 SELECT :email, :full_name, NULL, COALESCE(:preferred_lang, 'en'), 'pending', NOW(), NOW()
 WHERE @user_id IS NULL;
 
-```
-
-> Получаем id
-
-```sql
+--Получаем id 
 SET @user_id = COALESCE(@user_id, LAST_INSERT_ID());
 
-```
-
-> Назначить роль (идемпотентно) + кто назначил
-
-```sql
+--Назначить роль (идемпотентно) + кто назначил
 INSERT INTO user_roles (user_id, org_id, role_id, operator_id, assigned_at, created_at, updated_at, revoked_at)
 VALUES (@user_id, :org_id, :role_id, :operator_id, NOW(), NOW(), NOW(), NULL)
 ON DUPLICATE KEY UPDATE
-  revoked_at  = NULL,             -- реактивация, если была отозвана
-  operator_id = :operator_id,     -- фиксируем, кто назначил/изменил
+  revoked_at  = NULL,             --реактивация, если была отозвана
+  operator_id = :operator_id,     --фиксируем, кто назначил/изменил
   updated_at  = NOW(),
   assigned_at = COALESCE(user_roles.assigned_at, NOW());
 
-```
-
-> Создать приглашение:
-
-```sql
+--Создать приглашение:
 INSERT INTO org_invitations (org_id, email, role_id, token, status, expires_at, created_by, created_at)
 VALUES (:org_id, :email, :role_id, :token, 'pending', DATE_ADD(NOW(), INTERVAL 7 DAY), :operator_id, NOW());
 
-```
-
-> Вернуть для ответа:
-
-```sql
+--Вернуть для ответа:
 SELECT 
   users.id AS user_id, users.email, users.full_name, users.preferred_lang, users.status, users.created_at, users.updated_at,
   organizations.id AS org_id, organizations.name AS org_name,
@@ -2451,18 +2242,13 @@ LIMIT 1;
 
 - **SQL**
 
-> Проверка организации
-
 ```sql
+--Проверка организации
 SELECT 1 FROM organizations 
 WHERE id = :org_id AND status IN ('active','pending') 
 LIMIT 1;
 
-```
-
-> Проверка,что пользователь имеет активную роль в этой организации
-
-```sql
+--Проверка,что пользователь имеет активную роль в этой организации
 SELECT 1
 FROM user_roles
 WHERE org_id = :org_id
@@ -2470,31 +2256,19 @@ WHERE org_id = :org_id
   AND revoked_at IS NULL
 LIMIT 1;
 
-```
-
-> Базовые данные пользователя
-
-```sql
+--Базовые данные пользователя
 SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
 FROM users
 WHERE id = :user_id
 LIMIT 1;
 
-```
-
-> Персональный профиль (1:1, может отсутствовать)
-
-```sql
+--Персональный профиль (1:1, может отсутствовать)
 SELECT date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code
 FROM user_profiles
 WHERE user_id = :user_id
 LIMIT 1;
 
-```
-
-> Активные роли в рамках этой организации
-
-```sql
+--Активные роли в рамках этой организации
 SELECT roles.id, roles.code, roles.name, user_roles.assigned_at
 FROM user_roles 
 JOIN roles ON roles.id = user_roles.role_id
@@ -2604,18 +2378,13 @@ ORDER BY roles.code ASC;
 
 - **SQL**
 
-> Проверка организации
-
 ```sql
+--Проверка организации
 SELECT 1 FROM organizations 
 WHERE id = :org_id AND status IN ('active','pending') 
 LIMIT 1;
 
-```
-
-> Проверить, не последний ли это активный админ в организации
-
-```sql
+--Проверить, не последний ли это активный админ в организации
 SELECT
   SUM(CASE WHEN ur.user_id = :user_id THEN 1 ELSE 0 END) AS is_target_admin,
   SUM(1) AS total_admins
@@ -2623,23 +2392,16 @@ FROM user_roles
 JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'org_admin'
 WHERE user_roles.org_id = :org_id AND user_roles.revoked_at IS NULL;
 
-```
-> Если `is_target_admin = 1` и `total_admins = 1` -\> `409 Conflict`
+--Если is_target_admin = 1 и total_admins = 1 -> 409 Conflict
 
-> Отозвать все активные роли пользователя в этой организации
-
-```sql
+--Отозвать все активные роли пользователя в этой организации
 UPDATE user_roles
 SET revoked_at = NOW(), updated_at = NOW()
 WHERE org_id = :org_id
   AND user_id = :user_id
   AND revoked_at IS NULL;
 
-```
-
-> Если после отзыва ролей у пользователя нет активных ролей нигде, пометить как `deleted`
-
-```sql
+--Если после отзыва ролей у пользователя нет активных ролей нигде, пометить как deleted
 SELECT COUNT(*) INTO @active_roles_any
 FROM user_roles
 WHERE user_id = :user_id AND revoked_at IS NULL;
@@ -2649,11 +2411,7 @@ SET status = CASE WHEN @active_roles_any = 0 THEN 'deleted' ELSE status END,
     updated_at = NOW()
 WHERE id = :user_id;
 
-```
-
-> Вернуть отозванные роли для ответа
-
-```sql
+--Вернуть отозванные роли для ответа
 SELECT roles.id, roles.code, roles.name
 FROM user_roles
 JOIN roles ON roles.id = user_roles.role_id
@@ -2661,6 +2419,9 @@ WHERE user_roles.org_id = :org_id AND user_roles.user_id = :user_id
   AND user_roles.revoked_at IS NOT NULL;
 
 ```
+
+> Если `is_target_admin = 1` и `total_admins = 1` -\> `409 Conflict`
+
 
 #### Получить список пользователей согласно роли: `GET /orgs/:org_id/users?role=&q=&include_revoked=&page=&limit=`
 
@@ -2951,48 +2712,31 @@ WHERE user_roles.org_id = :org_id
 
 - **SQL**
 
-> Проверка организации
-
 ```sql
+--Проверка организации
 SELECT 1 FROM organizations 
 WHERE id = :org_id AND status IN ('active','pending') 
 LIMIT 1;
 
-```
-
-> Базовые данные пользователя (из JWT: `:me_user_id`)
-
-```sql
+--Базовые данные пользователя (из JWT: :me_user_id)
 SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
 FROM users
 WHERE id = :me_user_id
 LIMIT 1;
 
-```
-
-> Персональный профиль (1:1, может отсутствовать)
-
-```sql
+--Персональный профиль (1:1, может отсутствовать)
 SELECT date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code
 FROM user_profiles
 WHERE user_id = :me_user_id
 LIMIT 1;
 
-```
-
-> Индивидуальные настройки (1:1, может отсутствовать)
-
-```sql
+--Индивидуальные настройки (1:1, может отсутствовать)
 SELECT timezone, notify_in_app, notify_email, locale_override
 FROM user_settings
 WHERE user_id = :me_user_id
 LIMIT 1;
 
-```
-
-> Активные роли в рамках этой организации
-
-```sql
+--Активные роли в рамках этой организации
 SELECT roles.id, roles.code, roles.name, user_roles.assigned_at
 FROM user_roles 
 JOIN roles ON roles.id = user_roles.role_id
@@ -3167,28 +2911,19 @@ ORDER BY roles.code ASC;
 
 - **SQL**
 
-> Проверка организации
-
 ```sql
+--Проверка организации
 SELECT 1 FROM organizations 
 WHERE id = :org_id AND status IN ('active','pending') 
 LIMIT 1;
 
-```
-
-> Базовые данные пользователя (из JWT: `:me_user_id`)
-
-```sql
+--Базовые данные пользователя (из JWT: :me_user_id)
 SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
 FROM users
 WHERE id = :me_user_id
 LIMIT 1;
 
-```
-
-> Обновление users (только разрешенные поля)
-
-```sql
+--Обновление users (только разрешенные поля)
 UPDATE users
 SET full_name = COALESCE(:full_name, full_name),
     preferred_lang = COALESCE(:preferred_lang, preferred_lang),
@@ -3196,11 +2931,7 @@ SET full_name = COALESCE(:full_name, full_name),
     updated_at = NOW()
 WHERE id = :me_user_id;
 
-```
-
-> UPSERT в `user_profiles`
-
-```sql
+--UPSERT в user_profiles
 INSERT INTO user_profiles
   (user_id, date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code, created_at, updated_at)
 VALUES
@@ -3215,11 +2946,7 @@ ON DUPLICATE KEY UPDATE
   country_code  = VALUES(country_code),
   updated_at    = NOW();
 
-```
-
-> UPSERT в `user_settings`
-
-```sql
+--UPSERT в user_settings
 INSERT INTO user_settings
   (user_id, timezone, notify_in_app, notify_email, locale_override)
 VALUES
@@ -3340,39 +3067,26 @@ ON DUPLICATE KEY UPDATE
 
 - **SQL**
 
-> Проверка организации
-
 ```sql
+--Проверка организации
 SELECT 1 FROM organizations 
 WHERE id = :org_id AND status IN ('active','pending') 
 LIMIT 1;
 
-```
-
-> Обновление пароля
-
-```sql
+--Обновление пароля
 UPDATE users
 SET password_hash = :new_password_hash,
     updated_at     = NOW()
 WHERE id = :me_user_id;
 
-```
-
-> Деактивировать все остальные активные сессии
-
-```sql
+--Деактивировать все остальные активные сессии
 UPDATE user_sessions
 SET revoked_at = NOW()
 WHERE user_id = :me_user_id
   AND revoked_at IS NULL
   AND id <> :current_session_id;
 
-```
-
-> Сбросить счетчики неудачных входов
-
-```sql
+--Сбросить счетчики неудачных входов
 UPDATE user_auth_counters
 SET failed_attempts = 0,
     last_failed_at  = NULL,
@@ -3380,11 +3094,7 @@ SET failed_attempts = 0,
     updated_at      = NOW()
 WHERE user_id = :me_user_id;
 
-```
-
-> Лог события (успех/ошибка)
-
-```sql
+--Лог события (успех/ошибка)
 INSERT INTO auth_logs (user_id, ip, ua, success, error_code, created_at)
 VALUES (:me_user_id, :ip, :ua, 1, NULL, NOW());
 
