@@ -5010,24 +5010,30 @@ FROM groups WHERE id = :group_id AND org_id = :org_id;
 
 ### Связка «Направление ⇔ Предметы» direction_subjects
 
-`GET /orgs/:orgId/directions/:directionId/subjects?q=&only_active=&page=&limit=`  получить список предметов направления
+`GET /orgs/:orgId/directions/:directionId/subjects?q=&only_active=&page=&limit=`  
+  получить список предметов направления
 
-`GET /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  получить одну запись (текущую или по дате начала)
+`GET /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  
+  получить одну запись (текущую или по дате начала)
 
-`POST /orgs/:orgId/directions/:directionId/subjects`  добавить предмет в направление (c датой начала действия)
+`POST /orgs/:orgId/directions/:directionId/subjects`  
+  добавить предмет в направление (c датой начала действия)
 
-`PUT /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  правка записи (флага/сортира/даты окончания)
+`PUT /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  
+  правка записи (флага/сортира/даты окончания)
 
-`DELETE /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  «закрыть» запись (поставить effective_to)
+`DELETE /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  
+  «закрыть» запись (поставить effective_to)
+  
 
 #### Получить список предметов направления:  `GET /orgs/:orgId/directions/:directionId/subjects?q=&only_active=&page=&limit=`
 
 суперадмин, админ, сотрудник учебной организации, преподаватель, студент
 
-  `q` - поиск по `subjects.name/short_code`
-  `only_active` - `0|1` (по умолчанию 1 — показывать только текущие записи с `effective_to IS NULL`)
-  `page` - номер страницы, по умолчанию 1
-  `limit` - количество на странице (по умолчанию 50, ≤ 200)
+  `q` - поиск по `subjects.name/short_code`  
+  `only_active` - `0|1` (по умолчанию 1 — показывать только текущие записи с `effective_to IS NULL`)  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
 - **Content-type:** `application/json`
 
