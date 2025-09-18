@@ -4310,4929 +4310,3701 @@ WHERE id = :subject_id AND org_id = :org_id;
 
 `DELETE /orgs/:orgId/groups/:groupId` удалить группу
 
-#### Получить список групп:
+#### Получить список групп:  `GET /orgs/:orgId/groups?q=&status=&direction_id=&page=&limit=`
 
 суперадмин, админ, сотрудник учебной организации, учитель
 
-- GET /orgs/:orgId/groups?q=&status=&direction_id=&page=&limit=
+  `q` - поиск по `name/code`  
+  `status` - `planned |active | archived` - фильтр по статусу группы  
+  `direction_id` - фильтр по направлению  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> q - поиск по name/code
->
-> status - planned \|active \| archived - фильтр по статусу группы
->
-> direction_id - фильтр по направлению
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - q - строка (если передали)
-
-  - status - один из planned \|active \| archived (если передали)
-
-  - direction_id - целое число (если передали)
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `q` - строка (если передали)
+  - `status` - один из `planned |active | archived` (если передали)
+  - `direction_id` - целое число (если передали)
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - q - string\[0..100\] - trim
-
-  - status - planned \|active \| archived
-
-  - direction_id - /^\[1-9\]\d{0,9}\$/
-
-  - page - целое число, \>=1, по умолчанию - 1
-
-  - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `status` - `planned |active | archived`
+    - `direction_id` - /^\[1-9\]\d{0,9}\$/
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `status` - `planned |active | archived`
+    - `direction_id` - /^\[1-9\]\d{0,9}\$/
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - q - string\[0..100\] - trim
+- **Responses**:
 
-    - status - planned \|active \| archived
+  - **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "groups": 
+  [ 
+    {
+  	"id": 108,
+  		"direction_id": 12,
+  		"name": "Web-Development-2025-10",
+  		"code": "281025-wdm",
+  		"status": "planned",     
+  		"avatar_url": null,
+  		"start_date": "2025-10-28", 
+  		"end_date": "2026-08-15",
+  		"created_by": 1054,
+  		"created_at": "2025-09-02T10:11:12Z",
+  		"updated_at": "2025-09-02T10:11:12Z",
+    },
+  ],
+}
+```
 
-    - direction_id - /^\[1-9\]\d{0,9}\$/
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
 
-    - page - целое число, \>=1, по умолчанию - 1
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - limit - целое число, 1..200, по умолчанию - 50
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-  <!-- -->
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view groups in this organization." }
+```
 
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "groups":
->
-> \[
->
-> {
->
-> "id": 108,
->
-> "direction_id": 12,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> "status": "planned",
->
-> "avatar_url": null,
->
-> "start_date": "2025-10-28",
->
-> "end_date": "2026-08-15",
->
-> "created_by": 1054,
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> },
->
-> \],
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view groups in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM groups
->
-> WHERE org_id = :org_id
->
-> AND (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL OR status = :status)
->
-> AND (COALESCE(:direction_id, 0) = 0 OR direction_id = :direction_id)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR name LIKE CONCAT('%', :q, '%')
->
-> OR code LIKE CONCAT('%', :q, '%')
->
-> );
->
-> page
->
-> SELECT id, direction_id, name, code, status, avatar_url,
->
-> start_date, end_date, created_at, updated_at, created_by
->
-> FROM groups
->
-> WHERE org_id = :org_id
->
-> AND (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL OR status = :status)
->
-> AND (COALESCE(:direction_id, 0) = 0 OR direction_id = :direction_id)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR name LIKE CONCAT('%', :q, '%')
->
-> OR code LIKE CONCAT('%', :q, '%')
->
-> )
->
-> ORDER BY created_at DESC, id DESC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить группу по id:
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM groups
+WHERE org_id = :org_id
+  AND (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL OR status = :status)
+  AND (COALESCE(:direction_id, 0) = 0 OR direction_id = :direction_id)
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR name LIKE CONCAT('%', :q, '%')
+    OR code LIKE CONCAT('%', :q, '%')
+  );
+
+--page
+SELECT id, direction_id, name, code, status, avatar_url,
+       start_date, end_date, created_at, updated_at, created_by
+FROM groups
+WHERE org_id = :org_id
+  AND (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL OR status = :status)
+  AND (COALESCE(:direction_id, 0) = 0 OR direction_id = :direction_id)
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR name LIKE CONCAT('%', :q, '%')
+    OR code LIKE CONCAT('%', :q, '%')
+  )
+ORDER BY created_at DESC, id DESC
+LIMIT @limit OFFSET @offset;
+
+```
+
+#### Получить группу по id:  `GET /orgs/:orgId/groups/:groupId`
 
 суперадмин, админ, сотрудник учебной организации, учитель, студент
 
-- GET /orgs/:orgId/groups/:groupId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:** `{}`
 
-  - **Body:** {}
+- **Path / Query params:**
 
-  - **Path / Query params:**
+  - `orgId` - целое число
+  - `groupId` - целое число
 
-    - orgId - целое число
+- **Backend-правила:**
 
-    - groupId - целое число
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
-  - **Backend-правила:**
+- **Validation**:
 
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
+  - Frontend:
 
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+- **Responses**:
 
-  <!-- -->
+  - **200 OK**
+```json
+{ 
+  "id": 108,
+  "direction_id": 12,
+  "name": "Web-Development-2025-10",
+  "code": "281025-wdm",
+  "status": "planned",     
+  "avatar_url": null,
+  "start_date": "2025-10-28", 
+  "end_date": "2026-08-15",
+  "created_by": 1054,
+  "created_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z",
+}
+```
 
-  - **Responses**:
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
 
-    - **200 OK**
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {
->
-> "id": 108,
->
-> "direction_id": 12,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> "status": "planned",
->
-> "avatar_url": null,
->
-> "start_date": "2025-10-28",
->
-> "end_date": "2026-08-15",
->
-> "created_by": 1054,
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> }
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view groups in this organization." }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view groups in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Выборка
->
-> SELECT id, direction_id, name, code, status, avatar_url, start_date, end_date, created_at, updated_at, created_by
->
-> FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Создать группу:
+--Выборка
+SELECT id, direction_id, name, code, status, avatar_url, start_date, end_date, created_at, updated_at, created_by
+FROM groups
+WHERE id = :group_id AND org_id = :org_id
+LIMIT 1;
+
+```
+
+#### Создать группу:  `POST /orgs/:orgId/groups`
 
 суперадмин, админ
 
-- POST /orgs/:orgId/groups
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "direction_id": 12,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> "status": "planned",
->
-> "avatar_url": null,
->
-> "start_date": "2025-10-28",
->
-> "end_date": "2026-08-15"
->
-> }
+```json
+{ 
+  "direction_id": 12,
+  "name": "Web-Development-2025-10",
+  "code": "281025-wdm",
+  "status": "planned",     
+  "avatar_url": null,
+  "start_date": "2025-10-28", 
+  "end_date": "2026-08-15"
+}
+```
 
 - **Назначение:** создать учебную группу в организации, при создании группа прикрепляется к направлению, и получает набор предметов, которые соответствуют этому направлению
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - direction_id должен существовать и принадлежать той же организации
-
-  - code уникален в рамках организации (org_id, code)
-
-  - Лимит тарифа - количество групп (planned + active) не должно превышать subscription_plans.max_groups
-
-  - end_date ≥ start_date (если обе заданы)
-
-  - created_by берем из JWT
-
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `direction_id` должен существовать и принадлежать той же организации
+  - `code` уникален в рамках организации `(org_id, code)`
+  - Лимит тарифа - количество групп `(planned + active)` не должно превышать `subscription_plans.max_groups`
+  - `end_date ≥ start_date` (если обе заданы)
+  - `created_by` берем из JWT
   - Поля:
-
-    - code обязательное поле
-
-    - name обязательное поле
-
-  - Автонаполнение group_subjects из direction_subjects (source='direction') на момент создания
+    - `code` обязательное поле
+    - `name` обязательное поле
+  - Автонаполнение `group_subjects` из `direction_subjects` `(source='direction')` на момент создания
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-- direction_id - /^\[1-9\]\d{0,9}\$/ обязательное поле
-
-  - name - string\[1..100\], trim - обязательное поле
-
-  - code - ^\[A-Za-z0-9.\_-\]{2,50}\$, toLowerCase(),trim - обязательное поле
-
-  - status - planned\|active\|archived (по умолчанию active)
-
-  - start_date, end_date - YYYY-MM-DD, end_date \>= start_date
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `direction_id` - /^\[1-9\]\d{0,9}\$/ обязательное поле
+    - `name` - `string[1..100]`, `trim` - обязательное поле
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim` - обязательное поле
+    - `status` - `planned|active|archived` (по умолчанию `active`)
+    - `start_date` - `YYYY-MM-DD` 
+    - `end_date` - `YYYY-MM-DD` 
+    - `end_date >= start_date`
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - direction_id - /^\[1-9\]\d{0,9}\$/ обязательное поле
-
-    - name - string\[1..100\], trim - обязательное поле
-
-    - code - ^\[A-Za-z0-9.\_-\]{2,50}\$, toLowerCase(),trim - обязательное поле
-
-    - status - planned\|active\|archived (по умолчанию active)
-
-    - start_date, end_date - YYYY-MM-DD, end_date \>= start_date
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `direction_id`- /^\[1-9\]\d{0,9}\$/ обязательное поле
+    - `name` - `string[1..100]`, `trim` - обязательное поле
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim` - обязательное поле
+    - `status` - `planned|active|archived` (по умолчанию `active`)
+    - `start_date` - `YYYY-MM-DD` 
+    - `end_date` - `YYYY-MM-DD` 
+    - `end_date >= start_date`
 
   - DB:
 
-    - (org_id, code) - UNIQUE проверка уникальности
+    - `(org_id, code)` - `UNIQUE` проверка уникальности
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **201 Created** группа создана
+```json
+{ 
+  "id": 108,
+  "direction_id": 12,
+  "name": "Web-Development-2025-10",
+  "code": "281025-wdm",
+  "status": "planned",     
+  "avatar_url": null,
+  "start_date": "2025-10-28", 
+  "end_date": "2026-08-15",
+  "created_by": 1054,
+  "created_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z",
+}
+```
 
-    - **201 Created** группа создана
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "code is required" }
+```
+```json
+{ "message": "name is required" }
+```
 
-> {
->
-> "id": 108,
->
-> "direction_id": 12,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> "status": "planned",
->
-> "avatar_url": null,
->
-> "start_date": "2025-10-28",
->
-> "end_date": "2026-08-15",
->
-> "created_by": 1054,
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> }
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”code is required”}
->
-> {“message”: ”name is required”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to create a group in this organization." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **409 Conflict** дубликат
+```json
+{ "message": "Groups code '281025-wdm' is already in use in this organization" }
+```
 
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to create a group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Direction not found”}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”Groups code '281025-wdm' is already in use in this organization”}
-
-- **409 Conflict** превышен лимит (согласно тарифного плана)
-
-> {“message”: ”Plan limits exceeded for groups.”}
+  - **409 Conflict** превышен лимит (согласно тарифного плана)
+```json
+{ "message": "Plan limits exceeded for groups." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка направления - принадлежит той же организации
->
-> SELECT 1 FROM directions
->
-> WHERE id = :direction_id AND org_id = :org_id LIMIT 1;
->
-> Проверка лимита плана по группам
->
-> SELECT subscription_plans.max_groups AS max_allowed,
->
-> (
->
-> SELECT COUNT(\*)
->
-> FROM groups
->
-> WHERE groups.org_id = :org_id
->
-> AND groups.status IN ('planned','active')
->
-> ) AS currently_used
->
-> FROM org_subscriptions
->
-> JOIN subscription_plans ON subscription_plans.id = org_subscriptions.plan_id
->
-> WHERE org_subscriptions.org_id = :org_id AND org_subscriptions.is_current = 1
->
-> LIMIT 1;
->
-> Если currently_used \>= max_allowed =\> 409
->
-> Проверка уникальности кода группы
->
-> SELECT id FROM groups
->
-> WHERE org_id = :org_id AND code = :code LIMIT 1;
->
-> Создание группы
->
-> INSERT INTO groups
->
-> (org_id, direction_id, name, code, status, avatar_url, start_date, end_date, created_at, updated_at, created_by)
->
-> VALUES
->
-> (:org_id, :direction_id, :name, :code, COALESCE(:status, 'active'), :avatar_url, :start_date, :end_date, NOW(), NOW(), :created_by);
->
-> Автонаполнение предметов группы
->
-> SET @group_id = LAST_INSERT_ID();
->
-> INSERT INTO group_subjects (org_id, group_id, subject_id, added_at, source)
->
-> SELECT :org_id, @group_id, direction_subjects.subject_id, NOW(), 'direction'
->
-> FROM direction_subjects
->
-> JOIN subjects ON subjects.id = direction_subjects.subject_id
->
-> WHERE subjects.org_id = :org_id
->
-> AND direction_subjects.direction_id = :direction_id
->
-> AND direction_subjects.effective_to IS NULL;
->
-> -- Если важно учитывать дату начала группы:
->
-> AND direction_subjects.effective_from \<= COALESCE(:start_date, CURDATE())
->
-> Для ответа
->
-> SELECT id, direction_id, name, code, status, avatar_url, start_date, end_date, created_at, updated_at, created_by
->
-> FROM groups WHERE id = LAST_INSERT_ID();
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Редактировать группу:
+--Проверка направления - принадлежит той же организации
+SELECT 1 FROM directions
+WHERE id = :direction_id AND org_id = :org_id LIMIT 1;
+
+--Проверка лимита плана по группам
+SELECT subscription_plans.max_groups AS max_allowed,
+       (
+         SELECT COUNT(*)
+         FROM groups
+         WHERE groups.org_id = :org_id
+           AND groups.status IN ('planned','active')
+       ) AS currently_used
+FROM org_subscriptions
+JOIN subscription_plans ON subscription_plans.id = org_subscriptions.plan_id
+WHERE org_subscriptions.org_id = :org_id AND org_subscriptions.is_current = 1
+LIMIT 1;
+--Если currently_used >= max_allowed => 409
+
+--Проверка уникальности кода группы
+SELECT id FROM groups
+WHERE org_id = :org_id AND code = :code LIMIT 1;
+
+--Создание группы
+INSERT INTO groups
+  (org_id, direction_id, name, code, status, avatar_url, start_date, end_date, created_at, updated_at, created_by)
+VALUES
+  (:org_id, :direction_id, :name, :code, COALESCE(:status, 'active'), :avatar_url, :start_date, :end_date, NOW(), NOW(), :created_by);
+
+--Автонаполнение предметов группы
+SET @group_id = LAST_INSERT_ID();
+
+INSERT INTO group_subjects (org_id, group_id, subject_id, added_at, source)
+SELECT :org_id, @group_id, direction_subjects.subject_id, NOW(), 'direction'
+FROM direction_subjects
+JOIN subjects ON subjects.id = direction_subjects.subject_id
+WHERE subjects.org_id     = :org_id
+  AND direction_subjects.direction_id = :direction_id     
+  AND direction_subjects.effective_to IS NULL;          
+  -- Если важно учитывать дату начала группы:
+  AND direction_subjects.effective_from <= COALESCE(:start_date, CURDATE())
+
+
+--Для ответа
+SELECT id, direction_id, name, code, status, avatar_url, start_date, end_date, created_at, updated_at, created_by
+FROM groups WHERE id = LAST_INSERT_ID();
+
+```
+
+#### Редактировать группу:  `PUT /orgs/:orgId/groups/:groupId`
 
 суперадмин, админ
 
-- PUT /orgs/:orgId/groups/:groupId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "direction_id": 12,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> "status": "planned",
->
-> "avatar_url": null,
->
-> "start_date": "2025-10-28",
->
-> "end_date": "2026-08-15",
->
-> }
+```json
+{ 
+  "direction_id": 12,
+  "name": "Web-Development-2025-10",
+  "code": "281025-wdm",
+  "status": "planned",     
+  "avatar_url": null,
+  "start_date": "2025-10-28", 
+  "end_date": "2026-08-15",
+}
+```
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
+  - `orgId` - целое число
+  - `groupId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - direction_id должен существовать и принадлежать той же организации
-
-  - code уникален в рамках организации (org_id, code)
-
-  - end_date ≥ start_date (если обе заданы)
-
-  - Смена status допустима (planned -\> active -\> archived)  
-    *Архивация группы* — это перевод в status='archived'
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `direction_id` должен существовать и принадлежать той же организации
+  - `code` уникален в рамках организации `(org_id, code)`
+  - `end_date ≥ start_date` (если обе заданы)
+  - Смена `status` допустима (`planned` -\> `active` -\> `archived`)  
+    *Архивация группы* — это перевод в `status='archived'`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - name - string\[1..100\], trim - обязательное поле
-
-  - code - ^\[A-Za-z0-9.\_-\]{2,50}\$, toLowerCase(),trim
-
-  - status - planned\|active\|archived (по умолчанию active)
-
-  - start_date, end_date - YYYY-MM-DD, end_date \>= start_date
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `name` - `string[1..100]`, `trim` - обязательное поле
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim`
+    - `status` - `planned|active|archived` (по умолчанию `active`)
+    - `start_date` - `YYYY-MM-DD` 
+    - `end_date` - `YYYY-MM-DD`
+    - `end_date >= start_date`
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - name - string\[1..100\], trim - обязательное поле
-
-    - code - ^\[A-Za-z0-9.\_-\]{2,50}\$, toLowerCase(),trim
-
-    - status - planned\|active\|archived (по умолчанию active)
-
-    - start_date, end_date - YYYY-MM-DD, end_date \>= start_date
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `name` - `string[1..100]`, `trim` - обязательное поле
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim`
+    - `status` - `planned|active|archived` (по умолчанию `active`)
+    - `start_date` - `YYYY-MM-DD` 
+    - `end_date` - `YYYY-MM-DD`
+    - `end_date >= start_date`
 
   - DB:
 
-    - (org_id, code) - UNIQUE проверка уникальности
+    - `(org_id, code)` - `UNIQUE` проверка уникальности
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **200 OK**
+```json
+{ 
+  "id": 108,
+  "direction_id": 12,
+  "name": "Web-Development-2025-10",
+  "code": "281025-wdm",
+  "status": "planned",     
+  "avatar_url": null,
+  "start_date": "2025-10-28", 
+  "end_date": "2026-08-15",
+  "created_by": 1054,
+  "created_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z",
+}
+```
 
-    - **200 OK**
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
 
-> {
->
-> "id": 108,
->
-> "direction_id": 12,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> "status": "planned",
->
-> "avatar_url": null,
->
-> "start_date": "2025-10-28",
->
-> "end_date": "2026-08-15",
->
-> "created_by": 1054,
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> }
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to edit a group in this organization." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
+```json
+{ "message": "Group not found" }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to edit a group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Direction not found”}
->
-> {“message”: ”Group not found”}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”Groups code '281025-wdm' is already in use in this organization”}
+  - **409 Conflict** дубликат
+```json
+{ "message": "Groups code '281025-wdm' is already in use in this organization" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка направления - принадлежит той же организации (если меняем)
->
-> SELECT 1 FROM directions
->
-> WHERE id = :direction_id AND org_id = :org_id LIMIT 1;
->
-> Проверка уникальности кода группы (если меняем)
->
-> SELECT id FROM groups
->
-> WHERE org_id = :org_id AND code = :code LIMIT 1;
->
-> Обновление
->
-> UPDATE groups
->
-> SET direction_id = COALESCE(:direction_id, direction_id),
->
-> name = COALESCE(:name, name),
->
-> code = COALESCE(:code, code),
->
-> status = COALESCE(:status, status),
->
-> avatar_url = COALESCE(:avatar_url, avatar_url),
->
-> start_date = COALESCE(:start_date, start_date),
->
-> end_date = COALESCE(:end_date, end_date),
->
-> updated_at = NOW()
->
-> WHERE id = :group_id AND org_id = :org_id;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Удалить группу:
+--Проверка направления - принадлежит той же организации (если меняем)
+SELECT 1 FROM directions
+WHERE id = :direction_id AND org_id = :org_id LIMIT 1;
+
+--Проверка уникальности кода группы (если меняем)
+SELECT id FROM groups
+WHERE org_id = :org_id AND code = :code LIMIT 1;
+
+--Обновление
+UPDATE groups
+SET direction_id = COALESCE(:direction_id, direction_id),
+    name         = COALESCE(:name, name),
+    code         = COALESCE(:code, code),
+    status       = COALESCE(:status, status),
+    avatar_url   = COALESCE(:avatar_url, avatar_url),
+    start_date   = COALESCE(:start_date, start_date),
+    end_date     = COALESCE(:end_date, end_date),
+    updated_at   = NOW()
+WHERE id = :group_id AND org_id = :org_id;
+
+```
+
+#### Удалить группу:  `DELETE /orgs/:orgId/groups/:groupId`
 
 суперадмин, админ
 
-- DELETE /orgs/:orgId/groups/:groupId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:** {}
-
-  - **Path / Query params:**
-
-    - orgId - целое число
-
-    - groupId - целое число
-
-  - **Бизнес-правила:**
-
-    - физически не удаляем - выполняем мягкое удаление: status='archived' История участников/назначений/оценок сохраняется
-
-    - при архивации группа перестает учитываться в лимите max_groups (так как считаем только planned\|active)
-
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
-
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "id": 108,
->
-> "code": "281025-wdm",
->
-> "status": "archived",
->
-> "archived_at": "2025-09-02T10:11:12Z",
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to remove a subject in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Subject not found”}
-
-- **409 Conflict** есть связи
-
-> {“message”: ”Subject is in use”}
-
-- **SQL**
-
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Архивация группы
->
-> UPDATE groups
->
-> SET status = 'archived',
->
-> end_date = COALESCE(end_date, CURDATE()),
->
-> updated_at = NOW()
->
-> WHERE id = :group_id AND org_id = :org_id;
->
-> SELECT id, code, 'archived' AS status, NOW() AS archived_at
->
-> FROM groups WHERE id = :group_id AND org_id = :org_id;
-
-#### Связка «Направление ⇔ Предметы» direction_subjects
-
-GET /orgs/:orgId/directions/:directionId/subjects?q=&only_active=&page=&limit=  
-получить список предметов направления
-
-GET /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from= получить одну запись (текущую или по дате начала)
-
-POST /orgs/:orgId/directions/:directionId/subjects  
-добавить предмет в направление (c датой начала действия)
-
-PUT /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=  
-правка записи (флага/сортира/даты окончания)
-
-DELETE /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=  
-«закрыть» запись (поставить effective_to)
-
-##### Получить список предметов направления:
-
-суперадмин, админ, сотрудник учебной организации, преподаватель, студент
-
-- GET /orgs/:orgId/directions/:directionId/subjects?q=&only_active=&page=&limit=
-
-> q - поиск по subjects.name/short_code
->
-> only_active - 0\|1 (по умолчанию 1 — показывать только текущие записи  
-> с effective_to IS NULL)
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
-
-- **Content-type:** application/json
-
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - directionId - целое число
-
-  - q - строка (если передали)
-
-  - only_active - 0\|1 , по умолчанию 1
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
-
-- **Backend-правила:**
-
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - direction_id существует и принадлежит той же организации
-
-- **Validation**:
-
-  - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - q - string\[0..100\] - trim
-
-  - only_active - 0\|1
-
-  - page - целое число, \>=1, по умолчанию - 1
-
-  - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - q - string\[0..100\] - trim
-
-    - only_active - 0\|1
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "total": 3,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "direction_subjects":
->
-> \[
->
-> {
->
-> "subject":
->
-> {
->
-> "id": 108,
->
-> "name": "React",
->
-> "short_code": "react"
->
-> },
->
-> "mandatory": true,
->
-> "sort_order": 10,
->
-> "effective_from": "2025-10-01",
->
-> "effective_to": null
->
-> },
->
-> \]
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view list of subjects of the direction in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Direction not found”}
-
-- **SQL**
-
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка направления
->
-> SELECT 1 FROM directions
->
-> WHERE id = :direction_id AND org_id = :org_id LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM direction_subjects
->
-> JOIN subjects ON subjects.id = direction_subjects.subject_id
->
-> WHERE subjects.org_id = :org_id
->
-> AND direction_subjects.direction_id = :direction_id
->
-> AND (COALESCE(:only_active, 1) = 0 OR direction_subjects.effective_to IS NULL)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR subjects.name LIKE CONCAT('%', :q, '%')
->
-> OR subjects.short_code LIKE CONCAT('%', :q, '%')
->
-> );
->
-> page
->
-> SELECT
->
-> subjects.id AS subject_id, subjects.name, subjects.short_code,
->
-> direction_subjects.mandatory, direction_subjects.sort_order, direction_subjects.effective_from, direction_subjects.effective_to
->
-> FROM direction_subjects
->
-> JOIN subjects ON subjects.id = direction_subjects.subject_id
->
-> WHERE subjects.org_id = :org_id
->
-> AND direction_subjects.direction_id = :direction_id
->
-> AND (COALESCE(:only_active, 1) = 0 OR direction_subjects.effective_to IS NULL)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR subjects.name LIKE CONCAT('%', :q, '%')
->
-> OR subjects.short_code LIKE CONCAT('%', :q, '%')
->
-> )
->
-> ORDER BY direction_subjects.sort_order IS NULL, direction_subjects.sort_order ASC, subjects.name ASC, subjects.id ASC
->
-> LIMIT :limit OFFSET :offset;
-
-##### Получить одну запись (текущую или по дате начала):
-
-суперадмин, админ, сотрудник учебной организации, учитель, студент
-
-- GET /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=YYYY-MM-DD
-
-  - **Content-type:** application/json
-
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:** {}
-
-  - **Path / Query params:**
-
-    - orgId - целое число
-
-    - directionId - целое число
-
-    - subjectId - целое число
-
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
-
-    - Организация orgId существует и status IN ('active','pending')
-
-    - если effective_from не передан — возвращаем «текущую», где effective_to IS NULL
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - subjectId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "subject":
->
-> {
->
-> "id": 108,
->
-> "name": "React",
->
-> "short_code": "react"
->
-> },
->
-> "mandatory": true,
->
-> "sort_order": 10,
->
-> "effective_from": "2025-10-01",
->
-> "effective_to": null
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view a subject of the direction in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Direction not found”}
->
-> {“message”: ”Subject not found”}
-
-- **SQL**
-
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Выборка
->
-> SELECT
->
-> subjects.id AS subject_id, subjects.name, subjects.short_code,
->
-> direction_subjects.mandatory, direction_subjects.sort_order, direction_subjects.effective_from, direction_subjects.effective_to
->
-> FROM direction_subjects
->
-> JOIN subjects ON subjects.id = direction_subjects.subject_id
->
-> WHERE subjects.org_id = :org_id
->
-> AND direction_subjects.direction_id = :direction_id
->
-> AND direction_subjects.subject_id = :subject_id
->
-> AND (
->
-> (:effective_from IS NULL AND direction_subjects.effective_to IS NULL)
->
-> OR (:effective_from IS NOT NULL AND direction_subjects.effective_from = :effective_from)
->
-> )
->
-> LIMIT 1;
-
-##### Добавить предмет в направление:
-
-суперадмин, админ
-
-- POST /orgs/:orgId/directions/:directionId/subjects
-
-  - **Content-type:** application/json
-
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:**
-
-> {
->
-> "subject_id": 108,
->
-> "mandatory": true,
->
-> "sort_order": 10,
->
-> "effective_from": "2025-10-01"
->
-> }
+  - `orgId` - целое число
+  - `groupId` - целое число
 
 - **Бизнес-правила:**
 
-  - directionId принадлежит той же организации
-
-  - subject_id принадлежит той же организации
-
-  - Нельзя пересекать периоды для одной пары (direction_id, subject_id) (проверка перекрытия по датам)
-
-  - effective_from обязателен;
-
-  - effective_to не задаётся при создании (текущее состояние)
-
-  - Синхронизация в группы: при создании записи добавляем этот предмет в активные группы данного направления в group_subjects c source='direction'
-
-- **Path / Query params:**
-
-  - orgId - целое число
-
-  - directionId - целое число
+  - физически не удаляем - выполняем мягкое удаление: `status='archived'` История участников/назначений/оценок сохраняется
+  - при архивации группа перестает учитываться в лимите `max_groups` (так как считаем только `planned\|active`)
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - effective_from - YYYY-MM-DD - обязательное поле
-
-  - mandatory - boolean
-
-  - sort_order - число
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+- **Responses**:
 
-    - effective_from - YYYY-MM-DD - обязательное поле
+  - **200 OK**
+```json
+{ 
+  "id": 108,
+  "code": "281025-wdm",
+  "status": "archived",     
+  "archived_at": "2025-09-02T10:11:12Z",
+}
+```
 
-    - mandatory - boolean
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
 
-    - sort_order - число
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to remove a subject in this organization." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+
+  - **409 Conflict** есть связи
+```json
+{ "message": "Subject is in use" }
+```
+
+- **SQL**
+
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Архивация группы
+UPDATE groups
+SET status = 'archived',
+    end_date = COALESCE(end_date, CURDATE()),
+    updated_at = NOW()
+WHERE id = :group_id AND org_id = :org_id;
+
+SELECT id, code, 'archived' AS status, NOW() AS archived_at
+FROM groups WHERE id = :group_id AND org_id = :org_id;
+
+```
+
+### Связка «Направление ⇔ Предметы» direction_subjects
+
+`GET /orgs/:orgId/directions/:directionId/subjects?q=&only_active=&page=&limit=`  получить список предметов направления
+
+`GET /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  получить одну запись (текущую или по дате начала)
+
+`POST /orgs/:orgId/directions/:directionId/subjects`  добавить предмет в направление (c датой начала действия)
+
+`PUT /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  правка записи (флага/сортира/даты окончания)
+
+`DELETE /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`  «закрыть» запись (поставить effective_to)
+
+#### Получить список предметов направления:  `GET /orgs/:orgId/directions/:directionId/subjects?q=&only_active=&page=&limit=`
+
+суперадмин, админ, сотрудник учебной организации, преподаватель, студент
+
+  `q` - поиск по `subjects.name/short_code`
+  `only_active` - `0|1` (по умолчанию 1 — показывать только текущие записи с `effective_to IS NULL`)
+  `page` - номер страницы, по умолчанию 1
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:** `{}`
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+  - `directionId` - целое число
+  - `q` - строка (если передали)
+  - `only_active` - `0|1` , по умолчанию 1
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
+
+- **Backend-правила:**
+
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `direction_id` существует и принадлежит той же организации
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `only_active` - 0\|1
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `only_active` - 0\|1
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
+
+- **Responses**:
+
+  - **200 OK**
+```json
+{ 
+  "total": 3,
+  "page": 1,
+  "limit": 50,
+  "direction_subjects": 
+  [
+    {
+      "subject": { 
+        "id": 108, 
+        "name": "React", 
+        "short_code": "react" 
+      },
+     	"mandatory": true,
+   	  "sort_order": 10,
+   	  "effective_from": "2025-10-01",
+   	  "effective_to": null
+    },
+  ]
+}
+```
+
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
+
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view list of subjects of the direction in this organization." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
+
+- **SQL**
+
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
+
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка направления
+SELECT 1 FROM directions 
+WHERE id = :direction_id AND org_id = :org_id LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM direction_subjects
+JOIN subjects ON subjects.id = direction_subjects.subject_id
+WHERE subjects.org_id = :org_id
+  AND direction_subjects.direction_id = :direction_id
+  AND (COALESCE(:only_active, 1) = 0 OR direction_subjects.effective_to IS NULL)
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR subjects.name LIKE CONCAT('%', :q, '%')
+    OR subjects.short_code LIKE CONCAT('%', :q, '%')
+  );
+
+--page
+SELECT
+  subjects.id AS subject_id, subjects.name, subjects.short_code,
+  direction_subjects.mandatory, direction_subjects.sort_order, direction_subjects.effective_from, direction_subjects.effective_to
+FROM direction_subjects
+JOIN subjects ON subjects.id = direction_subjects.subject_id
+WHERE subjects.org_id = :org_id
+  AND direction_subjects.direction_id = :direction_id
+  AND (COALESCE(:only_active, 1) = 0 OR direction_subjects.effective_to IS NULL)
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR subjects.name LIKE CONCAT('%', :q, '%')
+    OR subjects.short_code LIKE CONCAT('%', :q, '%')
+  )
+ORDER BY direction_subjects.sort_order IS NULL, direction_subjects.sort_order ASC, subjects.name ASC, subjects.id ASC
+LIMIT :limit OFFSET :offset;
+
+```
+
+#### Получить одну запись (текущую или по дате начала):  `GET /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=YYYY-MM-DD`
+
+суперадмин, админ, сотрудник учебной организации, учитель, студент
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:** `{}`
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+  - `directionId` - целое число
+  - `subjectId` - целое число
+
+- **Backend-правила:**
+
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - если `effective_from` не передан — возвращаем «текущую», где `effective_to IS NULL`
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+
+- **Responses**:
+
+  - **200 OK**
+```json
+{ 
+  "subject": { 
+    "id": 108, 
+    "name": "React", 
+    "short_code": "react" 
+    },
+   "mandatory": true,
+   "sort_order": 10,
+   "effective_from": "2025-10-01",
+   "effective_to": null
+}
+```
+
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
+
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view a subject of the direction in this organization." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+
+- **SQL**
+
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Выборка
+SELECT
+  subjects.id AS subject_id, subjects.name, subjects.short_code,
+  direction_subjects.mandatory, direction_subjects.sort_order, direction_subjects.effective_from, direction_subjects.effective_to
+FROM direction_subjects
+JOIN subjects ON subjects.id = direction_subjects.subject_id
+WHERE subjects.org_id = :org_id
+  AND direction_subjects.direction_id = :direction_id
+  AND direction_subjects.subject_id = :subject_id
+  AND (
+    (:effective_from IS NULL AND direction_subjects.effective_to IS NULL)
+    OR (:effective_from IS NOT NULL AND direction_subjects.effective_from = :effective_from)
+  )
+LIMIT 1;
+
+```
+
+#### Добавить предмет в направление:  `POST /orgs/:orgId/directions/:directionId/subjects`
+
+суперадмин, админ
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:**
+
+```json
+{ 
+  "subject_id": 108,
+  "mandatory": true,
+  "sort_order": 10,
+  "effective_from": "2025-10-01"
+}
+```
+
+- **Бизнес-правила:**
+
+  - `directionId` принадлежит той же организации
+  - `subject_id` принадлежит той же организации
+  - Нельзя пересекать периоды для одной пары `(direction_id, subject_id)` (проверка перекрытия по датам)
+  - `effective_from` обязателен;
+  - `effective_to` не задается при создании (текущее состояние)
+  - Синхронизация в группы: при создании записи добавляем этот предмет в активные группы данного направления в `group_subjects` c `source='direction'`
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+  - `directionId` - целое число
+
+- **Backend-правила:**
+
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `effective_from` - `YYYY-MM-DD` - обязательное поле
+    - `mandatory` - `boolean`
+    - `sort_order` - число
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `effective_from` - `YYYY-MM-DD` - обязательное поле
+    - `mandatory` - `boolean`
+    - `sort_order` - число
 
   - DB:
 
-    - (direction_id, subject_id) - проверка на пересечения
+    - `(direction_id, subject_id)` - проверка на пересечения
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **201 Created** предмет в направление добавлен
+```json
+{ 
+  "direction_id": 101, 
+  "subject_id": 108,
+  "mandatory": true,
+  "sort_order": 10,
+  "effective_from": "2025-10-01",
+  "effective_to": null
+}
+```
 
-    - **201 Created** предмет в направление добавлен
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
+```json
+{ "message": "effective_from is required" }
+```
 
-> {
->
-> “direction_id”: 101,
->
-> "subject_id": 108,
->
-> "mandatory": true,
->
-> "sort_order": 10,
->
-> "effective_from": "2025-10-01",
->
-> "effective_to": null
->
-> }
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
->
-> {“message”: ”effective_from is required”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to create a subject of the direction in this organization." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to create a subject of the direction in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Direction not found”}
-
-- **409 Conflict** пересечение периода
+  - **409 Conflict** пересечение периода
 
 > {“message”: ”Period overlap: this subject is already assigned to the direction for an active or overlapping period. Close or adjust the existing period before creating a new one”}
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка направления - принадлежит той же организации
->
-> SELECT 1 FROM directions
->
-> WHERE id = :direction_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка предмета - принадлежит той же организации
->
-> SELECT 1 FROM subjects
->
-> WHERE id = :subject_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка нет пересечений (должно не находиться текущих/пересекающих)
->
-> SELECT 1
->
-> FROM direction_subjects
->
-> WHERE direction_id = :direction_id
->
-> AND subject_id = :subject_id
->
-> AND (effective_to IS NULL OR effective_to \>= :effective_from)
->
-> LIMIT 1;
->
-> если вернулось 1 -\> 409 Conflict (пересечение периода)
->
-> Создание записи
->
-> INSERT INTO direction_subjects
->
-> (direction_id, subject_id, mandatory, sort_order, effective_from, effective_to)
->
-> VALUES (:direction_id, :subject_id, :mandatory, :sort_order, :effective_from, NULL);
->
-> Синхронизация в группы
->
-> INSERT INTO group_subjects (org_id, group_id, subject_id, added_at, source)
->
-> SELECT :org_id, groups.id, :subject_id, NOW(), 'direction'
->
-> FROM groups
->
-> WHERE groups.org_id = :org_id
->
-> AND groups.direction_id = :direction_id
->
-> AND groups.status IN ('planned','active')
->
-> AND NOT EXISTS (
->
-> SELECT 1 FROM group_subjects
->
-> WHERE group_subjects.group_id = groups.id AND group_subjects.subject_id = :subject_id);
->
-> Для ответа
->
-> SELECT
->
-> direction_subjects.direction_id,
->
-> direction_subjects.subject_id,
->
-> direction_subjects.mandatory,
->
-> direction_subjects.sort_order,
->
-> direction_subjects.effective_from,
->
-> direction_subjects.effective_to
->
-> FROM direction_subjects
->
-> WHERE direction_subjects.direction_id = :direction_id
->
-> AND direction_subjects.subject_id = :subject_id
->
-> AND direction_subjects.effective_from = :effective_from
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Обновить запись:
+--Проверка направления - принадлежит той же организации
+SELECT 1 FROM directions
+WHERE id = :direction_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка предмета - принадлежит той же организации
+SELECT 1 FROM subjects 
+WHERE id = :subject_id AND org_id = :org_id 
+LIMIT 1;
+
+-- нет пересечений (должно не находиться текущих/пересекающих)
+SELECT 1
+FROM direction_subjects
+WHERE direction_id = :direction_id
+  AND subject_id   = :subject_id
+  AND (effective_to IS NULL OR effective_to >= :effective_from)
+LIMIT 1;
+--если вернулось 1 -> 409 Conflict (пересечение периода)
+
+--Создание записи
+INSERT INTO direction_subjects
+(direction_id, subject_id, mandatory, sort_order, effective_from, effective_to)
+VALUES (:direction_id, :subject_id, :mandatory, :sort_order, :effective_from, NULL);
+
+--Синхронизация в группы
+INSERT INTO group_subjects (org_id, group_id, subject_id, added_at, source)
+SELECT :org_id, groups.id, :subject_id, NOW(), 'direction'
+FROM groups
+WHERE groups.org_id = :org_id
+  AND groups.direction_id = :direction_id
+  AND groups.status IN ('planned','active')
+  AND NOT EXISTS (
+    SELECT 1 FROM group_subjects
+    WHERE group_subjects.group_id = groups.id AND group_subjects.subject_id = :subject_id);
+
+
+--Для ответа
+SELECT
+  direction_subjects.direction_id,
+  direction_subjects.subject_id,
+  direction_subjects.mandatory,
+  direction_subjects.sort_order,
+  direction_subjects.effective_from,
+  direction_subjects.effective_to
+FROM direction_subjects 
+WHERE direction_subjects.direction_id = :direction_id
+  AND direction_subjects.subject_id   = :subject_id
+  AND direction_subjects.effective_from = :effective_from
+LIMIT 1;
+
+```
+
+
+#### Обновить запись:  `PUT /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`
 
 суперадмин, админ
 
-- PUT /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "subject_id": 108,
->
-> "mandatory": false,
->
-> "sort_order": 10,
->
-> "effective_from": "2025-10-01"
->
-> }
+```json
+{ 
+  "subject_id": 108,
+  "mandatory": false,
+  "sort_order": 10,
+  "effective_from": "2025-10-01"
+}
+```
 
 - **Бизнес-правила:**
 
-  - effective_from в URL идентифицирует версию записи, если не передан редактируем текущую, effective_to IS NULL
-
-  - Запрещено менять subject_id/direction_id и сам effective_from
-
-  - Если ставим effective_to, оно больше effective_from и не должно пересекаться со следующими версиями
+  - `effective_from` в `URL` идентифицирует версию записи, если не передан редактируем текущую, `effective_to IS NULL`
+  - Запрещено менять `subject_id`, `direction_id` и сам `effective_from`
+  - Если ставим `effective_to`, оно больше `effective_from` и не должно пересекаться со следующими версиями
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - directionId - целое число
-
-  - effective_from - YYYY-MM-DD
+  - `orgId` - целое число
+  - `directionId` - целое число
+  - `effective_from` - `YYYY-MM-DD`
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - effective_from - YYYY-MM-DD
-
-  - mandatory - boolean
-
-  - sort_order - число
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `effective_from` - `YYYY-MM-DD`
+    - `mandatory` - `boolean`
+    - `sort_order` - число
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - effective_from - YYYY-MM-DD
-
-    - mandatory - boolean
-
-    - sort_order - число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `effective_from` - `YYYY-MM-DD`
+    - `mandatory` - `boolean`
+    - `sort_order` - число
 
   - DB:
 
-    - (direction_id, subject_id) - проверка на пересечения
+    - `(direction_id, subject_id)` - проверка на пересечения
 
-  - 
+- **Responses**:
 
-  <!-- -->
+  - **200 OK**
+```json
+{ 
+  "direction_id": 101, 
+  "subject_id": 108,
+  "mandatory": true,
+  "sort_order": 10,
+  "effective_from": "2025-10-01",
+  "effective_to": null
+}
+```
 
-  - **Responses**:
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
+```json
+{ "message": "Immutable field update is not allowed. You cannot change subject_id, direction_id or effective_from." }
+```
 
-    - **200 OK**
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {
->
-> “direction_id”: 101,
->
-> "subject_id": 108,
->
-> "mandatory": true,
->
-> "sort_order": 10,
->
-> "effective_from": "2025-10-01",
->
-> "effective_to": null
->
-> }
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to edit a subject of the direction in this organization." }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
->
-> {“message”: ”Immutable field update is not allowed. You cannot change subject_id, direction_id or effective_from.”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to edit a subject of the direction in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Direction not found”}
->
-> {“message”: ”Subject not found”}
-
-- **409 Conflict** пересечение периода
-
-> {“message”: ”Groups code '281025-wdm' is already in use in this organization”}
+  - **409 Conflict** пересечение периода
+```json
+{ "message": "Groups code '281025-wdm' is already in use in this organization" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка направления - принадлежит той же организации
->
-> SELECT 1 FROM directions
->
-> WHERE id = :direction_id AND org_id = :org_id LIMIT 1;
->
-> Проверка предмета - принадлежит той же организации
->
-> SELECT 1 FROM subjects
->
-> WHERE id = :subject_id AND org_id = :org_id LIMIT 1;
->
-> Проверка нет пересечений (должно не находиться текущих/пересекающих)
->
-> SELECT 1
->
-> FROM direction_subjects
->
-> WHERE direction_id = :direction_id
->
-> AND subject_id = :subject_id
->
-> AND (effective_to IS NULL OR effective_to \>= :effective_from)
->
-> LIMIT 1;
->
-> если вернулось 1 -\> 409 Conflict (пересечение периода)
->
-> Обновление
->
-> UPDATE direction_subjects
->
-> SET mandatory = COALESCE(:mandatory, mandatory),
->
-> sort_order = COALESCE(:sort_order, sort_order),
->
-> effective_to = COALESCE(:effective_to, effective_to)
->
-> WHERE direction_id = :direction_id
->
-> AND subject_id = :subject_id
->
-> AND (
->
-> (:effective_from IS NULL AND effective_to IS NULL)
->
-> OR (:effective_from IS NOT NULL AND effective_from = :effective_from)
->
-> );
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Закрыть запись:
+--Проверка направления - принадлежит той же организации
+SELECT 1 FROM directions
+WHERE id = :direction_id AND org_id = :org_id LIMIT 1;
+
+--Проверка предмета - принадлежит той же организации
+SELECT 1 FROM subjects 
+WHERE id = :subject_id AND org_id = :org_id LIMIT 1;
+
+--Проверка нет пересечений (должно не находиться текущих/пересекающих)
+SELECT 1
+FROM direction_subjects
+WHERE direction_id = :direction_id
+  AND subject_id   = :subject_id
+  AND (effective_to IS NULL OR effective_to >= :effective_from)
+LIMIT 1;
+--если вернулось 1 -> 409 Conflict (пересечение периода)
+
+--Обновление
+UPDATE direction_subjects
+SET mandatory = COALESCE(:mandatory, mandatory),
+    sort_order = COALESCE(:sort_order, sort_order),
+    effective_to = COALESCE(:effective_to, effective_to)
+WHERE direction_id = :direction_id
+  AND subject_id   = :subject_id
+  AND (
+    (:effective_from IS NULL AND effective_to IS NULL)
+    OR (:effective_from IS NOT NULL AND effective_from = :effective_from)
+  );
+
+```
+
+#### Закрыть запись:  `DELETE /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=`
 
 суперадмин, админ
 
-- DELETE /orgs/:orgId/directions/:directionId/subjects/:subjectId?effective_from=
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:** {}
-
-  - **Path / Query params:**
-
-    - orgId - целое число
-
-    - directionId - целое число
-
-    - subjectId - целое число
-
-    - effective_from - YYYY-MM-DD
-
-  - **Бизнес-правила:**
-
-    - Мягко закрываем: effective_to = CURDATE() (если запись текущая).
-
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
-
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - subjectId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> “direction_id”: 101,
->
-> "subject_id": 108,
->
-> "mandatory": true,
->
-> "sort_order": 10,
->
-> "effective_from": "2024-10-01",
->
-> "effective_to": "2025-10-01"
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to remove a subject of the direction in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Direction not found”}
->
-> {“message”: ”Subject not found”}
-
-- **SQL**
-
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Закрыть запись
->
-> UPDATE direction_subjects
->
-> SET effective_to = COALESCE(effective_to, CURDATE())
->
-> WHERE direction_id = :direction_id
->
-> AND subject_id = :subject_id
->
-> AND (
->
-> (:effective_from IS NULL AND effective_to IS NULL)
->
-> OR (:effective_from IS NOT NULL AND effective_from = :effective_from)
->
-> );
->
-> Удалить автосвязи там, где безопасно (нет назначений преподавателей)
->
-> DELETE group_subjects
->
-> FROM group_subjects
->
-> JOIN groups
->
-> ON groups.id = group_subjects.group_id
->
-> LEFT JOIN teaching_assignments
->
-> ON teaching_assignments.group_id = groups.id
->
-> AND teaching_assignments.subject_id = group_subjects.subject_id
->
-> WHERE group_subjects.org_id = :org_id
->
-> AND groups.direction_id = :direction_id
->
-> AND group_subjects.subject_id = :subject_id
->
-> AND group_subjects.source = 'direction'
->
-> AND groups.status IN ('planned','active')
->
-> AND teaching_assignments.id IS NULL;
->
-> Перевести остальные в «ручные», заморозить в группах, где есть активность/TA: просто меняем источник
->
-> UPDATE group_subjects
->
-> JOIN groups
->
-> ON groups.id = group_subjects.group_id
->
-> SET group_subjects.source = 'manual'
->
-> WHERE group_subjects.org_id = :org_id
->
-> AND groups.direction_id = :direction_id
->
-> AND group_subjects.subject_id = :subject_id
->
-> AND group_subjects.source = 'direction';
-
-#### Связка «Группа ⇔ Предметы» group_subjects
-
-GET /orgs/:orgId/groups/:groupId/subjects?q=&source=&page=&limit=  
-получить список предметов группы
-
-POST /orgs/:orgId/groups/:groupId/subjects  
-добавить предмет в группу
-
-DELETE /orgs/:orgId/groups/:groupId/subjects/:subjectId  
-удалить предмет из группы
-
-##### Получить список предметов группы:
-
-суперадмин, админ, сотрудник учебной организации, преподаватель, студент
-
-- GET /orgs/:orgId/groups/:groupId/subjects?q=&source=&page=&limit=
-
-> q - поиск по subjects.name/short_code
->
-> source - direction\|manual, фильтрация по методу назначения
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
-
-- **Content-type:** application/json
-
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
+  - `directionId` - целое число
+  - `subjectId` - целое число
+  - `effective_from` - `YYYY-MM-DD`
 
-  - groupId - целое число
+- **Бизнес-правила:**
 
-  - q - строка (если передали)
-
-  - source - direction\|manual
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - Мягко закрываем: `effective_to = CURDATE()` (если запись текущая)
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - groupId существует и принадлежит той же организации
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - q - string\[0..100\] - trim
-
-  - source - direction\|manual
-
-  - page - целое число, \>=1, по умолчанию - 1
-
-  - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+- **Responses**:
 
-    - q - string\[0..100\] - trim
+  - **200 OK**
+```json
+{ 
+  "direction_id": 101, 
+  "subject_id": 108,
+  "mandatory": true,
+  "sort_order": 10,
+  "effective_from": "2025-10-01",
+  "effective_to": null
+}
+```
 
-    - source - direction\|manual
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
 
-    - page - целое число, \>=1, по умолчанию - 1
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - limit - целое число, 1..200, по умолчанию - 50
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-  <!-- -->
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to remove a subject of the direction in this organization." }
+```
 
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "group_subjects":
->
-> \[
->
-> {
->
-> "group":
->
-> {
->
-> "id": 112,
->
-> "direction_id": 08,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> },
->
-> "subject":
->
-> {
->
-> "id": 108,
->
-> "name": "React",
->
-> "short_code": "react"
->
-> },
->
-> "source": "direction",
->
-> "added_at": "2025-09-02T10:11:12Z",
->
-> },
->
-> \]
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view list of subjects of the group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM group_subjects
->
-> JOIN subjects ON subjects.id = group_subjects.subject_id
->
-> WHERE group_subjects.org_id = :org_id
->
-> AND group_subjects.group_id = :group_id
->
-> AND (COALESCE(NULLIF(TRIM(:source), ''), NULL) IS NULL OR group_subjects.source = :source)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR subjects.name LIKE CONCAT('%', :q, '%')
->
-> OR subjects.short_code LIKE CONCAT('%', :q, '%')
->
-> );
->
-> page
->
-> SELECT
->
-> groups.id AS group_id,
->
-> groups.direction_id AS group_direction_id,
->
-> groups.name AS group_name,
->
-> groups.code AS group_code,
->
-> subjects.id AS subject_id,
->
-> subjects.name AS subject_name,
->
-> subjects.short_code AS subject_short_code,
->
-> group_subjects.source,
->
-> group_subjects.added_at
->
-> FROM group_subjects
->
-> JOIN subjects ON subjects.id = group_subjects.subject_id
->
-> JOIN groups ON groups.id = group_subjects.group_id AND groups.org_id = :org_id
->
-> WHERE group_subjects.org_id = :org_id
->
-> AND group_subjects.group_id = :group_id
->
-> AND (COALESCE(NULLIF(TRIM(:source), ''), NULL) IS NULL OR group_subjects.source = :source)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR subjects.name LIKE CONCAT('%', :q, '%')
->
-> OR subjects.short_code LIKE CONCAT('%', :q, '%')
->
-> )
->
-> ORDER BY subjects.name ASC, subjects.id ASC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Добавить предмет в группу:
+--Закрыть запись
+UPDATE direction_subjects
+SET effective_to = COALESCE(effective_to, CURDATE())
+WHERE direction_id = :direction_id
+  AND subject_id   = :subject_id
+  AND (
+    (:effective_from IS NULL AND effective_to IS NULL)
+    OR (:effective_from IS NOT NULL AND effective_from = :effective_from)
+  );
+
+--Удалить автосвязи там, где безопасно (нет назначений преподавателей)
+DELETE group_subjects
+FROM group_subjects
+JOIN groups
+  ON groups.id = group_subjects.group_id
+LEFT JOIN teaching_assignments
+  ON teaching_assignments.group_id = groups.id
+ AND teaching_assignments.subject_id = group_subjects.subject_id
+WHERE group_subjects.org_id = :org_id
+  AND groups.direction_id = :direction_id
+  AND group_subjects.subject_id = :subject_id
+  AND group_subjects.source = 'direction'
+  AND groups.status IN ('planned','active')
+  AND teaching_assignments.id IS NULL;
+
+--Перевести остальные в «ручные», заморозить в группах, где есть активность/TA: просто меняем источник
+UPDATE group_subjects
+JOIN groups 
+  ON groups.id = group_subjects.group_id
+SET group_subjects.source = 'manual'
+WHERE group_subjects.org_id = :org_id
+  AND groups.direction_id = :direction_id
+  AND group_subjects.subject_id = :subject_id
+  AND group_subjects.source = 'direction';
+
+```
+
+### Связка «Группа ⇔ Предметы» group_subjects
+
+`GET /orgs/:orgId/groups/:groupId/subjects?q=&source=&page=&limit= `  получить список предметов группы
+
+`POST /orgs/:orgId/groups/:groupId/subjects`  добавить предмет в группу
+
+`DELETE /orgs/:orgId/groups/:groupId/subjects/:subjectId`  удалить предмет из группы
+
+#### Получить список предметов группы:  `GET /orgs/:orgId/groups/:groupId/subjects?q=&source=&page=&limit=`
+
+суперадмин, админ, сотрудник учебной организации, преподаватель, студент
+
+  `q` - поиск по `subjects.name/short_code`  
+  `source` - `direction|manual`, фильтрация по методу назначения  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:** `{}`
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `q` - строка (если передали)
+  - `source` - `direction|manual`
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
+
+- **Backend-правила:**
+
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `groupId` существует и принадлежит той же организации
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `source` - `direction|manual`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `source` - `direction|manual`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
+
+- **Responses**:
+
+  - **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "group_subjects": 
+  [
+    {
+      "group": { 
+        "id": 112,
+  		  "direction_id": 08,
+  		  "name": "Web-Development-2025-10",
+        "code": "281025-wdm", 
+        },
+   	  "subject": { 
+        "id": 108, 
+        "name": "React", 
+        "short_code": "react" 
+        },
+   	  "source": "direction",
+   	  "added_at": "2025-09-02T10:11:12Z",
+    },
+  ]
+}
+```
+
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view list of subjects of the group in this organization." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+
+- **SQL**
+
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
+
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM group_subjects
+JOIN subjects ON subjects.id = group_subjects.subject_id
+WHERE group_subjects.org_id = :org_id 
+  AND group_subjects.group_id = :group_id
+  AND (COALESCE(NULLIF(TRIM(:source), ''), NULL) IS NULL OR group_subjects.source = :source)
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR subjects.name LIKE CONCAT('%', :q, '%')
+    OR subjects.short_code LIKE CONCAT('%', :q, '%')
+  );
+
+--page
+SELECT
+  groups.id            AS group_id,
+  groups.direction_id  AS group_direction_id,
+  groups.name          AS group_name,
+  groups.code          AS group_code,
+  subjects.id          AS subject_id,
+  subjects.name          AS subject_name,
+  subjects.short_code    AS subject_short_code,
+  group_subjects.source,
+  group_subjects.added_at
+FROM group_subjects
+JOIN subjects ON subjects.id = group_subjects.subject_id
+JOIN groups ON groups.id = group_subjects.group_id AND groups.org_id = :org_id
+WHERE group_subjects.org_id  = :org_id
+  AND group_subjects.group_id = :group_id
+  AND (COALESCE(NULLIF(TRIM(:source), ''), NULL) IS NULL OR group_subjects.source = :source)
+  AND (
+        COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+        OR subjects.name       LIKE CONCAT('%', :q, '%')
+        OR subjects.short_code LIKE CONCAT('%', :q, '%')
+      )
+ORDER BY subjects.name ASC, subjects.id ASC
+LIMIT @limit OFFSET @offset;
+
+```
+
+#### Добавить предмет в группу:  `POST /orgs/:orgId/groups/:groupId/subjects`
 
 суперадмин, админ
 
 Ручное наполнение ("source": "manual") Автоматическое наполнение будет происходить когда группу определяем в направление, в котором уже выбраны предметы для изучения
 
-- POST /orgs/:orgId/groups/:groupId/subjects
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "subject_id": 108,
->
-> "source": "manual",
->
-> }
+```json
+{ 
+  "subject_id": 108,
+  "source": "manual",
+}
+```
 
 - **Бизнес-правила:**
 
-  - group_id принадлежит той же организации
-
-  - subject_id принадлежит той же организации
-
-  - Запрещены дубли (group_id,subject_id) уникально
-
-  - Ручное наполнение (source='manual')
-
-  - Если source='direction', должна существовать активная запись в direction_subjects для groups.direction_id и subject_id
+  - `group_id` принадлежит той же организации
+  - `subject_id` принадлежит той же организации
+  - Запрещены дубли `(group_id,subject_id)` уникально
+  - Ручное наполнение (`source='manual'`)
+  - Если `source='direction'`, должна существовать активная запись в `direction_subjects` для `groups.direction_id` и `subject_id`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
+  - `orgId` - целое число
+  - `groupId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - subject_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле
-
-  - source - manual\|direction
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `source` - `manual|direction`
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - subject_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле
-
-    - source - manual\|direction
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `source` - `manual|direction`
 
   - DB:
 
-    - (group_id,subject_id) - UNIQUE проверка уникальности
+    - `(group_id,subject_id)` - `UNIQUE` проверка уникальности
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **201 Created** предмет в группу добавлен
+```json
+{ 
+  "group": { 
+    "id": 112,
+  	"direction_id": 08,
+  	"name": "Web-Development-2025-10",
+    "code": "281025-wdm", 
+    },
+  "subject": { 
+    "id": 108, 
+    "name": "React", 
+    "short_code": "react" 
+    },
+  "source": "manual",
+  "added_at": "2025-09-02T10:11:12Z",
+}
+```
 
-    - **201 Created** предмет в группу добавлен
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "subject_id is required" }
+```
 
-> {
->
-> "group":
->
-> {
->
-> "id": 112,
->
-> "direction_id": 08,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> },
->
-> "subject":
->
-> {
->
-> "id": 108,
->
-> "name": "React",
->
-> "short_code": "react"
->
-> },
->
-> "source": "manual",
->
-> "added_at": "2025-09-02T10:11:12Z",
->
-> }
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+> {“message”: ””}
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”subject_id is required”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to create a subject of the group in this organization." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **409 Conflict** дубликат
+```json
+{ "message": "Duplicate subject in group: this subject is already attached to the group" }
+```
 
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to create a subject of the group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”Duplicate subject in group: this subject is already attached to the group”}
-
-- **409 Conflict** нет активной связки с направлением
-
-> {“message”: ”Cannot add with source='direction': the subject is not active for this group's direction. Add it to the direction first or use source='manual'.”}
+  - **409 Conflict** нет активной связки с направлением
+```json
+{ "message": "Cannot add with source='direction': the subject is not active for this group's direction. Add it to the direction first or use source='manual'." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id LIMIT 1;
->
-> Проверка предмета
->
-> SELECT 1 FROM subjects
->
-> WHERE id = :subject_id AND org_id = :org_id LIMIT 1;
->
-> Проверка уникальности
->
-> SELECT 1
->
-> FROM group_subjects
->
-> WHERE org_id = :org_id AND group_id = :group_id AND subject_id = :subject_id
->
-> LIMIT 1;
->
-> если вернулось 1 =\> 409 Conflict
->
-> Проверка при source='direction' подтвердить активную связь направления с предметом
->
-> SELECT 1
->
-> FROM groups
->
-> JOIN direction_subjects
->
-> ON direction_subjects.direction_id = groups.direction_id
->
-> AND direction_subjects.subject_id = :subject_id
->
-> WHERE groups.id = :group_id
->
-> AND groups.org_id = :org_id
->
-> AND direction_subjects.effective_to IS NULL
->
-> LIMIT 1;
->
-> если не вернулось 1 и source='direction' =\> 409 Conflict
->
-> Добавление предмета
->
-> INSERT INTO group_subjects (org_id, group_id, subject_id, added_at, source)
->
-> VALUES (:org_id, :group_id, :subject_id, NOW(), COALESCE(:source,'manual'));
->
-> Для ответа
->
-> SELECT
->
-> groups.id AS group_id,
->
-> groups.direction_id AS group_direction_id,
->
-> groups.name AS group_name,
->
-> groups.code AS group_code,
->
-> subjects.id AS subject_id,
->
-> subjects.name AS subject_name,
->
-> subjects.short_code AS subject_short_code,
->
-> group_subjects.source,
->
-> group_subjects.added_at
->
-> FROM group_subjects
->
-> JOIN groups ON groups.id = group_subjects.group_id
->
-> JOIN subjects ON subjects.id = group_subjects.subject_id
->
-> WHERE group_subjects.org_id = :org_id
->
-> AND group_subjects.group_id = :group_id
->
-> AND group_subjects.subject_id = :subject_id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Удалить предмет из группы:
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id LIMIT 1;
+
+--Проверка предмета
+SELECT 1 FROM subjects 
+WHERE id = :subject_id AND org_id = :org_id LIMIT 1;
+
+--Проверка уникальности
+SELECT 1
+FROM group_subjects
+WHERE org_id = :org_id AND group_id = :group_id AND subject_id = :subject_id
+LIMIT 1;
+--если вернулось 1 => 409 Conflict
+
+
+--Проверка при source='direction' подтвердить активную связь направления с предметом
+SELECT 1
+FROM groups
+JOIN direction_subjects
+  ON direction_subjects.direction_id = groups.direction_id
+ AND direction_subjects.subject_id   = :subject_id
+WHERE groups.id = :group_id
+  AND groups.org_id = :org_id
+  AND direction_subjects.effective_to IS NULL
+LIMIT 1;
+--если не вернулось 1 и source='direction' => 409 Conflict
+
+--Добавление предмета
+INSERT INTO group_subjects (org_id, group_id, subject_id, added_at, source)
+VALUES (:org_id, :group_id, :subject_id, NOW(), COALESCE(:source,'manual'));
+
+--Для ответа
+SELECT
+  groups.id           AS group_id,
+  groups.direction_id AS group_direction_id,
+  groups.name         AS group_name,
+  groups.code         AS group_code,
+  subjects.id           AS subject_id,
+  subjects.name         AS subject_name,
+  subjects.short_code   AS subject_short_code,
+  group_subjects.source,
+  group_subjects.added_at
+FROM group_subjects
+JOIN groups ON groups.id = group_subjects.group_id
+JOIN subjects ON subjects.id = group_subjects.subject_id
+WHERE group_subjects.org_id = :org_id
+  AND group_subjects.group_id = :group_id
+  AND group_subjects.subject_id = :subject_id
+LIMIT 1;
+
+```
+
+#### Удалить предмет из группы: `DELETE /orgs/:orgId/groups/:groupId/subjects/:subjectId`
 
 суперадмин, админ
 
-- DELETE /orgs/:orgId/groups/:groupId/subjects/:subjectId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:** `{}`
 
-  - **Body:** {}
+- **Path / Query params:**
 
-  - **Path / Query params:**
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `effective_from` - `YYYY-MM-DD`
 
-    - orgId - целое число
+- **Бизнес-правила:**
 
-    - groupId - целое число
+  - Нельзя удалить предмет из группы, если есть `teaching_assignments` для этой пары `(group_id,subject_id)`
 
-    - subjectId - целое число
+- **Backend-правила:**
 
-    - effective_from - YYYY-MM-DD
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
-  - **Бизнес-правила:**
+- **Validation**:
 
-    - Нельзя удалить предмет из группы, если есть teaching_assignments для этой пары (group_id,subject_id)
+  - Frontend:
 
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
-
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - subjectId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+- **Responses**:
 
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+  - **200 OK**
+```json
+{ 
+  "group": { 
+    "id": 112,
+  	"direction_id": 08,
+  	"name": "Web-Development-2025-10",
+    "code": "281025-wdm", 
+    },
+  "subject": { 
+    "id": 108, 
+    "name": "React", 
+    "short_code": "react" 
+    },
+  "removed": true,
+}
+```
 
-  <!-- -->
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
 
-  - **Responses**:
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - **200 OK**
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {
->
-> "group":
->
-> {
->
-> "id": 112,
->
-> "direction_id": 08,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> },
->
-> "subject":
->
-> {
->
-> "id": 108,
->
-> "name": "React",
->
-> "short_code": "react"
->
-> },
->
-> "removed": true,
->
-> }
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to remove a subject of the group in this organization." }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to remove a subject of the group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
-
-- **409 Conflict** есть связи
-
-> {“message”: ”Cannot remove subject from group: there are teaching assignments for this group and subject. Remove those assignments first.”}
+  - **409 Conflict** есть связи
+```json
+{ "message": "Cannot remove subject from group: there are teaching assignments for this group and subject. Remove those assignments first." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка наличия зависимостей
->
-> SELECT COUNT(\*) AS refs
->
-> FROM teaching_assignments
->
-> WHERE org_id = :org_id AND group_id = :group_id AND subject_id = :subject_id;
->
-> если refs \> 0 =\> 409 Conflict
->
-> Получить запись для ответа до удаления
->
-> SELECT
->
-> groups.id AS group_id,
->
-> groups.direction_id AS group_direction_id,
->
-> groups.name AS group_name,
->
-> groups.code AS group_code,
->
-> subjects.id AS subject_id,
->
-> subjects.name AS subject_name,
->
-> subjects.short_code AS subject_short_code,
->
-> group_subjects.source,
->
-> group_subjects.added_at
->
-> FROM group_subjects
->
-> JOIN groups ON groups.id = group_subjects.group_id
->
-> JOIN subjects ON subjects.id = group_subjects.subject_id
->
-> WHERE group_subjects.org_id = :org_id
->
-> AND group_subjects.group_id = :group_id
->
-> AND group_subjects.subject_id = :subject_id
->
-> LIMIT 1;
->
-> Удаление предмета из группы
->
-> DELETE FROM group_subjects
->
-> WHERE org_id = :org_id AND group_id = :group_id AND subject_id = :subject_id;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-#### Участники групп group_members
+--Проверка наличия зависимостей
+SELECT COUNT(*) AS refs
+FROM teaching_assignments
+WHERE org_id = :org_id AND group_id = :group_id AND subject_id = :subject_id;
+--если refs > 0 => 409 Conflict
 
-GET /orgs/:orgId/groups/:groupId/members?q=&status=&page=&limit=  
-получить список студентов группы
+--Получить запись для ответа до удаления
+SELECT
+  groups.id           AS group_id,
+  groups.direction_id AS group_direction_id,
+  groups.name         AS group_name,
+  groups.code         AS group_code,
+  subjects.id           AS subject_id,
+  subjects.name         AS subject_name,
+  subjects.short_code   AS subject_short_code,
+  group_subjects.source,
+  group_subjects.added_at
+FROM group_subjects
+JOIN groups ON groups.id = group_subjects.group_id
+JOIN subjects ON subjects.id = group_subjects.subject_id
+WHERE group_subjects.org_id = :org_id
+  AND group_subjects.group_id = :group_id
+  AND group_subjects.subject_id = :subject_id
+LIMIT 1;
 
-GET /orgs/:orgId/groups/:groupId/members/:studentId  
-получить одного участника
+--Удаление предмета из группы
+DELETE FROM group_subjects
+WHERE org_id = :org_id AND group_id = :group_id AND subject_id = :subject_id;
 
-POST /orgs/:orgId/groups/:groupId/members  
-добавить студента в группу
+```
 
-PUT /orgs/:orgId/groups/:groupId/members/:studentId  
-изменить статус/даты
 
-DELETE /orgs/:orgId/groups/:groupId/members/:studentId  
-исключить студента из группы
+### Участники групп group_members
 
-##### Получить список студентов группы:
+`GET /orgs/:orgId/groups/:groupId/members?q=&status=&page=&limit=`  получить список студентов группы
+
+`GET /orgs/:orgId/groups/:groupId/members/:studentId`  получить одного участника
+
+`POST /orgs/:orgId/groups/:groupId/members`  добавить студента в группу
+
+`PUT /orgs/:orgId/groups/:groupId/members/:studentId`  изменить статус/даты
+
+`DELETE /orgs/:orgId/groups/:groupId/members/:studentId`  исключить студента из группы
+
+#### Получить список студентов группы:  `GET /orgs/:orgId/groups/:groupId/members?q=&status=&page=&limit=`
 
 суперадмин, админ, сотрудник учебной организации, преподаватель, студент
 
-- GET /orgs/:orgId/groups/:groupId/members?q=&status=&page=&limit=
+  `q` - поиск по `users.full_name/email`  
+  `status` - `active|inactive|archived` по умолчанию все, кроме `archived`  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице, по умолчанию 50, ≤ 200  
 
-> q - поиск по users.full_name/email
->
-> status - active\|inactive\|archived по умолчанию все, кроме archived
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице, по умолчанию 50, ≤ 200
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
-
-  - q - строка (если передали)
-
-  - status - active\|inactive\|archived, по умолчанию все, кроме archived
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `q` - строка (если передали)
+  - `status` - `active|inactive|archived`, по умолчанию все, кроме `archived`
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - groupId существует и принадлежит той же организации
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `groupId` существует и принадлежит той же организации
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - q - string\[0..100\] - trim
-
-  - status - active\|inactive\|archived
-
-  - page - целое число, \>=1, по умолчанию - 1
-
-  - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `status` - `active|inactive|archived`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `status` - `active|inactive|archived`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+- **Responses**:
 
-    - q - string\[0..100\] - trim
+  - **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "group_members": 
+  [
+    {
+      "group": { 
+        "id": 112,
+  	    "direction_id": 08,
+  	    "name": "Web-Development-2025-10",
+        "code": "281025-wdm", 
+        },
+      "student": {
+        "id": 3001,
+        "email": "student@example.com",
+        "full_name": "Alice Student",
+        "status": "active"
+        },
+      "membership": {
+        "status": "active",
+        "joined_at": "2025-09-10T09:00:00Z",
+        "left_at": null
+        },
+    },
+  ]
+}
+```
 
-    - status - active\|inactive\|archived
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
 
-    - page - целое число, \>=1, по умолчанию - 1
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - limit - целое число, 1..200, по умолчанию - 50
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-  <!-- -->
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view list of members of the group in this organization." }
+```
 
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "group_members":
->
-> \[
->
-> {
->
-> "group": {
->
-> "id": 112,
->
-> "direction_id": 08,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> },
->
-> "student": {
->
-> "id": 3001,
->
-> "email": "student@example.com",
->
-> "full_name": "Alice Student",
->
-> "status": "active"
->
-> },
->
-> "membership": {
->
-> "status": "active",
->
-> "joined_at": "2025-09-10T09:00:00Z",
->
-> "left_at": null
->
-> },
->
-> },
->
-> \]
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view list of members of the group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM group_members
->
-> JOIN users ON users.id = group_members.student_id
->
-> JOIN groups ON groups.id = group_members.group_id
->
-> WHERE groups.id = :group_id
->
-> AND groups.org_id = :org_id
->
-> AND (
->
-> (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL AND group_members.status \<\> 'archived')
->
-> OR (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NOT NULL AND group_members.status = :status)
->
-> )
->
-> AND users.status \<\> 'deleted'
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR users.full_name LIKE CONCAT('%', :q, '%')
->
-> OR users.email LIKE CONCAT('%', :q, '%')
->
-> );
->
-> page
->
-> SELECT
->
-> groups.id AS group_id,
->
-> groups.direction_id AS group_direction_id,
->
-> groups.name AS group_name,
->
-> groups.code AS group_code,
->
-> users.id AS student_id,
->
-> users.email,
->
-> users.full_name,
->
-> users.status AS user_status,
->
-> group_members.status AS membership_status,
->
-> group_members.joined_at,
->
-> group_members.left_at
->
-> FROM group_members
->
-> JOIN users ON users.id = group_members.student_id
->
-> JOIN groups ON groups.id = group_members.group_id
->
-> WHERE groups.id = :group_id
->
-> AND groups.org_id = :org_id
->
-> AND users.status \<\> 'deleted'
->
-> AND (
->
-> (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL AND group_members.status \<\> 'archived')
->
-> OR (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NOT NULL AND group_members.status = :status)
->
-> )
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR users.full_name LIKE CONCAT('%', :q, '%')
->
-> OR users.email LIKE CONCAT('%', :q, '%')
->
-> )
->
-> ORDER BY users.full_name ASC, users.id ASC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить одного участника:
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id 
+LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM group_members
+JOIN users ON users.id = group_members.student_id
+JOIN groups ON groups.id = group_members.group_id
+WHERE groups.id = :group_id
+  AND groups.org_id = :org_id
+  AND (
+        (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL AND group_members.status <> 'archived')
+     OR (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NOT NULL AND group_members.status = :status)
+      )
+
+  AND users.status <> 'deleted'
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR users.full_name LIKE CONCAT('%', :q, '%')
+    OR users.email     LIKE CONCAT('%', :q, '%')
+  );
+
+--page
+SELECT
+  groups.id            AS group_id,
+  groups.direction_id  AS group_direction_id,
+  groups.name          AS group_name,
+  groups.code          AS group_code,
+  users.id             AS student_id,
+  users.email,
+  users.full_name,
+  users.status         AS user_status,
+  group_members.status AS membership_status,
+  group_members.joined_at,
+  group_members.left_at
+FROM group_members
+JOIN users ON users.id = group_members.student_id
+JOIN groups ON groups.id = group_members.group_id
+WHERE groups.id = :group_id
+  AND groups.org_id = :org_id
+  AND users.status <> 'deleted'
+  AND (
+        (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NULL AND group_members.status <> 'archived')
+     OR (COALESCE(NULLIF(TRIM(:status), ''), NULL) IS NOT NULL AND group_members.status = :status)
+      )
+  AND (
+        COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+     OR users.full_name LIKE CONCAT('%', :q, '%')
+     OR users.email     LIKE CONCAT('%', :q, '%')
+      )
+ORDER BY users.full_name ASC, users.id ASC
+LIMIT @limit OFFSET @offset;
+
+```
+
+
+#### Получить одного участника:  `GET /orgs/:orgId/groups/:groupId/members/:studentId`
 
 суперадмин, админ, сотрудник учебной организации, учитель, студент
 
-- GET /orgs/:orgId/groups/:groupId/members/:studentId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:** {}
-
-  - **Path / Query params:**
-
-    - orgId - целое число
-
-    - groupId - целое число
-
-    - studentId - целое число
-
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
-
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - studentId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "group": {
->
-> "id": 112,
->
-> "direction_id": 08,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> },
->
-> "student": {
->
-> "id": 3001,
->
-> "email": "student@example.com",
->
-> "full_name": "Alice Student",
->
-> "status": "active"
->
-> },
->
-> "membership": {
->
-> "status": "active",
->
-> "joined_at": "2025-09-10T09:00:00Z",
->
-> "left_at": null
->
-> },
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: studentId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view а member of the group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”User not found”}
->
-> {“message”: ”Group member not found”}
-
-- **SQL**
-
-> Проверка организации
->
-> SELECT 1
->
-> FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1
->
-> FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Выборка
->
-> SELECT
->
-> groups.id AS group_id,
->
-> groups.direction_id AS group_direction_id,
->
-> groups.name AS group_name,
->
-> groups.code AS group_code,
->
-> users.id AS student_id,
->
-> users.email,
->
-> users.full_name,
->
-> users.status AS user_status,
->
-> group_members.status AS membership_status,
->
-> group_members.joined_at,
->
-> group_members.left_at
->
-> FROM group_members
->
-> JOIN users ON users.id = group_members.student_id
->
-> JOIN groups ON groups.id = group_members.group_id
->
-> WHERE groups.id = :group_id
->
-> AND groups.org_id = :org_id
->
-> AND group_members.student_id = :student_id
->
-> LIMIT 1;
-
-##### Добавить студента в группу:
-
-суперадмин, админ
-
-- POST /orgs/:orgId/groups/:groupId/members
-
-  - **Content-type:** application/json
-
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:**
-
-> {
->
-> "student_id": 3001,
->
-> "joined_at": "2025-09-10T09:00:00Z",
->
-> }
-
-- **Бизнес-правила:**
-
-  - Студент должен иметь активную роль student в этой организации
-
-  - Лимит плана: в группе активных студентов не больше, чем subscription_plans.max_students_per_group, учитываем status='active'
-
-  - Повторное добавление - обновить существующую запись до status='active', left_at=NULL (идемпотентность)
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `studentId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - student_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+- **Responses**:
 
-    - student_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле, число
+  - **200 OK**
+```json
+{ 
+  "group": { 
+    "id": 112,
+  	"direction_id": 08,
+  	"name": "Web-Development-2025-10",
+    "code": "281025-wdm", 
+    },
+  "student": {
+    "id": 3001,
+    "email": "student@example.com",
+    "full_name": "Alice Student",
+    "status": "active"
+    },
+  "membership": {
+    "status": "active",
+    "joined_at": "2025-09-10T09:00:00Z",
+    "left_at": null
+    },
+}
+```
 
-  <!-- -->
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: studentId must be integer" }
+```
 
-  - **Responses**:
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - **201 Created** студент в группу добавлен
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {
->
-> "group": {
->
-> "id": 112,
->
-> "direction_id": 08,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> },
->
-> "student": {
->
-> "id": 3001,
->
-> "email": "student@example.com",
->
-> "full_name": "Alice Student",
->
-> "status": "active"
->
-> },
->
-> "membership": {
->
-> "status": "active",
->
-> "joined_at": "2025-09-10T09:00:00Z",
->
-> "left_at": null
->
-> },
->
-> },
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view а member of the group in this organization" }
+```
 
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”student_id is required”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to add а member of the group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”User not found”}
-
-- **409 Conflict** превышен лимит (согласно тарифного плана)
-
-> {“message”: ”Plan limits exceeded for group members.”}
-
-- **409 Conflict** нет активной роли student в организации
-
-> {“message”: ”User does not have an active 'student' role in this organization.”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+```json
+{ "message": "Group member not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id LIMIT 1;
->
-> Проверка роли студента
->
-> SELECT 1
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
->
-> WHERE user_roles.org_id = :org_id AND user_roles.user_id = :student_id AND user_roles.revoked_at IS NULL
->
-> LIMIT 1;
->
-> Проверка лимита группы
->
-> SELECT
->
-> subscription_plans.max_students_per_group AS max_allowed,
->
-> (SELECT COUNT(\*) FROM group_members WHERE group_id = :group_id AND status = 'active') AS currently_used,
->
-> EXISTS(
->
-> SELECT 1 FROM group_members
->
-> WHERE group_id = :group_id AND student_id = :student_id AND status = 'active'
->
-> ) AS is_already_active
->
-> FROM org_subscriptions
->
-> JOIN subscription_plans ON subscription_plans.id = org_subscriptions.plan_id
->
-> WHERE org_subscriptions.org_id = :org_id AND org_subscriptions.is_current = 1
->
-> LIMIT 1;
->
-> если is_already_active=0 и currently_used \>= max_allowed =\> 409
->
-> Добавление/реактивация
->
-> INSERT INTO group_members (group_id, student_id, status, joined_at, left_at)
->
-> VALUES (:group_id, :student_id, 'active', COALESCE(:joined_at, NOW()), NULL)
->
-> ON DUPLICATE KEY UPDATE
->
-> status = 'active',
->
-> joined_at = COALESCE(VALUES(joined_at), joined_at),
->
-> left_at = NULL;
->
-> Ответ
->
-> SELECT
->
-> groups.id AS group_id,
->
-> groups.direction_id AS group_direction_id,
->
-> groups.name AS group_name,
->
-> groups.code AS group_code,
->
-> users.id AS student_id,
->
-> users.email,
->
-> users.full_name,
->
-> users.status AS user_status,
->
-> group_members.status AS membership_status,
->
-> group_members.joined_at,
->
-> group_members.left_at
->
-> FROM group_members
->
-> JOIN users ON users.id = group_members.student_id
->
-> JOIN groups ON groups.id = group_members.group_id
->
-> WHERE groups.id = :group_id
->
-> AND groups.org_id = :org_id
->
-> AND group_members.student_id = :student_id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 
+FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Обновить статус/даты:
+--Проверка группы
+SELECT 1 
+FROM groups 
+WHERE id = :group_id AND org_id = :org_id 
+LIMIT 1;
+
+--Выборка
+SELECT
+  groups.id            	AS group_id,
+  groups.direction_id  	AS group_direction_id,
+  groups.name          	AS group_name,
+  groups.code          	AS group_code,
+  users.id            	AS student_id,
+  users.email,
+  users.full_name,
+  users.status        	AS user_status,
+  group_members.status    	AS membership_status,
+  group_members.joined_at,
+  group_members.left_at
+FROM group_members
+JOIN users ON users.id = group_members.student_id
+JOIN groups ON groups.id = group_members.group_id
+WHERE groups.id = :group_id
+  AND groups.org_id = :org_id
+  AND group_members.student_id = :student_id
+LIMIT 1;
+
+```
+
+#### Добавить студента в группу:  `POST /orgs/:orgId/groups/:groupId/members`
 
 суперадмин, админ
 
-- PUT /orgs/:orgId/groups/:groupId/members/:studentId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "status": "inactive",
->
-> "left_at": "2026-01-20T10:00:00Z"
->
-> }
-
-- **Path / Query params:**
-
-  - orgId - целое число
-
-  - groupId - целое число
-
-  - studentId - целое число
+```json
+{ 
+  "student_id": 3001,
+  "joined_at": "2025-09-10T09:00:00Z",
+}
+```
 
 - **Бизнес-правила:**
 
-  - Если переводим в active, также проверяем лимит плана
+  - Студент должен иметь активную роль `student` в этой организации
+  - Лимит плана: в группе активных студентов не больше, чем `subscription_plans.max_students_per_group`, учитываем `status='active'`
+  - Повторное добавление - обновить существующую запись до `status='active'`, `left_at=NULL` (идемпотентность)
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+  - `groupId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - studentId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - status - active / inactive / archived
-
-  - left_at - YYYY-MM-DD
-
-  - joined_at - YYYY-MM-DD
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `student_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `student_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле, число
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+- **Responses**:
 
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+  - **201 Created** студент в группу добавлен
+```json
+{ 
+  "group": { 
+    "id": 112,
+  	"direction_id": 08,
+  	"name": "Web-Development-2025-10",
+    "code": "281025-wdm", 
+    },
+  "student": {
+    "id": 3001,
+    "email": "student@example.com",
+    "full_name": "Alice Student",
+    "status": "active"
+    },
+  "membership": {
+    "status": "active",
+    "joined_at": "2025-09-10T09:00:00Z",
+    "left_at": null
+    },
+}
+```
 
-    - joined_at - YYYY-MM-DD
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "student_id is required" }
+```
 
-    - left_at - YYYY-MM-DD
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-  <!-- -->
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-  - **Responses**:
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to add а member of the group in this organization." }
+```
 
-    - **200 OK**
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Student not found" }
+```
 
-> {
->
-> "group": {
->
-> "id": 112,
->
-> "direction_id": 08,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm",
->
-> },
->
-> "student": {
->
-> "id": 3001,
->
-> "email": "student@example.com",
->
-> "full_name": "Alice Student",
->
-> "status": "active"
->
-> },
->
-> "membership": {
->
-> "status": "inactive",
->
-> "joined_at": "2025-09-10T09:00:00Z",
->
-> "left_at": "2026-01-20T10:00:00Z",
->
-> },
->
-> },
+  - **409 Conflict** превышен лимит (согласно тарифного плана)
+```json
+{ "message": "Plan limits exceeded for group members." }
+```
 
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: studentId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to edit а member of the group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”User not found”}
->
-> {“message”: ”Group member not found”}
-
-- **409 Conflict** превышен лимит
-
-> {“message”: ”Plan limits exceeded for group members.”}
+  - **409 Conflict** нет активной роли student в организации
+```json
+{ "message": "User does not have an active 'student' role in this organization." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id LIMIT 1;
->
-> Проверка роли студента
->
-> SELECT 1
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
->
-> WHERE user_roles.org_id = :org_id AND user_roles.user_id = :student_id AND user_roles.revoked_at IS NULL
->
-> LIMIT 1;
->
-> Проверка лимита группы если :status = 'active'
->
-> SELECT
->
-> subscription_plans.max_students_per_group AS max_allowed,
->
-> (SELECT COUNT(\*) FROM group_members WHERE group_id = :group_id AND status = 'active') AS currently_used,
->
-> EXISTS(
->
-> SELECT 1 FROM group_members
->
-> WHERE group_id = :group_id AND student_id = :student_id AND status = 'active'
->
-> ) AS is_already_active
->
-> FROM org_subscriptions
->
-> JOIN subscription_plans ON subscription_plans.id = org_subscriptions.plan_id
->
-> WHERE org_subscriptions.org_id = :org_id AND org_subscriptions.is_current = 1
->
-> LIMIT 1;
->
-> если is_already_active=0 и currently_used \>= max_allowed =\> 409
->
-> Обновление
->
-> UPDATE group_members
->
-> SET status = COALESCE(:status, status),
->
-> joined_at = COALESCE(:joined_at, joined_at),
->
-> left_at = COALESCE(
->
-> CASE
->
-> WHEN :status = 'archived' THEN COALESCE(:left_at, NOW())
->
-> ELSE :left_at
->
-> END,
->
-> left_at
->
-> )
->
-> WHERE group_id = :group_id
->
-> AND student_id = :student_id
->
-> AND EXISTS (SELECT 1 FROM groups WHERE groups.id = :group_id AND groups.org_id = :org_id);
->
-> Ответ
->
-> SELECT
->
-> groups.id AS group_id,
->
-> groups.direction_id AS group_direction_id,
->
-> groups.name AS group_name,
->
-> groups.code AS group_code,
->
-> users.id AS student_id,
->
-> users.email,
->
-> users.full_name,
->
-> users.status AS user_status,
->
-> group_members.status AS membership_status,
->
-> group_members.joined_at,
->
-> group_members.left_at
->
-> FROM group_members
->
-> JOIN users ON users.id = group_members.student_id
->
-> JOIN groups ON groups.id = group_members.group_id
->
-> WHERE groups.id = :group_id
->
-> AND groups.org_id = :org_id
->
-> AND group_members.student_id = :student_id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Исключить студента из группы:
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id LIMIT 1;
+
+--Проверка роли студента
+SELECT 1 
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
+WHERE user_roles.org_id = :org_id AND user_roles.user_id = :student_id AND user_roles.revoked_at IS NULL
+LIMIT 1;
+
+--Проверка лимита группы
+SELECT
+  subscription_plans.max_students_per_group AS max_allowed,
+  (SELECT COUNT(*) FROM group_members WHERE group_id = :group_id AND status = 'active') AS currently_used,
+  EXISTS(
+    SELECT 1 FROM group_members
+    WHERE group_id = :group_id AND student_id = :student_id AND status = 'active'
+  ) AS is_already_active
+FROM org_subscriptions
+JOIN subscription_plans ON subscription_plans.id = org_subscriptions.plan_id
+WHERE org_subscriptions.org_id = :org_id AND org_subscriptions.is_current = 1
+LIMIT 1;
+--если is_already_active=0 и currently_used >= max_allowed => 409
+
+--Добавление/реактивация
+INSERT INTO group_members (group_id, student_id, status, joined_at, left_at)
+VALUES (:group_id, :student_id, 'active', COALESCE(:joined_at, NOW()), NULL)
+ON DUPLICATE KEY UPDATE
+  status    = 'active',
+  joined_at = COALESCE(VALUES(joined_at), joined_at),
+  left_at   = NULL;
+
+--Ответ
+SELECT
+  groups.id            	AS group_id,
+  groups.direction_id  	AS group_direction_id,
+  groups.name          	AS group_name,
+  groups.code          	AS group_code,
+  users.id            	AS student_id,
+  users.email,
+  users.full_name,
+  users.status        	AS user_status,
+  group_members.status  AS membership_status,
+  group_members.joined_at,
+  group_members.left_at
+FROM group_members
+JOIN users ON users.id = group_members.student_id
+JOIN groups ON groups.id = group_members.group_id
+WHERE groups.id = :group_id
+  AND groups.org_id = :org_id
+  AND group_members.student_id = :student_id
+LIMIT 1;
+
+```
+
+#### Обновить статус/даты:  `PUT /orgs/:orgId/groups/:groupId/members/:studentId`
 
 суперадмин, админ
 
-- DELETE /orgs/:orgId/groups/:groupId/members/:studentId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:** {}
+```json
+{ 
+  "status": "inactive",
+  "left_at": "2026-01-20T10:00:00Z"
+}
+```
 
-  - **Path / Query params:**
+- **Path / Query params:**
 
-    - orgId - целое число
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `studentId` - целое число
 
-    - groupId - целое число
+- **Бизнес-правила:**
 
-    - studentId - целое число
+  - Если переводим в `active`, также проверяем лимит плана
 
-  - **Бизнес-правила:**
+- **Backend-правила:**
 
-    - Мягкая архивация: status='archived'
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
-  - **Backend-правила:**
+- **Validation**:
 
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
+  - Frontend:
 
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - studentId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `student_id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `status` - `active / inactive / archived`
+    - `left_at` - `YYYY-MM-DD`
+    - `joined_at` - `YYYY-MM-DD`
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `student_id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `status` - `active / inactive / archived`
+    - `left_at` - `YYYY-MM-DD`
+    - `joined_at` - `YYYY-MM-DD`
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+- **Responses**:
 
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+  - **200 OK**
+```json
+{ 
+  "group": { 
+    "id": 112,
+  	"direction_id": 08,
+  	"name": "Web-Development-2025-10",
+    "code": "281025-wdm", 
+    },
+  "student": {
+    "id": 3001,
+    "email": "student@example.com",
+    "full_name": "Alice Student",
+    "status": "active"
+    },
+  "membership": {
+    "status": "active",
+    "joined_at": "2025-09-10T09:00:00Z",
+    "left_at": null
+    },
+}
+```
 
-  <!-- -->
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: studentId must be integer" }
+```
 
-  - **Responses**:
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - **200 OK**
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {
->
-> "group": {
->
-> "id": 112,
->
-> "direction_id": 8,
->
-> "name": "Web-Development-2025-10",
->
-> "code": "281025-wdm"
->
-> },
->
-> "student": {
->
-> "id": 3001,
->
-> "email": "student@example.com",
->
-> "full_name": "Alice Student",
->
-> "status": "active"
->
-> },
->
-> "membership": {
->
-> "status": "archived",
->
-> "joined_at": "2025-09-10T09:00:00Z",
->
-> "left_at": "2026-01-20T10:00:00Z"
->
-> }
->
-> },
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to edit а member of the group in this organization." }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+```json
+{ "message": "Group member not found" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: studentId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to remove а member of the group in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”User not found”}
+  - **409 Conflict** превышен лимит
+```json
+{ "message": "Plan limits exceeded for group members." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Архивация
->
-> UPDATE group_members
->
-> JOIN groups ON groups.id = group_members.group_id
->
-> SET group_members.status = 'archived',
->
-> group_members.left_at = COALESCE(gm.left_at, NOW())
->
-> WHERE group_members.group_id = :group_id
->
-> AND group_members.student_id = :student_id
->
-> AND groups.org_id = :org_id;
->
-> Ответ
->
-> SELECT
->
-> groups.id AS group_id,
->
-> groups.direction_id AS group_direction_id,
->
-> groups.name AS group_name,
->
-> groups.code AS group_code,
->
-> users.id AS student_id,
->
-> users.email,
->
-> users.full_name,
->
-> users.status AS user_status,
->
-> group_members.status AS membership_status,
->
-> group_members.joined_at,
->
-> group_members.left_at
->
-> FROM group_members
->
-> JOIN users ON users.id = group_members.student_id
->
-> JOIN groups ON groups.id = group_members.group_id
->
-> WHERE groups.id = :group_id
->
-> AND groups.org_id = :org_id
->
-> AND group_members.student_id = :student_id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-#### Назначения преподавателей teaching_assignments
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id LIMIT 1;
 
-GET /orgs/:orgId/teaching-assignments?groupId=&teacherId=&subjectId=&page=&limit=  
-получить список назначений
+--Проверка роли студента
+SELECT 1 
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
+WHERE user_roles.org_id = :org_id AND user_roles.user_id = :student_id AND user_roles.revoked_at IS NULL
+LIMIT 1;
 
-GET /orgs/:orgId/teaching-assignments/:id  
-получить назначение
+--Проверка лимита группы если :status = 'active'
+SELECT
+  subscription_plans.max_students_per_group AS max_allowed,
+  (SELECT COUNT(*) FROM group_members WHERE group_id = :group_id AND status = 'active') AS currently_used,
+  EXISTS(
+    SELECT 1 FROM group_members
+    WHERE group_id = :group_id AND student_id = :student_id AND status = 'active'
+  ) AS is_already_active
+FROM org_subscriptions
+JOIN subscription_plans ON subscription_plans.id = org_subscriptions.plan_id
+WHERE org_subscriptions.org_id = :org_id AND org_subscriptions.is_current = 1
+LIMIT 1;
+-- если is_already_active=0 и currently_used >= max_allowed => 409
 
-POST /orgs/:orgId/teaching-assignments  
-создать назначение
+--Обновление
+UPDATE group_members
+SET status    = COALESCE(:status, status),
+    joined_at = COALESCE(:joined_at, joined_at),
+    left_at   = COALESCE(
+                  CASE
+                    WHEN :status = 'archived' THEN COALESCE(:left_at, NOW())
+                    ELSE :left_at
+                  END,
+                  left_at
+                )
+WHERE group_id   = :group_id
+  AND student_id = :student_id
+  AND EXISTS (SELECT 1 FROM groups WHERE groups.id = :group_id AND groups.org_id = :org_id);
 
-PUT /orgs/:orgId/teaching-assignments/:id  
-изменить назначение
+--Ответ
+SELECT
+  groups.id            	AS group_id,
+  groups.direction_id  	AS group_direction_id,
+  groups.name          	AS group_name,
+  groups.code          	AS group_code,
+  users.id            	AS student_id,
+  users.email,
+  users.full_name,
+  users.status        	AS user_status,
+  group_members.status  AS membership_status,
+  group_members.joined_at,
+  group_members.left_at
+FROM group_members
+JOIN users ON users.id = group_members.student_id
+JOIN groups ON groups.id = group_members.group_id
+WHERE groups.id = :group_id
+  AND groups.org_id = :org_id
+  AND group_members.student_id = :student_id
+LIMIT 1;
 
-DELETE /orgs/:orgId/teaching-assignments/:id  
-удалить назначение
+```
 
-##### Получить список назначений:
+#### Исключить студента из группы:  `DELETE /orgs/:orgId/groups/:groupId/members/:studentId`
+
+суперадмин, админ
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:** `{}`
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `studentId` - целое число
+
+- **Бизнес-правила:**
+
+  - Мягкая архивация: `status='archived'`
+
+- **Backend-правила:**
+
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `student_id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `student_id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+
+- **Responses**:
+
+  - **200 OK**
+```json
+{ 
+  "group": { 
+    "id": 112,
+  	"direction_id": 08,
+  	"name": "Web-Development-2025-10",
+    "code": "281025-wdm", 
+    },
+  "student": {
+    "id": 3001,
+    "email": "student@example.com",
+    "full_name": "Alice Student",
+    "status": "active"
+    },
+  "membership": {
+    "status": "active",
+    "joined_at": "2025-09-10T09:00:00Z",
+    "left_at": "2026-01-20T10:00:00Z"
+    },
+}
+```
+
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: studentId must be integer" }
+```
+
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to remove а member of the group in this organization." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+
+- **SQL**
+
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Архивация
+UPDATE group_members 
+JOIN groups ON groups.id = group_members.group_id
+SET group_members.status  = 'archived',
+    group_members.left_at = COALESCE(gm.left_at, NOW())
+WHERE group_members.group_id   = :group_id
+  AND group_members.student_id = :student_id
+  AND groups.org_id      = :org_id;
+
+--Ответ
+SELECT
+  groups.id            	AS group_id,
+  groups.direction_id  	AS group_direction_id,
+  groups.name          	AS group_name,
+  groups.code          	AS group_code,
+  users.id            	AS student_id,
+  users.email,
+  users.full_name,
+  users.status        	AS user_status,
+  group_members.status    	AS membership_status,
+  group_members.joined_at,
+  group_members.left_at
+FROM group_members
+JOIN users ON users.id = group_members.student_id
+JOIN groups ON groups.id = group_members.group_id
+WHERE groups.id = :group_id
+  AND groups.org_id = :org_id
+  AND group_members.student_id = :student_id
+LIMIT 1;
+
+```
+
+
+### Назначения преподавателей teaching_assignments
+
+`GET /orgs/:orgId/teaching-assignments?groupId=&teacherId=&subjectId=&page=&limit=`  получить список назначений
+
+`GET /orgs/:orgId/teaching-assignments/:id`  получить назначение
+
+`POST /orgs/:orgId/teaching-assignments`  создать назначение
+
+`PUT /orgs/:orgId/teaching-assignments/:id`  изменить назначение
+
+`DELETE /orgs/:orgId/teaching-assignments/:id`  удалить назначение
+
+#### Получить список назначений:  `GET /orgs/:orgId/teaching-assignments?groupId=&teacherId=&subjectId=&page=&limit=`
 
 суперадмин, админ, сотрудник учебной организации, преподаватель
 
-- GET /orgs/:orgId/teaching-assignments?groupId=&teacherId=&subjectId=&page=&limit=
+  `groupId` - фильтр по группе (опционально)  
+  `teacherId` - фильтр по преподавателю (опционально)  
+  `subjectId` - фильтр по предмету (опционально)  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> groupId - фильтр по группе (опционально)
->
-> teacherId - фильтр по преподавателю (опционально)
->
-> subjectId - фильтр по предмету (опционально)
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
-
-  - teacherId - целое число
-
-  - subjectId - целое число
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `teacherId` - целое число
+  - `subjectId` - целое число
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - groupId существует и принадлежит той же организации
-
-  - subjectId существует и принадлежит той же организации
-
-  - teacherId преподаватель должен иметь активную роль teacher в этой организации
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `groupId` существует и принадлежит той же организации
+  - `subjectId` существует и принадлежит той же организации
+  - `teacherId` преподаватель должен иметь активную роль `teacher` в этой организации
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - teacherId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - page - целое число, \>=1, по умолчанию - 1
-
-  - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `teacherId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `teacherId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
+- **Responses**:
 
-    - teacherId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "teaching_assignments": 
+  [
+    {
+ 	    "id": 7001,
+      "teacher":  { 
+        "id": 1054, 
+        "full_name": "Ivan Petrov" 
+        },
+      "subject":  { 
+        "id": 108,  
+        "name": "React" 
+        },
+      "group":  { 
+        "id": 510,  
+        "code": "281025-wdm", 
+        "name": "Web-Development-2025-10" 
+        },
+      "assigned_at": "2025-09-02T10:11:12Z",
+    },
+  ]
+}
+```
 
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: teacherId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
 
-    - page - целое число, \>=1, по умолчанию - 1
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - limit - целое число, 1..200, по умолчанию - 50
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-  <!-- -->
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view teaching assignments in this organization." }
+```
 
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "teaching_assignments":
->
-> \[
->
-> {
->
-> "id": 7001,
->
-> "teacher": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> },
->
-> \]
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: teacherId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view teaching assignments in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Subject not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверки фильтров, если параметр передан
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка роли преподавателя
->
-> SELECT 1
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
->
-> WHERE user_roles.org_id = :org_id AND user_roles.user_id = :teacher_id AND user_roles.revoked_at IS NULL
->
-> LIMIT 1;
->
-> Проверка предмета
->
-> SELECT 1 FROM subjects
->
-> WHERE id = :subject_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM teaching_assignments
->
-> JOIN users ON users.id = teaching_assignments.teacher_id
->
-> JOIN subjects ON subjects.id = teaching_assignments.subject_id
->
-> JOIN groups ON groups.id = teaching_assignments.group_id
->
-> WHERE teaching_assignments.org_id = :org_id
->
-> AND users.status \<\> 'deleted'
->
-> AND ( :group_id IS NULL
->
-> OR teaching_assignments.group_id = :group_id )
->
-> AND ( :teacher_id IS NULL
->
-> OR teaching_assignments.teacher_id = :teacher_id )
->
-> AND ( :subject_id IS NULL
->
-> OR teaching_assignments.subject_id = :subject_id );
->
-> page
->
-> SELECT
->
-> teaching_assignments.id, teaching_assignments.assigned_at,
->
-> users.id AS teacher_id, users.full_name AS teacher_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> groups.id AS group_id, groups.code,groups.name AS group_name
->
-> FROM teaching_assignments
->
-> JOIN users ON users.id = teaching_assignments.teacher_id
->
-> JOIN subjects ON subjects.id = teaching_assignments.subject_id
->
-> JOIN groups ON groups.id = teaching_assignments.group_id
->
-> WHERE teaching_assignments.org_id = :org_id
->
-> AND users.status \<\> 'deleted'
->
-> AND ( :group_id IS NULL
->
-> OR teaching_assignments.group_id = :group_id )
->
-> AND ( :teacher_id IS NULL
->
-> OR teaching_assignments.teacher_id = :teacher_id )
->
-> AND ( :subject_id IS NULL
->
-> OR teaching_assignments.subject_id = :subject_id )
->
-> ORDER BY teaching_assignments.id DESC
->
-> LIMIT :limit OFFSET :offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить назначение:
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверки фильтров, если параметр передан
+
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка роли преподавателя
+SELECT 1 
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
+WHERE user_roles.org_id = :org_id AND user_roles.user_id = :teacher_id AND user_roles.revoked_at IS NULL
+LIMIT 1;
+
+--Проверка предмета
+SELECT 1 FROM subjects 
+WHERE id = :subject_id AND org_id = :org_id 
+LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM teaching_assignments
+JOIN users ON users.id = teaching_assignments.teacher_id
+JOIN subjects ON subjects.id = teaching_assignments.subject_id
+JOIN groups ON groups.id = teaching_assignments.group_id
+WHERE teaching_assignments.org_id = :org_id
+  AND users.status <> 'deleted'
+  AND ( :group_id   IS NULL 
+OR teaching_assignments.group_id = :group_id )
+  AND ( :teacher_id IS NULL 
+OR teaching_assignments.teacher_id = :teacher_id )
+  AND ( :subject_id IS NULL 
+OR teaching_assignments.subject_id = :subject_id );
+
+--page
+SELECT
+  teaching_assignments.id, teaching_assignments.assigned_at,
+  users.id AS teacher_id, users.full_name AS teacher_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  groups.id AS group_id, groups.code,groups.name AS group_name
+FROM teaching_assignments
+JOIN users ON users.id = teaching_assignments.teacher_id
+JOIN subjects ON subjects.id = teaching_assignments.subject_id
+JOIN groups ON groups.id = teaching_assignments.group_id
+WHERE teaching_assignments.org_id = :org_id
+  AND users.status <> 'deleted'
+  AND ( :group_id   IS NULL 
+OR teaching_assignments.group_id = :group_id )
+  AND ( :teacher_id IS NULL 
+OR teaching_assignments.teacher_id = :teacher_id )
+  AND ( :subject_id IS NULL 
+OR teaching_assignments.subject_id = :subject_id )
+ORDER BY teaching_assignments.id DESC
+LIMIT :limit OFFSET :offset;
+
+```
+
+#### Получить назначение:  `GET /orgs/:orgId/teaching-assignments/:id`
 
 суперадмин, админ, сотрудник учебной организации, учитель
 
-- GET /orgs/:orgId/teaching-assignments/:id
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:** {}
-
-  - **Path / Query params:**
-
-    - orgId - целое число
-
-    - id - целое число
-
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
-
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "id": 7001,
->
-> "teacher": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: id must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view this teaching assignment in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {"message":"Teaching assignment not found"}
-
-- **SQL**
-
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Выборка
->
-> SELECT
->
-> teaching_assignments.id, teaching_assignments.assigned_at,
->
-> users.id AS teacher_id, users.full_name AS teacher_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> groups.id AS group_id, groups.code, groups.name AS group_name
->
-> FROM teaching_assignments
->
-> JOIN users ON users.id = teaching_assignments.teacher_id
->
-> JOIN subjects ON subjects.id = teaching_assignments.subject_id
->
-> JOIN groups ON groups.id = teaching_assignments.group_id
->
-> WHERE teaching_assignments.org_id = :org_id
->
-> AND teaching_assignments.id = :id
->
-> AND users.status \<\> 'deleted'
->
-> LIMIT 1;
-
-##### Создать назначение:
-
-суперадмин, админ
-
-- POST /orgs/:orgId/teaching-assignments
-
-  - **Content-type:** application/json
-
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:**
-
-> {
->
-> "teacher_id": 1054,
->
-> "subject_id": 108,
->
-> "group_id": 510,
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> }
-
-- **Бизнес-правила:**
-
-  - Преподаватель имеет активную роль teacher в этой организации
-
-  - group_id принадлежит той же организации
-
-  - subject_id принадлежит той же организации и должен быть назначен группе (group_subjects содержит (group_id,subject_id)
-
-  - Уникальность (teacher_id, subject_id, group_id)
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
+  - `id` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - teacher_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле
-
-  - subject_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле
-
-  - group_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле
-
-  - assigned_at - YYYY-MM-DD
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - teacher_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле, число
+- **Responses**:
 
-    - subject_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле, число
+  - **200 OK**
+```json
+{
+ 	"id": 7001,
+  "teacher":  { 
+    "id": 1054, 
+    "full_name": "Ivan Petrov" 
+    },
+  "subject":  { 
+    "id": 108,  
+    "name": "React" 
+    },
+  "group":  { 
+    "id": 510,  
+    "code": "281025-wdm", 
+    "name": "Web-Development-2025-10" 
+    },
+  "assigned_at": "2025-09-02T10:11:12Z",
+}
+```
 
-    - group_id - /^\[1-9\]\d{0,9}\$/ - обязательное поле, число
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
 
-    - assigned_at - YYYY-MM-DD
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-  - DB:
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-    - (teacher_id, subject_id, group_id) - UNIQUE  
-      проверка уникальности
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view this teaching assignment in this organization." }
+```
 
-    - (group_id,subject_id) - group_subjects  
-      проверка связи
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **201 Created** преподаватель назначен на предмет группе
-
-> {
->
-> "id": 7001,
->
-> "teacher": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”teacher_id is required”}
->
-> {“message”: ”subject_id is required”}
->
-> {“message”: ”group_id is required”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to create teaching assignments in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Subject not found”}
-
-- **409 Conflict** нет активной роли teacher в организации
-
-> {“message”: ”User does not have an active 'teacher' role in this organization.”}
-
-- **409 Conflict** у предмета нет активной связки с группой
-
-> {“message”: ”Subject is not assigned to the target group. Add the subject to the group before creating the teaching assignment”}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”Duplicate assignment: this teacher is already assigned to this subject in this group.”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Teaching assignment not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка роли преподавателя
->
-> SELECT 1
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
->
-> WHERE user_roles.org_id = :org_id AND user_roles.user_id = :teacher_id AND user_roles.revoked_at IS NULL
->
-> LIMIT 1;
->
-> Проверка предмета
->
-> SELECT 1 FROM subjects
->
-> WHERE id = :subject_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка предмета на назначение группе
->
-> SELECT 1 FROM group_subjects
->
-> WHERE org_id = :org_id
->
-> AND group_id = :group_id
->
-> AND subject_id = :subject_id
->
-> LIMIT 1;
->
-> Проверка на уникальность
->
-> SELECT 1
->
-> FROM teaching_assignments
->
-> WHERE org_id = :org_id
->
-> AND teacher_id = :teacher_id
->
-> AND subject_id = :subject_id
->
-> AND group_id = :group_id
->
-> LIMIT 1;
->
-> Создание назначения
->
-> INSERT INTO teaching_assignments (org_id, teacher_id, subject_id, group_id, assigned_at)
->
-> VALUES (:org_id, :teacher_id, :subject_id, :group_id, COALESCE(:assigned_at, NOW()));
->
-> Для ответа
->
-> SELECT
->
-> teaching_assignments.id, teaching_assignments.assigned_at,
->
-> users.id AS teacher_id, users.full_name AS teacher_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> groups.id AS group_id, groups.code, groups.name AS group_name
->
-> FROM teaching_assignments
->
-> JOIN users ON users.id = teaching_assignments.teacher_id
->
-> JOIN subjects ON subjects.id = teaching_assignments.subject_id
->
-> JOIN groups ON groups.id = teaching_assignments.group_id
->
-> WHERE teaching_assignments.org_id = :org_id
->
-> AND teaching_assignments.id = LAST_INSERT_ID()
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Изменить назначение:
+--Выборка
+SELECT 
+  teaching_assignments.id, teaching_assignments.assigned_at,
+  users.id AS teacher_id, users.full_name AS teacher_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  groups.id AS group_id, groups.code, groups.name AS group_name
+FROM teaching_assignments
+JOIN users ON users.id = teaching_assignments.teacher_id
+JOIN subjects ON subjects.id = teaching_assignments.subject_id
+JOIN groups ON groups.id = teaching_assignments.group_id
+WHERE teaching_assignments.org_id = :org_id 
+  AND teaching_assignments.id = :id
+  AND users.status <> 'deleted'
+LIMIT 1;
+
+```
+
+#### Создать назначение:  `POST /orgs/:orgId/teaching-assignments`
 
 суперадмин, админ
 
-- PUT /orgs/:orgId/teaching-assignments/:id
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "teacher_id": 1054,
->
-> "subject_id": 108,
->
-> "group_id": 510,
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> }
-
-- **Path / Query params:**
-
-  - orgId - целое число
+```json
+{ 
+  "teacher_id": 1054, 
+  "subject_id": 108, 
+  "group_id": 510, 
+  "assigned_at": "2025-09-02T10:11:12Z",
+}
+```
 
 - **Бизнес-правила:**
 
-  - При изменении teacher_id снова проверить активную роль teacher
+  - Преподаватель имеет активную роль `teacher` в этой организации
+  - `group_id` принадлежит той же организации
+  - `subject_id` принадлежит той же организации и должен быть назначен группе (`group_subjects` содержит `(group_id,subject_id)`)
+  - Уникальность `(teacher_id, subject_id, group_id)`
 
-  - При изменении group_id проверить принадлежность организации
+- **Path / Query params:**
 
-  - При изменении subject_id проверить принадлежность организации и связь group_subjects
-
-  - Проверить уникальность (teacher_id, subject_id, group_id) после изменений
+  - `orgId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - teacher_id - /^\[1-9\]\d{0,9}\$/
-
-  - subject_id - /^\[1-9\]\d{0,9}\$/
-
-  - group_id - /^\[1-9\]\d{0,9}\$/
-
-  - assigned_at - YYYY-MM-DD
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `teacher_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `group_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `assigned_at` - `YYYY-MM-DD`
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - teacher_id - /^\[1-9\]\d{0,9}\$/
-
-    - subject_id - /^\[1-9\]\d{0,9}\$/
-
-    - group_id - /^\[1-9\]\d{0,9}\$/
-
-    - assigned_at - YYYY-MM-DD
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `teacher_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `group_id` - /^\[1-9\]\d{0,9}\$/ - обязательное поле
+    - `assigned_at` - `YYYY-MM-DD`
 
   - DB:
 
-    - (teacher_id, subject_id, group_id) - UNIQUE  
-      проверка уникальности
+    - `(teacher_id, subject_id, group_id)` - `UNIQUE`  проверка уникальности
+    - `(group_id,subject_id)` - `group_subjects`  проверка связи
 
-    - (group_id,subject_id) - group_subjects  
-      проверка связи
+- **Responses**:
 
-  <!-- -->
+  - **201 Created** преподаватель назначен на предмет группе
+```json
+{ 
+  "id": 7001,
+  "teacher":  { 
+    "id": 1054, 
+    "full_name": "Ivan Petrov" 
+    },
+  "subject":  { 
+    "id": 108,  
+    "name": "React" 
+    },
+  "group":  { 
+    "id": 510,  
+    "code": "281025-wdm", 
+    "name": "Web-Development-2025-10" 
+    },
+  "assigned_at": "2025-09-02T10:11:12Z",
+}
+```
 
-  - **Responses**:
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "teacher_id is require" }
+```
+```json
+{ "message": "subject_id is required" }
+```
+```json
+{ "message": "group_id is required" }
+```
 
-    - **200 OK**
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {
->
-> "id": 7001,
->
-> "teacher": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> },
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to create teaching assignments in this organization." }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”teacher_id must be integer”}
->
-> {“message”: ”subject_id must be integer”}
->
-> {“message”: ”group_id must be integer”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **409 Conflict** нет активной роли teacher в организации
+```json
+{ "message": "User does not have an active 'teacher' role in this organization." }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **409 Conflict** у предмета нет активной связки с группой
+```json
+{ "message": "Subject is not assigned to the target group. Add the subject to the group before creating the teaching assignment" }
+```
 
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to edit teaching assignments in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Subject not found”}
-
-- **409 Conflict** нет активной роли teacher в организации
-
-> {“message”: ”User does not have an active 'teacher' role in this organization.”}
-
-- **409 Conflict** у предмета нет активной связки с группой
-
-> {“message”: ”Subject is not assigned to the target group. Add the subject to the group before creating the teaching assignment”}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”Duplicate assignment: this teacher is already assigned to this subject in this group.”}
+  - **409 Conflict** дубликат
+```json
+{ "message": "Duplicate assignment: this teacher is already assigned to this subject in this group." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Текущее состояние
->
-> чтобы подставить в проверки, если поле не меняем
->
-> SELECT teacher_id, subject_id, group_id
->
-> INTO @old_teacher_id, @old_subject_id, @old_group_id
->
-> FROM teaching_assignments
->
-> WHERE id = :id AND org_id = :org_id
->
-> LIMIT 1;
->
-> SET @new_teacher_id = COALESCE(:teacher_id, @old_teacher_id);
->
-> SET @new_subject_id = COALESCE(:subject_id, @old_subject_id);
->
-> SET @new_group_id = COALESCE(:group_id, @old_group_id);
->
-> Проверки под новые значения
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = @new_group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка роли преподавателя
->
-> SELECT 1
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
->
-> WHERE user_roles.org_id = :org_id
->
-> AND user_roles.user_id = @new_teacher_id
->
-> AND user_roles.revoked_at IS NULL
->
-> LIMIT 1;
->
-> Проверка предмета
->
-> SELECT 1 FROM subjects
->
-> WHERE id = @new_subject_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Предмет назначен группе
->
-> SELECT 1 FROM group_subjects
->
-> WHERE org_id = :org_id
->
-> AND group_id = @new_group_id
->
-> AND subject_id = @new_subject_id
->
-> LIMIT 1;
->
-> Уникальность на новые значения (исключая текущую запись)
->
-> SELECT 1
->
-> FROM teaching_assignments
->
-> WHERE org_id = :org_id
->
-> AND teacher_id = @new_teacher_id
->
-> AND subject_id = @new_subject_id
->
-> AND group_id = @new_group_id
->
-> AND id \<\> :id
->
-> LIMIT 1;
->
-> Обновление назначения
->
-> UPDATE teaching_assignments
->
-> SET teacher_id = @new_teacher_id,
->
-> subject_id = @new_subject_id,
->
-> group_id = @new_group_id,
->
-> assigned_at = COALESCE(:assigned_at, assigned_at)
->
-> WHERE id = :id AND org_id = :org_id;
->
-> Для ответа
->
-> SELECT
->
-> teaching_assignments.id, teaching_assignments.assigned_at,
->
-> users.id AS teacher_id, users.full_name AS teacher_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> groups.id AS group_id, groups.code, groups.name AS group_name
->
-> FROM teaching_assignments
->
-> JOIN users ON users.id = teaching_assignments.teacher_id
->
-> JOIN subjects ON subjects.id = teaching_assignments.subject_id
->
-> JOIN groups ON groups.id = teaching_assignments.group_id
->
-> WHERE teaching_assignments.org_id = :org_id
->
-> AND teaching_assignments.id = :id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Удалить назначение:
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка роли преподавателя
+SELECT 1 
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
+WHERE user_roles.org_id = :org_id AND user_roles.user_id = :teacher_id AND user_roles.revoked_at IS NULL
+LIMIT 1;
+
+--Проверка предмета
+SELECT 1 FROM subjects 
+WHERE id = :subject_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка предмета на назначение группе
+SELECT 1 FROM group_subjects 
+WHERE org_id = :org_id 
+  AND group_id = :group_id 
+  AND subject_id = :subject_id 
+LIMIT 1;
+
+--Проверка на уникальность
+SELECT 1
+FROM teaching_assignments
+WHERE org_id = :org_id
+  AND teacher_id = :teacher_id
+  AND subject_id = :subject_id
+  AND group_id   = :group_id
+LIMIT 1;
+
+--Создание назначения
+INSERT INTO teaching_assignments (org_id, teacher_id, subject_id, group_id, assigned_at)
+VALUES (:org_id, :teacher_id, :subject_id, :group_id, COALESCE(:assigned_at, NOW()));
+
+--Для ответа
+SELECT 
+  teaching_assignments.id, teaching_assignments.assigned_at,
+  users.id AS teacher_id, users.full_name AS teacher_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  groups.id AS group_id, groups.code, groups.name AS group_name
+FROM teaching_assignments
+JOIN users ON users.id = teaching_assignments.teacher_id
+JOIN subjects ON subjects.id = teaching_assignments.subject_id
+JOIN groups ON groups.id = teaching_assignments.group_id
+WHERE teaching_assignments.org_id = :org_id 
+  AND teaching_assignments.id = LAST_INSERT_ID()
+LIMIT 1;
+
+```
+
+#### Изменить назначение:  `PUT /orgs/:orgId/teaching-assignments/:id`
 
 суперадмин, админ
 
-- DELETE /orgs/:orgId/teaching-assignments/:id
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:** {}
+```json
+{ 
+  "teacher_id": 1054, 
+  "subject_id": 108, 
+  "group_id": 510, 
+  "assigned_at": "2025-09-02T10:11:12Z",
+}
+```
 
-  - **Path / Query params:**
+- **Path / Query params:**
 
-    - orgId - целое число
+  - `orgId` - целое число
 
-    - id - целое число
+- **Бизнес-правила:**
 
-  - **Backend-правила:**
+  - При изменении `teacher_id` снова проверить активную роль `teacher`
+  - При изменении `group_id` проверить принадлежность организации
+  - При изменении `subject_id` проверить принадлежность организации и связь `group_subjects`
+  - Проверить уникальность `(teacher_id, subject_id, group_id)` после изменений
 
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
+- **Backend-правила:**
 
-    - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
-  - **Validation**:
+- **Validation**:
 
-    - Frontend:
+  - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `teacher_id` - /^\[1-9\]\d{0,9}\$/
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/
+    - `group_id` - /^\[1-9\]\d{0,9}\$/
+    - `assigned_at` - `YYYY-MM-DD`
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `teacher_id` - /^\[1-9\]\d{0,9}\$/
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/
+    - `group_id` - /^\[1-9\]\d{0,9}\$/
+    - `assigned_at` - `YYYY-MM-DD`
 
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+  - DB:
 
-  <!-- -->
+    - `(teacher_id, subject_id, group_id)` - `UNIQUE`  проверка уникальности
+    - `(group_id,subject_id)` - `group_subjects`  проверка связи
 
-  - **Responses**:
+- **Responses**:
 
-    - **200 OK**
+  - **200 OK**
+```json
+{ 
+  "id": 7001,
+  "teacher":  { 
+    "id": 1054, 
+    "full_name": "Ivan Petrov" 
+    },
+  "subject":  { 
+    "id": 108,  
+    "name": "React" 
+    },
+  "group":  { 
+    "id": 510,  
+    "code": "281025-wdm", 
+    "name": "Web-Development-2025-10" 
+    },
+  "assigned_at": "2025-09-02T10:11:12Z",
+}
+```
 
-> {
->
-> "id": 7001,
->
-> "teacher": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> },
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "teacher_id must be integer" }
+```
+```json
+{ "message": "subject_id must be integer" }
+```
+```json
+{ "message": "group_id must be integer" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: id must be integer”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to edit teaching assignments in this organization." }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
 
-- **401 Unauthorized** токен просрочен
+  - **409 Conflict** нет активной роли teacher в организации
+```json
+{ "message": "User does not have an active 'teacher' role in this organization." }
+```
 
-> {“message”: ”jwt expired”}
+  - **409 Conflict** у предмета нет активной связки с группой
+```json
+{ "message": "Subject is not assigned to the target group. Add the subject to the group before creating the teaching assignment" }
+```
 
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to remove teaching assignments in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Subject not found”}
+  - **409 Conflict** дубликат
+```json
+{ "message": "Duplicate assignment: this teacher is already assigned to this subject in this group." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Для ответа
->
-> SELECT
->
-> teaching_assignments.id, teaching_assignments.assigned_at,
->
-> users.id AS teacher_id, users.full_name AS teacher_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> groups.id AS group_id, groups.code, groups.name AS group_name
->
-> FROM teaching_assignments
->
-> JOIN users ON users.id = teaching_assignments.teacher_id
->
-> JOIN subjects ON subjects.id = teaching_assignments.subject_id
->
-> JOIN groups ON groups.id = teaching_assignments.group_id
->
-> WHERE teaching_assignments.org_id = :org_id
->
-> AND teaching_assignments.id = :id
->
-> LIMIT 1;
->
-> Удаление назначения
->
-> DELETE FROM teaching_assignments
->
-> WHERE id = :id AND org_id = :org_id;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-#### Penguins
+--Текущее состояние 
+--чтобы подставить в проверки, если поле не меняем
+SELECT teacher_id, subject_id, group_id
+INTO @old_teacher_id, @old_subject_id, @old_group_id
+FROM teaching_assignments
+WHERE id = :id AND org_id = :org_id
+LIMIT 1;
 
-#### Справочник правил penguin_rules
+SET @new_teacher_id = COALESCE(:teacher_id, @old_teacher_id);
+SET @new_subject_id = COALESCE(:subject_id, @old_subject_id);
+SET @new_group_id   = COALESCE(:group_id,   @old_group_id);
+
+--Проверки под новые значения
+
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = @new_group_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка роли преподавателя
+SELECT 1 
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
+WHERE user_roles.org_id = :org_id 
+   AND user_roles.user_id = @new_teacher_id 
+   AND user_roles.revoked_at IS NULL
+LIMIT 1;
+
+--Проверка предмета
+SELECT 1 FROM subjects 
+WHERE id = @new_subject_id AND org_id = :org_id 
+LIMIT 1;
+
+--Предмет назначен группе
+SELECT 1 FROM group_subjects 
+WHERE org_id = :org_id 
+  AND group_id = @new_group_id 
+  AND subject_id = @new_subject_id 
+LIMIT 1;
+
+--Уникальность на новые значения (исключая текущую запись)
+SELECT 1
+FROM teaching_assignments
+WHERE org_id = :org_id
+  AND teacher_id = @new_teacher_id
+  AND subject_id = @new_subject_id
+  AND group_id   = @new_group_id
+  AND id <> :id
+LIMIT 1;
+
+--Обновление назначения
+UPDATE teaching_assignments
+SET teacher_id = @new_teacher_id,
+    subject_id = @new_subject_id,
+    group_id   = @new_group_id,
+    assigned_at = COALESCE(:assigned_at, assigned_at)
+WHERE id = :id AND org_id = :org_id;
+
+--Для ответа
+SELECT 
+  teaching_assignments.id, teaching_assignments.assigned_at,
+  users.id AS teacher_id, users.full_name AS teacher_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  groups.id AS group_id, groups.code, groups.name AS group_name
+FROM teaching_assignments
+JOIN users ON users.id = teaching_assignments.teacher_id
+JOIN subjects ON subjects.id = teaching_assignments.subject_id
+JOIN groups ON groups.id = teaching_assignments.group_id
+WHERE teaching_assignments.org_id = :org_id 
+  AND teaching_assignments.id = :id
+LIMIT 1;
+
+```
+
+#### Удалить назначение:  `DELETE /orgs/:orgId/teaching-assignments/:id`
+
+суперадмин, админ
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:** `{}`
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+  - `id` - целое число
+
+- **Backend-правила:**
+
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+
+- **Responses**:
+
+  - **200 OK**
+```json
+{ 
+  "id": 7001,
+  "teacher":  { 
+    "id": 1054, 
+    "full_name": "Ivan Petrov" 
+    },
+  "subject":  { 
+    "id": 108,  
+    "name": "React" 
+    },
+  "group":  { 
+    "id": 510,  
+    "code": "281025-wdm", 
+    "name": "Web-Development-2025-10" 
+    },
+  "assigned_at": "2025-09-02T10:11:12Z",
+}
+```
+
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
+
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to remove teaching assignments in this organization." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+
+- **SQL**
+
+
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Для ответа
+SELECT 
+  teaching_assignments.id, teaching_assignments.assigned_at,
+  users.id AS teacher_id, users.full_name AS teacher_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  groups.id AS group_id, groups.code, groups.name AS group_name
+FROM teaching_assignments
+JOIN users ON users.id = teaching_assignments.teacher_id
+JOIN subjects ON subjects.id = teaching_assignments.subject_id
+JOIN groups ON groups.id = teaching_assignments.group_id
+WHERE teaching_assignments.org_id = :org_id 
+  AND teaching_assignments.id = :id
+LIMIT 1;
+
+--Удаление назначения
+DELETE FROM teaching_assignments 
+WHERE id = :id AND org_id = :org_id;
+
+```
+
+
+
+### Penguins
+
+### Справочник правил penguin_rules
 
 GET /orgs/:orgId/penguin-rules?q=&is_active=&page=&limit=  
 получить список правил
@@ -9245,7 +8017,7 @@ PUT /orgs/:orgId/penguin-rules/:id изменить правило
 
 DELETE /orgs/:orgId/penguin-rules/:id удалить правило
 
-##### Получить список правил:
+#### Получить список правил:
 
 суперадмин, админ, сотрудник учебной организации, преподаватель
 
