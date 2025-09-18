@@ -2505,1202 +2505,892 @@ ORDER BY roles.code ASC;
 
 ```
 
-#### Удалить пользователя в организации:
+#### Удалить пользователя в организации:  `DELETE /orgs/:orgsId/users/:userId`
 
 суперадмин, админ
 
-- DELETE /orgs/:orgsId/users/:userId
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:** `{}`
 
-  - **Body:** {}
+- **Назначение:** отозвать все роли пользователя в рамках указанной организации. Глобально аккаунт не удаляем. Если после отзыва ролей у пользователя нет активных ролей нигде, можно пометить `users.status = 'deleted'`
 
-  - **Назначение:** отозвать все роли пользователя в рамках указанной организации. Глобально аккаунт не удаляем. Если после отзыва ролей у пользователя нет активных ролей нигде, можно пометить users.status = 'deleted'
+- **Path / Query params:**
 
-  - **Path / Query params:**
+  - `orgId` - целое число
+  - `userId` - целое число
 
-    - orgId - целое число
+- **Backend-правила:**
 
-    - userId - целое число
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - Пользователь `userId` существует и `status <> 'deleted'`
+  - Нельзя удалить **последнего активного** `org_admin` организации
+  - Обновляем `user_roles.revoked_at` для этой организации
 
-  - **Backend-правила:**
+- **Validation**:
 
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
+  - Frontend:
 
-    - Организация orgId существует и status IN ('active','pending')
-
-    - Пользователь userId существует и status \<\> 'deleted'
-
-    - Нельзя удалить **последнего активного** org_admin организации
-
-    - Обновляем user_roles.revoked_at для этой организации
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - userId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
+  - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+  - `userId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `userId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - userId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+- **Responses**:
 
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "organization": {
->
-> "id": 23,
->
-> "name": "ICH IT Career Hub"
->
-> },
->
-> "user": {
->
-> "id": 2054,
->
-> "email": "ivan.petrov@example.com",
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "revoked_roles":
->
-> \[
->
-> {
->
-> "id": 3,
->
-> "code": "org_staff",
->
-> "name": "сотрудник учебной организации" }
->
-> \],
->
-> "revoked_at": "2025-09-05T10:11:12Z"
->
-> }
+  - **200 OK**
+```json
+{ 
+  "organization": { 
+    "id": 23, 
+    "name": "ICH IT Career Hub" 
+    },
+  "user": { 
+    "id": 2054, 
+    "email": "ivan.petrov@example.com", 
+    "full_name": "Ivan Petrov" 
+    },
+  "revoked_roles": 
+  [
+    { 
+      "id": 103, 
+      "code": "org_staff", 
+      "name": "сотрудник учебной организации" }
+  ],
+  "revoked_at": "2025-09-05T10:11:12Z",
+ }
+```
 
 - **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
 
 - **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
+```json
+{ "message": "Authorization header missing" }
+```
 
 - **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
+```json
+{ "message": "jwt expired" }
+```
 
 - **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to remove users in this organization.”}
+```json
+{ "message": "Permission denied: You are not allowed to remove users in this organization." }
+```
 
 - **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”User not found”}
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "User not found" }
+```
 
 - **409 Conflict** последний админ
-
-> {“message”: ”Cannot revoke the last active org_admin of the organization.”}
+```json
+{ "message": "Cannot revoke the last active org_admin of the organization." }
+```
 
 - **SQL**
 
 > Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Проверить, не последний ли это активный админ в организации
->
-> SELECT
->
-> SUM(CASE WHEN ur.user_id = :user_id THEN 1 ELSE 0 END) AS is_target_admin,
->
-> SUM(1) AS total_admins
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'org_admin'
->
-> WHERE user_roles.org_id = :org_id AND user_roles.revoked_at IS NULL;
->
-> Если is_target_admin = 1 и total_admins = 1 -\> 409 Conflict
->
-> Отозвать все активные роли пользователя в этой организации
->
-> UPDATE user_roles
->
-> SET revoked_at = NOW(), updated_at = NOW()
->
-> WHERE org_id = :org_id
->
-> AND user_id = :user_id
->
-> AND revoked_at IS NULL;
->
-> Если после отзыва ролей у пользователя нет активных ролей нигде, пометить как deleted
->
-> SELECT COUNT(\*) INTO @active_roles_any
->
-> FROM user_roles
->
-> WHERE user_id = :user_id AND revoked_at IS NULL;
->
-> UPDATE users
->
-> SET status = CASE WHEN @active_roles_any = 0 THEN 'deleted' ELSE status END,
->
-> updated_at = NOW()
->
-> WHERE id = :user_id;
->
-> Вернуть отозванные роли для ответа
->
-> SELECT roles.id, roles.code, roles.name
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id
->
-> WHERE user_roles.org_id = :org_id AND user_roles.user_id = :user_id
->
-> AND user_roles.revoked_at IS NOT NULL;
 
-##### Получить список пользователей согласно роли:
+```sql
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+```
+
+> Проверить, не последний ли это активный админ в организации
+
+```sql
+SELECT
+  SUM(CASE WHEN ur.user_id = :user_id THEN 1 ELSE 0 END) AS is_target_admin,
+  SUM(1) AS total_admins
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'org_admin'
+WHERE user_roles.org_id = :org_id AND user_roles.revoked_at IS NULL;
+
+```
+> Если `is_target_admin = 1` и `total_admins = 1` -\> `409 Conflict`
+
+> Отозвать все активные роли пользователя в этой организации
+
+```sql
+UPDATE user_roles
+SET revoked_at = NOW(), updated_at = NOW()
+WHERE org_id = :org_id
+  AND user_id = :user_id
+  AND revoked_at IS NULL;
+
+```
+
+> Если после отзыва ролей у пользователя нет активных ролей нигде, пометить как `deleted`
+
+```sql
+SELECT COUNT(*) INTO @active_roles_any
+FROM user_roles
+WHERE user_id = :user_id AND revoked_at IS NULL;
+
+UPDATE users
+SET status = CASE WHEN @active_roles_any = 0 THEN 'deleted' ELSE status END,
+    updated_at = NOW()
+WHERE id = :user_id;
+
+```
+
+> Вернуть отозванные роли для ответа
+
+```sql
+SELECT roles.id, roles.code, roles.name
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id
+WHERE user_roles.org_id = :org_id AND user_roles.user_id = :user_id
+  AND user_roles.revoked_at IS NOT NULL;
+
+```
+
+#### Получить список пользователей согласно роли: `GET /orgs/:org_id/users?role=&q=&include_revoked=&page=&limit=`
 
 суперадмин, админ, сотрудник организации, преподаватель
 
-- GET /orgs/:org_id/users?role=&q=&include_revoked=&page=&limit=
+  `role` - фильтр по роли `teacher|student|org_staff|org_admin`  
+  `q` - поиск по `full_name/email`  
+  `include_revoked` - по умолчанию 0 (показывать только активные назначения)  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> role - фильтр по роли teacher\|student\|org_staff\|org_admin
->
-> q - поиск по full_name/email
->
-> include_revoked=0\|1 - по умолчанию 0 (показывать только активные назначения)
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - role - одно из teacher \| student \| org_staff \| org_admin
-
-  - q - строка (если передали)
-
-  - include_revoked - 0 или 1 (по умолчанию 0, показывать только активные назначения)
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `role` - одно из `teacher | student | org_staff | org_admin`
+  - `q` - строка (если передали)
+  - `include_revoked` - 0 или 1 (по умолчанию 0, показывать только активные назначения)
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit` - целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути:
-
-    - должен совпадать с org в JWT
-
-    - для superadmin — любой org
-
-  - Организация orgId существует и status IN ('active','pending')
-
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
   - Показывать активные назначения по умолчанию
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `role` - `teacher | student | org_staff | org_admin` - в `path`
+    - `q` - `string[0..100]` - `trim`
+    - `include_revoked` - `0 | 1`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-- role - teacher \| student \| org_staff \| org_admin - в path
-
-  - q - string\[0..100\] - trim
-
-  - include_revoked - 0 \| 1
-
-  - page - целое число, \>=1, по умолчанию - 1
-
-  - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
+ 
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `role` - `teacher | student | org_staff | org_admin` - в `path`
+    - `q` - `string[0..100]` - `trim`
+    - `include_revoked` - `0 | 1`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - role - teacher \| student \| org_staff \| org_admin - в path
+- **Responses**:
 
-    - q - string\[0..100\] - trim
+  - **200 OK**
+```json
+{ 
+  "total": 2,
+  "page": 1,
+  "limit": 50,
+  "users": 
+  [ 
+    {
+      "user": {
+        "id": 1054,
+        "email": "ivan.petrov@example.com",
+        "full_name": "Ivan Petrov",
+        "preferred_lang": "en",
+        "status": "active",
+        "created_at": "2025-09-02T10:11:12Z",
+        "updated_at": "2025-09-02T10:11:12Z"
+        },
+     "role": { 
+        "id": 104, 
+        "code": "teacher", 
+        "name": "преподаватель учебной организации" 
+        },
+      "assignment": {
+        "operator_id": 120,
+        "assigned_at": "2025-09-02T10:11:12Z",
+        "updated_at": "2025-09-02T10:11:12Z"
+        },
+  	},
+    {
+      "user": {
+        "id": 1080,
+        "email": "oleksandr.kovalenko@example.com",
+        "full_name": "Oleksandr Kovalenko",
+        "preferred_lang": "en",
+        "status": "active",
+        "created_at": "2025-09-02T10:11:12Z",
+        "updated_at": "2025-09-02T10:11:12Z"
+        },
+     "role": { 
+        "id": 104, 
+        "code": "teacher", 
+        "name": "преподаватель учебной организации" 
+        },
+      "assignment": {
+        "operator_id": 120,
+        "assigned_at": "2025-09-02T10:11:12Z",
+        "updated_at": "2025-09-02T10:11:12Z"
+        },
+  	},
+  ],
+ }
+```
 
-    - include_revoked - 0 \| 1
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
 
-    - page - целое число, \>=1, по умолчанию - 1
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - limit - целое число, 1..200, по умолчанию - 50
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-  <!-- -->
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view users in this organization." }
+```
 
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "total": 3,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "users": \[
->
-> {
->
-> "user": {
->
-> "id": 1054,
->
-> "email": "ivan.petrov@example.com",
->
-> "full_name": "Ivan Petrov",
->
-> "preferred_lang": "en",
->
-> "status": "active",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> "role": {
->
-> "id": 04,
->
-> "code": "teacher",
->
-> "name": "преподаватель учебной организации"
->
-> },
->
-> "assignment": {
->
-> "operator_id": 120,
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> },
->
-> {
->
-> "user": {
->
-> "id": 1080,
->
-> "email": "oleksandr.kovalenko@example.com",
->
-> "full_name": "Oleksandr Kovalenko",
->
-> "preferred_lang": "en",
->
-> "status": "active",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> "role": {
->
-> "id": 04,
->
-> "code": "teacher",
->
-> "name": "преподаватель учебной организации"
->
-> },
->
-> "assignment": {
->
-> "operator_id": 120,
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> },
->
-> {
->
-> "user": {
->
-> "id": 2024,
->
-> "email": "dmitriy.ivanov@example.com",
->
-> "full_name": "Dmitriy Ivanov",
->
-> "preferred_lang": "en",
->
-> "status": "active",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> "role": {
->
-> "id": 04,
->
-> "code": "teacher",
->
-> "name": "преподаватель учебной организации"
->
-> },
->
-> "assignment": {
->
-> "operator_id": 120,
->
-> "assigned_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> },
->
-> \],
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view users in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Role not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Role not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> SELECT
->
-> users.id, users.email, users.full_name, users.preferred_lang, users.status,
->
-> roles.id AS role_id, roles.code, roles.name,
->
-> user_roles.assigned_at, user_roles.revoked_at, user_roles.updated_at
->
-> FROM user_roles
->
-> JOIN users ON users.id = user_roles.user_id
->
-> JOIN roles ON roles.id = user_roles.role_id
->
-> WHERE user_roles.org_id = :org_id
->
-> AND roles.code = :role_code
->
-> AND users.status \<\> 'deleted'
->
-> AND (
->
-> COALESCE(:include_revoked, 0) = 1 OR user_roles.revoked_at IS NULL
->
-> )
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR users.full_name LIKE CONCAT('%', :q, '%')
->
-> OR users.email LIKE CONCAT('%', :q, '%')
->
-> )
->
-> ORDER BY users.full_name ASC, users.id ASC
->
-> LIMIT @limit OFFSET @offset;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM user_roles
->
-> JOIN users ON users.id = user_roles.user_id
->
-> JOIN roles ON roles.id = user_roles.role_id
->
-> WHERE user_roles.org_id = :org_id
->
-> AND roles.code = :role_code
->
-> AND users.status \<\> 'deleted'
->
-> AND (COALESCE(:include_revoked, 0) = 1 OR user_roles.revoked_at IS NULL)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR users.full_name LIKE CONCAT('%', :q, '%')
->
-> OR users.email LIKE CONCAT('%', :q, '%')
->
-> );
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить свой профиль:
+SELECT
+  users.id, users.email, users.full_name, users.preferred_lang, users.status,
+  roles.id AS role_id, roles.code, roles.name,
+  user_roles.assigned_at, user_roles.revoked_at, user_roles.updated_at
+FROM user_roles
+JOIN users ON users.id = user_roles.user_id
+JOIN roles ON roles.id = user_roles.role_id
+WHERE user_roles.org_id = :org_id
+  AND roles.code = :role_code
+  AND users.status <> 'deleted'
+  AND (
+COALESCE(:include_revoked, 0) = 1 OR user_roles.revoked_at IS NULL
+)
+  AND (
+        COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+        OR users.full_name LIKE CONCAT('%', :q, '%')
+        OR users.email     LIKE CONCAT('%', :q, '%')
+      )
+ORDER BY users.full_name ASC, users.id ASC
+LIMIT @limit OFFSET @offset;
+
+-- total
+SELECT COUNT(*) AS total
+FROM user_roles
+JOIN users  ON users.id = user_roles.user_id
+JOIN roles  ON roles.id = user_roles.role_id
+WHERE user_roles.org_id = :org_id
+  AND roles.code = :role_code
+  AND users.status <> 'deleted'
+  AND (COALESCE(:include_revoked, 0) = 1 OR user_roles.revoked_at IS NULL)
+  AND (
+        COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+        OR users.full_name LIKE CONCAT('%', :q, '%')
+        OR users.email     LIKE CONCAT('%', :q, '%')
+      );
+
+```
+
+
+#### Получить свой профиль:  `GET /orgs/:orgsId/users/me`
 
 зарегистрированный пользователь
 
-- GET /orgs/:orgsId/users/me
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:** {}
-
-  - **Path / Query params:**
-
-    - orgId - целое число
-
-  - **Назначение:** вернуть базовые данные пользователя, его персональный профиль (user_profiles), индивидуальные настройки (user_settings) и активные роли в текущей организации (user_roles с revoked_at IS NULL)
-
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT
-
-    - Организация orgId существует и status IN ('active','pending')
-
-    - Возвращаются только активные назначения ролей в этой организации
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "user": {
->
-> "id": 2054,
->
-> "email": "ivan.petrov@example.com",
->
-> "full_name": "Ivan Petrov",
->
-> "preferred_lang": "en",
->
-> "avatar_url": "https://cdn.app/u/2054.png",
->
-> "status": "active",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-05T09:01:02Z"
->
-> },
->
-> "profile": {
->
-> "date_of_birth": "1990-02-20",
->
-> "phone": "+4915123456789",
->
-> "address_line1": "Adalbert Str. 40",
->
-> "address_line2": null,
->
-> "city": "Berlin",
->
-> "zip_code": "10785",
->
-> "country_code": "DE"
->
-> },
->
-> "settings": {
->
-> "timezone": "Europe/Berlin",
->
-> "notify_in_app": true,
->
-> "notify_email": false,
->
-> "locale_override": "de"
->
-> },
->
-> "roles_in_org":
->
-> \[
->
-> {
->
-> "id": 4,
->
-> "code": "teacher",
->
-> "name": "преподаватель",
->
-> "assigned_at": "2025-08-15T10:00:00Z"
->
-> }
->
-> \]
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view this profile in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”User not found”}
-
-- **SQL**
-
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Базовые данные пользователя (из JWT: :me_user_id)
->
-> SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
->
-> FROM users
->
-> WHERE id = :me_user_id
->
-> LIMIT 1;
->
-> Персональный профиль (1:1, может отсутствовать)
->
-> SELECT date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code
->
-> FROM user_profiles
->
-> WHERE user_id = :me_user_id
->
-> LIMIT 1;
->
-> Индивидуальные настройки (1:1, может отсутствовать)
->
-> SELECT timezone, notify_in_app, notify_email, locale_override
->
-> FROM user_settings
->
-> WHERE user_id = :me_user_id
->
-> LIMIT 1;
->
-> Активные роли в рамках этой организации
->
-> SELECT roles.id, roles.code, roles.name, user_roles.assigned_at
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id
->
-> WHERE user_roles.user_id = :me_user_id
->
-> AND user_roles.org_id = :org_id
->
-> AND user_roles.revoked_at IS NULL
->
-> ORDER BY roles.code ASC;
-
-##### Редактировать свой профиль:
-
-зарегистрированный пользователь
-
-- PUT /orgs/:orgsId/users/me
-
-  - **Content-type:** application/json
-
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:**
-
-> {
->
-> "full_name": "Ivan Petrov",
->
-> "preferred_lang": "de",
->
-> "avatar_url": "https://cdn.app/u/2054.png",
->
-> "profile": {
->
-> "date_of_birth": "1990-02-20",
->
-> "phone": "+4915123456789",
->
-> "address_line1": "Adalbert Str. 40",
->
-> "address_line2": null,
->
-> "city": "Berlin",
->
-> "zip_code": "10785",
->
-> "country_code": "DE"
->
-> },
->
-> "settings": {
->
-> "timezone": "Europe/Berlin",
->
-> "notify_in_app": true,
->
-> "notify_email": false,
->
-> "locale_override": "de"
->
-> }
->
-> }
-
-- **Правила/ограничения:**
-
-  - Нельзя менять email этим роутом
-
-  - Поля, которые можно менять в users:
-
-    - full_name
-
-    - preferred_lang (ru\|de\|en)
-
-    - avatar_url
-
-  - Профиль user_profiles:
-
-    - все адресные
-
-    - телефон
-
-    - дата рождения
-
-  - Настройки user_settings:
-
-    - timezone (IANA),
-
-    - notify_in_app,
-
-    - notify_email,
-
-    - locale_override (ru\|de\|en)
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
+
+- **Назначение:** вернуть базовые данные пользователя, его персональный профиль (`user_profiles`), индивидуальные настройки (`user_settings`) и активные роли в текущей организации (`user_roles с revoked_at IS NULL`)
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - email не меняем
+  - `orgId` из пути должен совпадать с `org` в JWT
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - Возвращаются только активные назначения ролей в этой организации
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - full_name - string\[1..150\] , trim
-
-  - preferred_lang - oneOf('ru','de','en')
-
-  - avatar_url - string\[0..255\] (опц., валидный URL)
-
-  - profile.date_of_birth - формат YYYY-MM-DD
-
-  - profile.phone - E.164: /^\\?\[1-9\]\d{7,14}\$/
-
-  - profile.country_code - ^\[A-Z\]{2}\$
-
-  - settings.timezone - IANA (например, Europe/Berlin)
-
-  - settings.notify_in_app\|notify_email - boolean
-
-  - settings.locale_override - oneOf('ru','de','en')
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - full_name - string\[1..150\] , trim
+- **Responses**:
 
-    - preferred_lang - oneOf('ru','de','en')
+  - **200 OK**
+```json
+{ 
+  "user": {
+    "id": 2054,
+    "email": "ivan.petrov@example.com",
+    "full_name": "Ivan Petrov",
+    "preferred_lang": "en",
+    "avatar_url": "https://cdn.app/u/2054.png",
+    "status": "active",
+    "created_at": "2025-09-02T10:11:12Z",
+    "updated_at": "2025-09-05T09:01:02Z"
+    },
+  "profile": {
+    "date_of_birth": "1990-02-20",
+    "phone": "+4915123456789",
+    "address_line1": "Adalbert Str. 40",
+    "address_line2": null,
+    "city": "Berlin",
+    "zip_code": "10785",
+    "country_code": "DE"
+    },
+  "settings": {
+    "timezone": "Europe/Berlin",
+    "notify_in_app": true,
+    "notify_email": false,
+    "locale_override": "de"
+    },
+  "roles_in_org": 
+  [
+    { 
+      "id": 104, 
+      "code": "teacher", 
+      "name": "преподаватель", 
+      "assigned_at": "2025-08-15T10:00:00Z" 
+    }
+  ]
+ }
+```
 
-    - avatar_url - string\[0..255\] (опц., валидный URL)
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
 
-    - profile.date_of_birth - формат YYYY-MM-DD
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - profile.phone - E.164: /^\\?\[1-9\]\d{7,14}\$/
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-    - profile.country_code - ^\[A-Z\]{2}\$ , upper()
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view this profile in this organization." }
+```
 
-    - settings.timezone - IANA (например, Europe/Berlin)
-
-    - settings.notify_in_app\|notify_email - boolean
-
-    - settings.locale_override - oneOf('ru','de','en')
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - Отсечь поля, которые менять нельзя (например, email =\> 400)
-
-  <!-- -->
-
-  - DB:
-
-    - Вставка/обновление user_profiles, user_settings - через UPSERT
-
-    - Обновление users.updated_at
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "user": {
->
-> "id": 2054,
->
-> "email": "ivan.petrov@example.com",
->
-> "full_name": "Ivan Petrov",
->
-> "preferred_lang": "de",
->
-> "avatar_url": "https://cdn.app/u/2054.png",
->
-> "status": "active",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-05T09:30:00Z"
->
-> },
->
-> "profile": {
->
-> "date_of_birth": "1990-02-20",
->
-> "phone": "+4915123456789",
->
-> "address_line1": "Adalbert Str. 40",
->
-> "address_line2": null,
->
-> "city": "Berlin",
->
-> "zip_code": "10785",
->
-> "country_code": "DE"
->
-> },
->
-> "settings": {
->
-> "timezone": "Europe/Berlin",
->
-> "notify_in_app": true,
->
-> "notify_email": false,
->
-> "locale_override": "de"
->
-> }
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Email is immutable on this endpoint”}
->
-> {“message”: ”Invalid profile.date_of_birth (expected YYYY-MM-DD)”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to edit this profile in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”User not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "User not found" }
+```
 
 - **SQL**
 
 > Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Базовые данные пользователя (из JWT: :me_user_id)
->
-> SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
->
-> FROM users
->
-> WHERE id = :me_user_id
->
-> LIMIT 1;
->
-> Обновление users (только разрешенные поля)
->
-> UPDATE users
->
-> SET full_name = COALESCE(:full_name, full_name),
->
-> preferred_lang = COALESCE(:preferred_lang, preferred_lang),
->
-> avatar_url = COALESCE(:avatar_url, avatar_url),
->
-> updated_at = NOW()
->
-> WHERE id = :me_user_id;
->
-> UPSERT в user_profiles
->
-> INSERT INTO user_profiles
->
-> (user_id, date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code, created_at, updated_at)
->
-> VALUES
->
-> (:me_user_id, :dob, :phone, :addr1, :addr2, :city, :zip, UPPER(:country_code), NOW(), NOW())
->
-> ON DUPLICATE KEY UPDATE
->
-> date_of_birth = VALUES(date_of_birth),
->
-> phone = VALUES(phone),
->
-> address_line1 = VALUES(address_line1),
->
-> address_line2 = VALUES(address_line2),
->
-> city = VALUES(city),
->
-> zip_code = VALUES(zip_code),
->
-> country_code = VALUES(country_code),
->
-> updated_at = NOW();
->
-> UPSERT в user_settings
->
-> INSERT INTO user_settings
->
-> (user_id, timezone, notify_in_app, notify_email, locale_override)
->
-> VALUES
->
-> (:me_user_id, :tz, :notify_in_app, :notify_email, :locale_override)
->
-> ON DUPLICATE KEY UPDATE
->
-> timezone = VALUES(timezone),
->
-> notify_in_app = VALUES(notify_in_app),
->
-> notify_email = VALUES(notify_email),
->
-> locale_override= VALUES(locale_override);
 
-##### Сменить пароль (свой):
+```sql
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+```
+
+> Базовые данные пользователя (из JWT: `:me_user_id`)
+
+```sql
+SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
+FROM users
+WHERE id = :me_user_id
+LIMIT 1;
+
+```
+
+> Персональный профиль (1:1, может отсутствовать)
+
+```sql
+SELECT date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code
+FROM user_profiles
+WHERE user_id = :me_user_id
+LIMIT 1;
+
+```
+
+> Индивидуальные настройки (1:1, может отсутствовать)
+
+```sql
+SELECT timezone, notify_in_app, notify_email, locale_override
+FROM user_settings
+WHERE user_id = :me_user_id
+LIMIT 1;
+
+```
+
+> Активные роли в рамках этой организации
+
+```sql
+SELECT roles.id, roles.code, roles.name, user_roles.assigned_at
+FROM user_roles 
+JOIN roles ON roles.id = user_roles.role_id
+WHERE user_roles.user_id = :me_user_id
+  AND user_roles.org_id = :org_id
+  AND user_roles.revoked_at IS NULL
+ORDER BY roles.code ASC;
+
+```
+
+##### Редактировать свой профиль:  `PUT /orgs/:orgsId/users/me`
 
 зарегистрированный пользователь
 
-- POST /orgs/:orgId/users/me/password
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
+```json
+{ 
+  "full_name": "Ivan Petrov",
+  "preferred_lang": "de",
+  "avatar_url": "https://cdn.app/u/2054.png",
+  "profile": {
+    "date_of_birth": "1990-02-20",
+    "phone": "+4915123456789",
+    "address_line1": "Adalbert Str. 40",
+    "address_line2": null,
+    "city": "Berlin",
+    "zip_code": "10785",
+    "country_code": "DE"
+    },
+  "settings": {
+    "timezone": "Europe/Berlin",
+    "notify_in_app": true,
+    "notify_email": false,
+    "locale_override": "de"
+    }
+}
+```
 
-> {
->
-> "current_password": "OldP@ssw0rd!",
->
-> "new_password": "NewP@ssw0rd!",
->
-> "confirm_password": "NewP@ssw0rd!"
->
-> }
+- **Правила/ограничения:**
+
+  - Нельзя менять `email` этим роутом
+  - Поля, которые можно менять в `users`:
+    - `full_name`
+    - `preferred_lang` (`ru|de|en`)
+    - `avatar_url`
+
+  - Профиль `user_profiles`:
+    - все адресные
+    - телефон
+    - дата рождения
+
+  - Настройки `user_settings`:
+    - `timezone` (`IANA`),
+    - `notify_in_app`,
+    - `notify_email`,
+    - `locale_override` (`ru|de|en`)
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+
+- **Backend-правила:**
+
+  - `orgId` из пути должен совпадать с `org` в JWT
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `email` не меняем
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `full_name` - `string[1..150]`, `trim`
+    - `preferred_lang` - `oneOf('ru','de','en')`
+    - `avatar_url` - `string[0..255]` (валидный URL)
+    - `profile.date_of_birth` - формат `YYYY-MM-DD`
+    - `profile.phone` - `E.164`: /^\\?\[1-9\]\d{7,14}\$/
+    - `profile.country_code` - ^\[A-Z\]{2}\$
+    - `settings.timezone` - `IANA` (например, Europe/Berlin)
+    - `settings.notify_in_app` - `boolean`
+    - `notify_email` - `boolean`
+    - `settings.locale_override` - `oneOf('ru','de','en')`
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `full_name` - `string[1..150]`, `trim`
+    - `preferred_lang` - `oneOf('ru','de','en')`
+    - `avatar_url` - `string[0..255]` (валидный URL)
+    - `profile.date_of_birth` - формат `YYYY-MM-DD`
+    - `profile.phone` - `E.164`: /^\\?\[1-9\]\d{7,14}\$/
+    - `profile.country_code` - ^\[A-Z\]{2}\$
+    - `settings.timezone` - `IANA` (например, Europe/Berlin)
+    - `settings.notify_in_app` - `boolean`
+    - `notify_email` - `boolean`
+    - `settings.locale_override` - `oneOf('ru','de','en')`
+    - Отсечь поля, которые менять нельзя (например, `email` =\> 400)
+
+  - DB:
+
+    - Вставка/обновление `user_profiles`, `user_settings` - через `UPSERT`
+    - Обновление `users.updated_at`
+
+- **Responses**:
+
+  - **200 OK**
+```json
+{ 
+  "user": {
+    "id": 2054,
+    "email": "ivan.petrov@example.com",
+    "full_name": "Ivan Petrov",
+    "preferred_lang": "de",
+    "avatar_url": "https://cdn.app/u/2054.png",
+    "status": "active",
+    "created_at": "2025-09-02T10:11:12Z",
+    "updated_at": "2025-09-05T09:30:00Z"
+    },
+  "profile": {
+    "date_of_birth": "1990-02-20",
+    "phone": "+4915123456789",
+    "address_line1": "Adalbert Str. 40",
+    "address_line2": null,
+    "city": "Berlin",
+    "zip_code": "10785",
+    "country_code": "DE"
+    },
+  "settings": {
+    "timezone": "Europe/Berlin",
+    "notify_in_app": true,
+    "notify_email": false,
+    "locale_override": "de"
+    }
+}
+```
+
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Email is immutable on this endpoint" }
+```
+```json
+{ "message": "Invalid profile.date_of_birth (expected YYYY-MM-DD)" }
+```
+
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to edit this profile in this organization." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "User not found" }
+```
+
+- **SQL**
+
+> Проверка организации
+
+```sql
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+```
+
+> Базовые данные пользователя (из JWT: `:me_user_id`)
+
+```sql
+SELECT id, email, full_name, preferred_lang, avatar_url, status, created_at, updated_at
+FROM users
+WHERE id = :me_user_id
+LIMIT 1;
+
+```
+
+> Обновление users (только разрешенные поля)
+
+```sql
+UPDATE users
+SET full_name = COALESCE(:full_name, full_name),
+    preferred_lang = COALESCE(:preferred_lang, preferred_lang),
+    avatar_url = COALESCE(:avatar_url, avatar_url),
+    updated_at = NOW()
+WHERE id = :me_user_id;
+
+```
+
+> UPSERT в `user_profiles`
+
+```sql
+INSERT INTO user_profiles
+  (user_id, date_of_birth, phone, address_line1, address_line2, city, zip_code, country_code, created_at, updated_at)
+VALUES
+  (:me_user_id, :dob, :phone, :addr1, :addr2, :city, :zip, UPPER(:country_code), NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  date_of_birth = VALUES(date_of_birth),
+  phone         = VALUES(phone),
+  address_line1 = VALUES(address_line1),
+  address_line2 = VALUES(address_line2),
+  city          = VALUES(city),
+  zip_code      = VALUES(zip_code),
+  country_code  = VALUES(country_code),
+  updated_at    = NOW();
+
+```
+
+> UPSERT в `user_settings`
+
+```sql
+INSERT INTO user_settings
+  (user_id, timezone, notify_in_app, notify_email, locale_override)
+VALUES
+  (:me_user_id, :tz, :notify_in_app, :notify_email, :locale_override)
+ON DUPLICATE KEY UPDATE
+  timezone       = VALUES(timezone),
+  notify_in_app  = VALUES(notify_in_app),
+  notify_email   = VALUES(notify_email),
+  locale_override= VALUES(locale_override);
+
+```
+
+
+#### Сменить пароль (свой):  `POST /orgs/:orgId/users/me/password`
+
+зарегистрированный пользователь
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:**
+
+```json
+{ 
+  "current_password": "OldP@ssw0rd!", 
+  "new_password":     "NewP@ssw0rd!",  
+  "confirm_password": "NewP@ssw0rd!" 
+ }
+```
 
 - **Назначение:** безопасно изменить пароль текущего пользователя, проверив старый пароль. После успешного изменения деактивировать другие сессии пользователя.
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - Для обычного изменения пароля требуется current_password
-
+  - `orgId` из пути должен совпадать с `org` в JWT
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - Для обычного изменения пароля требуется `current_password`
   - Проверка силы пароля (минимум 8 символов, минимум 1 буква, 1 цифра, 1 символ)
-
   - После смены пароля:
-
-    - обновить users.password_hash
-
+    - обновить `users.password_hash`
     - деактивировать все остальные активные сессии пользователя, кроме текущей
-
-    - сбросить счетчики неудачных входов user_auth_counters
-
-    - записать событие в auth_logs
+    - сбросить счетчики неудачных входов `user_auth_counters`
+    - записать событие в `auth_logs`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - current_password - string\[1..200\] обязательное поле
-
-  - new_password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле
-
-  - confirm_password == new_password
-
-  - new_password \<\> current_password
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `current_password` - `string[1..200]` обязательное поле
+    - `new_password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле
+    - `confirm_password == new_password`
+    - `new_password <> current_password`
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - current_password - string\[1..200\] обязательное поле
-
-    - new_password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле
-
-    - confirm_password == new_password
-
-    - new_password \<\> current_password
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `current_password` - `string[1..200]` обязательное поле
+    - `new_password` - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле
+    - `confirm_password == new_password`
+    - `new_password <> current_password`
 
   - DB:
 
     - только обновление хеша/сессий/счетчиков
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **200 OK**
+```json
+{ "message": "Password changed successfully" }
+```
 
-    - **200 OK**
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "current_password is required" }
+```
+```json
+{ "message": "new_password must be 8-64 characters and include 1 letter, 1 number and 1 special symbol" }
+```
+```json
+{ "message": "new_password must be different from current_password" }
+```
+```json
+{ "message": "confirm_password does not match new_password" }
+```
 
-> {“message”: ”Password changed successfully”}
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”current_password is required”}
->
-> {“message”: ”new_password must be 6-64 characters and include 1 letter, 1 number and 1 special symbol”}
->
-> {“message”: ”new_password must be different from current_password”}
->
-> {“message”: ”confirm_password does not match new_password”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Invalid current password" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Invalid current password”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”User not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "User not found" }
+```
 
 - **SQL**
 
 > Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Обновление пароля
->
-> UPDATE users
->
-> SET password_hash = :new_password_hash,
->
-> updated_at = NOW()
->
-> WHERE id = :me_user_id;
->
-> Деактивировать все остальные активные сессии
->
-> UPDATE user_sessions
->
-> SET revoked_at = NOW()
->
-> WHERE user_id = :me_user_id
->
-> AND revoked_at IS NULL
->
-> AND id \<\> :current_session_id;
->
-> Сбросить счетчики неудачных входов
->
-> UPDATE user_auth_counters
->
-> SET failed_attempts = 0,
->
-> last_failed_at = NULL,
->
-> locked_until = NULL,
->
-> updated_at = NOW()
->
-> WHERE user_id = :me_user_id;
->
-> Лог события (успех/ошибка)
->
-> INSERT INTO auth_logs (user_id, ip, ua, success, error_code, created_at)
->
-> VALUES (:me_user_id, :ip, :ua, 1, NULL, NOW());
 
-#### Направления
+```sql
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+```
+
+> Обновление пароля
+
+```sql
+UPDATE users
+SET password_hash = :new_password_hash,
+    updated_at     = NOW()
+WHERE id = :me_user_id;
+
+```
+
+> Деактивировать все остальные активные сессии
+
+```sql
+UPDATE user_sessions
+SET revoked_at = NOW()
+WHERE user_id = :me_user_id
+  AND revoked_at IS NULL
+  AND id <> :current_session_id;
+
+```
+
+> Сбросить счетчики неудачных входов
+
+```sql
+UPDATE user_auth_counters
+SET failed_attempts = 0,
+    last_failed_at  = NULL,
+    locked_until    = NULL,
+    updated_at      = NOW()
+WHERE user_id = :me_user_id;
+
+```
+
+> Лог события (успех/ошибка)
+
+```sql
+INSERT INTO auth_logs (user_id, ip, ua, success, error_code, created_at)
+VALUES (:me_user_id, :ip, :ua, 1, NULL, NOW());
+
+```
+
+### Направления
 
 GET /orgs/:orgId/directions?q=&page=&limit=  
 получить список направлений
