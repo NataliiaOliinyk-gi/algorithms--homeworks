@@ -8013,2842 +8013,2126 @@ WHERE id = :id AND org_id = :org_id;
 
 ### Справочник правил penguin_rules
 
-GET /orgs/:orgId/penguin-rules?q=&is_active=&page=&limit=  
-получить список правил
+`GET /orgs/:orgId/penguin-rules?q=&is_active=&page=&limit=`  получить список правил
 
-GET /orgs/:orgId/penguin-rules/:id получить правило
+`GET /orgs/:orgId/penguin-rules/:id` получить правило
 
-POST /orgs/:orgId/penguin-rules создать правило
+`POST /orgs/:orgId/penguin-rules` создать правило
 
-PUT /orgs/:orgId/penguin-rules/:id изменить правило
+`PUT` /orgs/:orgId/penguin-rules/:id` изменить правило
 
-DELETE /orgs/:orgId/penguin-rules/:id удалить правило
+`DELETE` /orgs/:orgId/penguin-rules/:id` удалить правило
 
-#### Получить список правил:
+#### Получить список правил:  `GET /orgs/:orgId/penguin-rules?q=&is_active=&page=&limit=`
 
 суперадмин, админ, сотрудник учебной организации, преподаватель
 
-- GET /orgs/:orgId/penguin-rules?q=&is_active=&page=&limit=
+  `q` - поиск по `code/title`  
+  `is_active` — 0\|1 опционально, по умолчанию все  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> q - поиск по code/title
->
-> is_active — 0\|1 опционально, по умолчанию все
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - q - строка (если передали)
-
-  - is_active - 0\|1
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `q` - строка (если передали)
+  - `is_active` - 0\|1
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - q - string\[0..100\] - trim
-
-  - only_active - 0\|1
-
-  - page - целое число, \>=1, по умолчанию - 1
-
-  - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `q` - `string[0..100]` - `trim`
+    - `only_active` - 0\|1
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `q` - `string[0..100]` - `trim`
+    - `only_active` - 0\|1
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - q - string\[0..100\] - trim
+- **Responses**:
 
-    - only_active - 0\|1
+  - **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "penguin_rules": 
+  [
+    {
+ 	    "id": 115,
+      "code": "HOMEWORK",
+      "title": "Homework completed",
+      "default_delta": 3,
+      "is_active": true,
+      "description": "Award for completed homework",
+      "created_at": "2025-09-02T10:11:12Z",
+      "updated_at": "2025-09-02T10:11:12Z",
+    },
+  ]
+}
+```
 
-    - page - целое число, \>=1, по умолчанию - 1
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
 
-    - limit - целое число, 1..200, по умолчанию - 50
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-  <!-- -->
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-  - **Responses**:
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view rules in this organization." }
+```
 
-    - **200 OK**
-
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "penguin_rules":
->
-> \[
->
-> {
->
-> "id": 11,
->
-> "code": "HOMEWORK",
->
-> "title": "Homework completed",
->
-> "default_delta": 3,
->
-> "is_active": true,
->
-> "description": "Award for completed homework",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> },
->
-> \]
->
-> }
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view rules in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверки фильтров, если параметр передан
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM penguin_rules
->
-> WHERE org_id = :org_id
->
-> AND (COALESCE(:is_active, -1) = -1 OR is_active = :is_active)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR code LIKE CONCAT('%', :q, '%')
->
-> OR title LIKE CONCAT('%', :q, '%')
->
-> );
->
-> page
->
-> SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
->
-> FROM penguin_rules
->
-> WHERE org_id = :org_id
->
-> AND (COALESCE(:is_active, -1) = -1 OR is_active = :is_active)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR code LIKE CONCAT('%', :q, '%')
->
-> OR title LIKE CONCAT('%', :q, '%')
->
-> )
->
-> ORDER BY is_active DESC, title ASC, id ASC
->
-> LIMIT @limit OFFSET @offset;
 
-##### Получить правило:
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
+
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверки фильтров, если параметр передан
+
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id 
+LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM penguin_rules
+WHERE org_id = :org_id
+   AND (COALESCE(:is_active, -1) = -1 OR is_active = :is_active)
+   AND (
+     COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+     OR code  LIKE CONCAT('%', :q, '%')
+     OR title LIKE CONCAT('%', :q, '%')
+   );
+
+--page
+SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
+FROM penguin_rules
+WHERE org_id = :org_id
+  AND (COALESCE(:is_active, -1) = -1 OR is_active = :is_active)
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR code  LIKE CONCAT('%', :q, '%')
+    OR title LIKE CONCAT('%', :q, '%')
+  )
+ORDER BY is_active DESC, title ASC, id ASC
+LIMIT @limit OFFSET @offset;
+
+```
+
+
+#### Получить правило:  `GET /orgs/:orgId/penguin-rules/:id`
 
 суперадмин, админ, сотрудник учебной организации, учитель
 
-- GET /orgs/:orgId/penguin-rules/:id
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:** {}
-
-  - **Path / Query params:**
-
-    - orgId - целое число
-
-    - id - целое число
-
-  - **Backend-правила:**
-
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
-
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
-
-  - Backend:
-
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "id": 11,
->
-> "code": "HOMEWORK",
->
-> "title": "Homework completed",
->
-> "default_delta": 3,
->
-> "is_active": true,
->
-> "description": "Award for completed homework",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: id must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view rules in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {"message": "Rule not found"}
-
-- **SQL**
-
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Выборка
->
-> SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
->
-> FROM penguin_rules
->
-> WHERE org_id = :org_id AND id = :id
->
-> LIMIT 1;
-
-##### Создать правило:
-
-суперадмин, админ
-
-- POST /orgs/:orgId/penguin-rules
-
-  - **Content-type:** application/json
-
-  - **Authorization:** Bearer \<jwt\>
-
-  - **Body:**
-
-> {
->
-> "code": "BONUS",
->
-> "title": "Bonus points",
->
-> "default_delta": 5,
->
-> "is_active": true,
->
-> "description": "Special bonus",
->
-> }
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
+  - `id` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - code уникален в рамках организации (org_id, code)
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - code - ^\[A-Za-z0-9.\_-\]{2,50}\$, toLowerCase(), trim, обязательное поле
-
-  - title - string\[1..150\], trim, обязательное поле
-
-  - default_delta - smallint целое, обязательное поле
-
-  - is_active - boolean
-
-  - description - string\[0..1000\]
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - code - ^\[A-Za-z0-9.\_-\]{2,50}\$, toLowerCase(), trim, обязательное поле
+- **Responses**:
 
-    - title - string\[1..150\], trim, обязательное поле
+  - **200 OK**
+```json
+{ 
+  "id": 115,
+  "code": "HOMEWORK",
+  "title": "Homework completed",
+  "default_delta": 3,
+  "is_active": true,
+  "description": "Award for completed homework",
+  "created_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z",
 
-    - default_delta - smallint целое, обязательное поле
+}
+```
 
-    - is_active - boolean
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
 
-    - description - string\[0..1000\]
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-  - DB:
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-    - (org_id, code) - UNIQUE проверка уникальности
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view rules in this organization." }
+```
 
-  <!-- -->
-
-  - **Responses**:
-
-    - **201 Created** правило создано
-
-> {
->
-> "id": 18,
->
-> "code": "BONUS",
->
-> "title": "Bonus points",
->
-> "default_delta": 5,
->
-> "is_active": true,
->
-> "description": "Special bonus",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”code is required”}
->
-> {“message”: ”title is required”}
->
-> {“message”: ”default_delta is required”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to create rules in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”Rule code 'bonus' is already in use in this organization.”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Rule not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка на уникальность кода
->
-> SELECT id FROM penguin_rules
->
-> WHERE org_id = :org_id AND code = :code
->
-> LIMIT 1;
->
-> Создание правила
->
-> INSERT INTO penguin_rules (org_id, code, title, default_delta, is_active, description, created_at, updated_at)
->
-> VALUES (:org_id, :code, :title, :default_delta, COALESCE(:is_active, 1), :description, NOW(), NOW());
->
-> Для ответа
->
-> SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
->
-> FROM penguin_rules
->
-> WHERE id = LAST_INSERT_ID();
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Изменить правило:
+--Выборка
+SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
+FROM penguin_rules
+WHERE org_id = :org_id AND id = :id
+LIMIT 1;
+
+```
+
+#### Создать правило:  `POST /orgs/:orgId/penguin-rules`
 
 суперадмин, админ
 
-- PUT /orgs/:orgId/penguin-rules/:id
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "code": "BONUS",
->
-> "title": "Bonus points",
->
-> "default_delta": 5,
->
-> "is_active": true,
->
-> "description": "Special bonus",
->
-> }
+```json
+{ 
+  "code": "BONUS",
+  "title": "Bonus points",
+  "default_delta": 5,
+  "is_active": true,
+  "description": "Special bonus",
+}
+```
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
+
+- **Backend-правила:**
+
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `code` уникален в рамках организации `(org_id, code)`
+
+- **Validation**:
+
+  - Frontend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim`, обязательное поле
+    - `title` - `string[1..150]`, `trim`, обязательное поле
+    - `default_delta` - `smallint` целое, обязательное поле
+    - `is_active` - `boolean`
+    - `description` - `string[0..1000]`
+
+  - Backend:
+
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim`, обязательное поле
+    - `title` - `string[1..150]`, `trim`, обязательное поле
+    - `default_delta` - `smallint` целое, обязательное поле
+    - `is_active` - `boolean`
+    - `description` - `string[0..1000]`
+
+  - DB:
+
+    - `(org_id, code)` - `UNIQUE` проверка уникальности
+
+- **Responses**:
+
+  - **201 Created** правило создано
+```json
+{ 
+  "id": 108,
+  "code": "BONUS",
+  "title": "Bonus points",
+  "default_delta": 5,
+  "is_active": true,
+  "description": "Special bonus",
+  "created_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z",
+}
+```
+
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "code is required" }
+```
+```json
+{ "message": "title is required" }
+```
+```json
+{ "message": "default_delta is required" }
+```
+
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
+
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
+
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to create rules in this organization." }
+```
+
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+
+  - **409 Conflict** дубликат
+```json
+{ "message": "Rule code 'bonus' is already in use in this organization." }
+```
+
+- **SQL**
+
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка на уникальность кода
+SELECT id FROM penguin_rules 
+WHERE org_id = :org_id AND code = :code 
+LIMIT 1;
+
+--Создание правила
+INSERT INTO penguin_rules (org_id, code, title, default_delta, is_active, description, created_at, updated_at)
+VALUES (:org_id, :code, :title, :default_delta, COALESCE(:is_active, 1), :description, NOW(), NOW());
+
+--Для ответа
+SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
+FROM penguin_rules
+WHERE id = LAST_INSERT_ID();
+
+```
+
+#### Изменить правило:   `PUT /orgs/:orgId/penguin-rules/:id`
+
+суперадмин, админ
+
+- **Content-type:** `application/json`
+
+- **Authorization:** `Bearer <jwt>`
+
+- **Body:**
+
+```json
+{ 
+  "code": "BONUS",
+  "title": "Bonus points",
+  "default_delta": 5,
+  "is_active": true,
+  "description": "Special bonus",
+}
+```
+
+- **Path / Query params:**
+
+  - `orgId` - целое число
+  - `id` - целое число
 
 - **Бизнес-правила:**
 
-  - При смене code проверить на уникальность (org_id, code)
+  - При смене `code` проверить на уникальность `(org_id, code)`
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - code - ^\[A-Za-z0-9.\_-\]{2,50}\$, toLowerCase(), trim
-
-  - title - string\[1..150\], trim
-
-  - default_delta - smallint целое
-
-  - is_active - boolean
-
-  - description - string\[0..1000\]
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim`
+    - `title` - `string[1..150]`, `trim`
+    - `default_delta` - `smallint` целое
+    - `is_active` - `boolean`
+    - `description` - `string[0..1000]`
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - code - ^\[A-Za-z0-9.\_-\]{2,50}\$, toLowerCase(), trim
-
-    - title - string\[1..150\], trim
-
-    - default_delta - smallint целое
-
-    - is_active - boolean
-
-    - description - string\[0..1000\]
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim`
+    - `title` - `string[1..150]`, `trim`
+    - `default_delta` - `smallint` целое
+    - `is_active` - `boolean`
+    - `description` - `string[0..1000]`
 
   - DB:
 
-    - (org_id, code) - UNIQUE проверка уникальности
+    - `(org_id, code)` - UNIQUE проверка уникальности
 
-  <!-- -->
+- **Responses**:
 
-  - **Responses**:
+  - **200 OK**
+```json
+{ 
+  "id": 108,
+  "code": "BONUS",
+  "title": "Bonus points",
+  "default_delta": 5,
+  "is_active": true,
+  "description": "Special bonus",
+  "created_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z",
+}
+```
 
-    - **200 OK**
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
 
-> {
->
-> "id": 18,
->
-> "code": "BONUS",
->
-> "title": "Bonus points",
->
-> "default_delta": 5,
->
-> "is_active": true,
->
-> "description": "Special bonus",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> },
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to edit a rule in this organization." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Rule not found" }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to edit a rule in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {"message": "Rule not found"}
-
-- **409 Conflict** дубликат
-
-> {“message”: ”Rule code 'bonus' is already in use in this organization.”}
+  - **409 Conflict** дубликат
+```json
+{ "message": "Rule code 'bonus' is already in use in this organization." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка на уникальность кода, если меняем
->
-> SELECT id FROM penguin_rules
->
-> WHERE org_id = :org_id AND code = :code AND id \<\> :id
->
-> LIMIT 1;
->
-> Обновление правила
->
-> UPDATE penguin_rules
->
-> SET code = COALESCE(:code, code),
->
-> title = COALESCE(:title, title),
->
-> default_delta = COALESCE(:default_delta, default_delta),
->
-> is_active = COALESCE(:is_active, is_active),
->
-> description = COALESCE(:description, description),
->
-> updated_at = NOW()
->
-> WHERE org_id = :org_id AND id = :id;
->
-> Для ответа
->
-> SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
->
-> FROM penguin_rules
->
-> WHERE org_id = :org_id AND id = :id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Удалить правило:
+--Проверка на уникальность кода, если меняем
+SELECT id FROM penguin_rules
+WHERE org_id = :org_id AND code = :code AND id <> :id
+LIMIT 1;
+
+--Обновление правила
+UPDATE penguin_rules
+SET code          = COALESCE(:code, code),
+    title         = COALESCE(:title, title),
+    default_delta = COALESCE(:default_delta, default_delta),
+    is_active     = COALESCE(:is_active, is_active),
+    description   = COALESCE(:description, description),
+    updated_at    = NOW()
+WHERE org_id = :org_id AND id = :id;
+
+--Для ответа
+SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
+FROM penguin_rules
+WHERE org_id = :org_id AND id = :id
+LIMIT 1;
+
+```
+
+
+#### Удалить правило:  `DELETE /orgs/:orgId/penguin-rules/:id`
 
 суперадмин, админ
 
-- DELETE /orgs/:orgId/penguin-rules/:id
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:** `{}`
 
-  - **Body:** {}
+- **Path / Query params:**
 
-  - **Path / Query params:**
+  - `orgId` - целое число
+  - `id` - целое число
 
-    - orgId - целое число
+- **Backend-правила:**
 
-    - id - целое число
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - Правило не удаляем, а деактивируем `is_active=false`
 
-  - **Backend-правила:**
+- **Validation**:
 
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
+  - Frontend:
 
-    - Организация orgId существует и status IN ('active','pending')
-
-    - Правило не удаляем, а деактивируем is_active=false
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+- **Responses**:
 
-  <!-- -->
+  - **200 OK**
+```json
+{ 
+  "id": 108,
+  "code": "BONUS",
+  "title": "Bonus points",
+  "default_delta": 5,
+  "is_active": true,
+  "description": "Special bonus",
+  "created_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z",
+}
+```
 
-  - **Responses**:
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
 
-> {
->
-> "id": 18,
->
-> "code": "BONUS",
->
-> "title": "Bonus points",
->
-> "default_delta": 5,
->
-> "is_active": false,
->
-> "description": "Special bonus",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "updated_at": "2025-09-02T10:11:12Z",
->
-> },
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: id must be integer”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to remove a rule in this organization." }
+```
 
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to remove a rule in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {"message": "Rule not found"}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Rule not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Деактивация правила
->
-> UPDATE penguin_rules
->
-> SET is_active = 0, updated_at = NOW()
->
-> WHERE org_id = :org_id AND id = :id;
->
-> Для ответа
->
-> SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
->
-> FROM penguin_rules
->
-> WHERE org_id = :org_id AND id = :id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-#### Групповое начисление пингвинов penguin_batches
+--Деактивация правила
+UPDATE penguin_rules
+SET is_active = 0, updated_at = NOW()
+WHERE org_id = :org_id AND id = :id;
 
-POST /orgs/:orgId/penguins/batches  
-создать групповое начисление/списание  
-и разнести по студентам
+--Для ответа
+SELECT id, code, title, default_delta, is_active, description, created_at, updated_at
+FROM penguin_rules
+WHERE org_id = :org_id AND id = :id
+LIMIT 1;
 
-GET /orgs/:orgId/penguins/batches?groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=  
-получить список групповых начислений
+```
 
-GET /orgs/:orgId/penguins/batches/:id/students?page=&limit=  
-получить список студентов при групповом начислении
+### Групповое начисление пингвинов penguin_batches
 
-GET /orgs/:orgId/penguins/batches/:id  
-получить групповое начисление по id
+`POST /orgs/:orgId/penguins/batches`    
+создать групповое начисление/списание и разнести по студентам  
 
-##### Создать групповое начисление/списание и разнести по студентам:
+`GET /orgs/:orgId/penguins/batches?groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=`    
+получить список групповых начислений  
+
+`GET /orgs/:orgId/penguins/batches/:id/students?page=&limit=`    
+получить список студентов при групповом начислении  
+
+`GET /orgs/:orgId/penguins/batches/:id`    
+получить групповое начисление по id  
+
+#### Создать групповое начисление/списание и разнести по студентам:  `POST /orgs/:orgId/penguins/batches`
 
 суперадмин, админ, преподаватель
 
-- POST /orgs/:orgId/penguins/batches
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "group_id": 510,
->
-> "subject_id": 108,
->
-> "student_ids": \[3001, 3002, 3003\],
->
-> "delta": 3,
->
-> "reason": "Homework week 3",
->
-> "rule_code": "HOMEWORK"
->
-> }
+```json
+{ 
+  "group_id": 510,
+  "subject_id": 108,
+  "student_ids": [3001, 3002, 3003],
+  "delta": 3,
+  "reason": "Homework week 3",
+  "rule_code": "HOMEWORK"
+}
+```
 
 - **Бизнес-правила:**
 
   - Группа принадлежит этой организации
-
   - Предмет принадлежит этой организации
-
-  - Преподаватель имеет активную роль teacher в этой организации и имеет назначение на эту группу/предмет teaching_assignments
-
-  - Студент имеет активную роль student в этой организации и состоит в группе group_members.status \<\> 'archived'
-
-  - Предмет привязан к группе group_subjects
-
-  - rule_code правило существует и is_active=1
-
-  - Для каждого студента создается запись в penguin_ledger, обновляется penguin_balances, создается notifications , тип penguin_award\|penguin_deduct по знаку delta
+  - Преподаватель имеет активную роль `teacher` в этой организации и имеет назначение на эту группу/предмет `teaching_assignments`
+  - Студент имеет активную роль `student` в этой организации и состоит в группе `group_members.status <> 'archived'`
+  - Предмет привязан к группе `group_subjects`
+  - `rule_code` правило существует и `is_active=1`
+  - Для каждого студента создается запись в `penguin_ledger`, обновляется `penguin_balances`, создается `notifications` , тип `penguin_award|penguin_deduct` по знаку `delta`
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - operator_id берём из JWT
-
-  - delta — целое, не 0 (плюс - награда, минус - списание)
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `operator_id` берeм из JWT
+  - `delta` — целое, не 0 (плюс - награда, минус - списание)
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - group_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
-
-  - subject_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
-
-  - student_ids - array\[1..1000\] - int, обязательное поле
-
-  - delta - integer ≠ 0, обязательное поле
-
-  - reason - string\[1..255\], trim
-
-  - rule_code - ^\[A-Za-z0-9.\_-\]{2,50}\$
-
-  - 
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `group_id` - /^\[1-9\]\d{0,9}\$/ - `int`, обязательное поле
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/ - `int`, обязательное поле
+    - `student_ids` - `array[1..1000]` - `int`, обязательное поле
+    - `delta` - `integer ≠ 0`, обязательное поле
+    - `reason` - `string[1..255]`, `trim`
+    - `rule_code` - ^\[A-Za-z0-9.\_-\]{2,50}\$
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `group_id` - /^\[1-9\]\d{0,9}\$/ - `int`, обязательное поле
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/ - `int`, обязательное поле
+    - `student_ids` - `array[1..1000]` - `int`, обязательное поле
+    - `delta` - `integer ≠ 0`, обязательное поле
+    - `reason` - `string[1..255]`, `trim`
+    - `rule_code` - ^\[A-Za-z0-9.\_-\]{2,50}\$
 
-    - group_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
+- **Responses**:
 
-    - subject_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
+  - **201 Created** групповое начисление пингвинов успешно
+```json
+{ 
+  "batch": {
+    "id": 90001,
+    "group_id": { 
+      "id": 510,  
+      "code": "281025-wdm", 
+      "name": "Web-Development-2025-10" 
+      },
+    "subject_id": { 
+      "id": 108,  
+      "name": "React" 
+      },
+    "operator_id": { 
+      "id": 1054, 
+      "full_name": "Ivan Petrov" 
+      },
+    "delta": 3,
+    "reason": "Homework week 3",
+    "created_at": "2025-09-02T10:11:12Z"
+    },
+  "affected": 3,
+  "students": [3001, 3002, 3003],
+}
+```
 
-    - student_ids - array\[1..1000\] - int, обязательное поле
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "group_id is required" }
+```
+```json
+{ "message": "subject_id is required" }
+```
+```json
+{ "message": "student_ids is required" }
+```
+```json
+{ "message": "delta is required" }
+```
+```json
+{ "message": "delta must be a non-zero integer" }
+```
+```json
+{ "message": "group_id must be integer" }
+```
+```json
+{ "message": "subject_id must be integer" }
+```
 
-    - delta - integer ≠ 0, обязательное поле
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - reason - string\[1..255\], trim
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-    - rule_code - ^\[A-Za-z0-9.\_-\]{2,50}\$
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to award penguins in this organization." }
+```
 
-  <!-- -->
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "User not found" }
+```
+```json
+{ "message": "Rule not found" }
+```
 
-  - **Responses**:
-
-    - **201 Created** групповое начисление пингвинов успешно
-
-> {
->
-> "batch": {
->
-> "id": 90001,
->
-> "group_id": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject_id": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "operator_id": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "delta": 3,
->
-> "reason": "Homework week 3",
->
-> "created_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> "affected": 3,
->
-> "students": \[3001, 3002, 3003\],
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”group_id is required”}
->
-> {“message”: ”subject_id is required”}
->
-> {“message”: ”student_ids is required”}
->
-> {“message”: ”delta is required”}
->
-> {“message”: ”delta must be a non-zero integer”}
->
-> {“message”: ”group_id must be integer”}
->
-> {“message”: ”subject_id must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to award penguins in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
->
-> {“message”: ”User not found”}
->
-> {“message”: ”Rule not found”}
-
-- **409 Conflict** не выполняется условие
-
-> {“message”: ”User does not have an active 'teacher' role in this organization.”}
->
-> {“message”: ”Teacher is not assigned to this subject in this group.”}
->
-> {“message”: ”Subject is not assigned to the group.”}
->
-> {“message”: ”Some students do not have an active 'student' role in this organization.”}
->
-> {“message”: ”Some students are not active members of the group.”}
->
-> {“message”: ”Rule is inactive.”}
+  - **409 Conflict** не выполняется условие
+```json
+{ "message": "User does not have an active 'teacher' role in this organization." }
+```
+```json
+{ "message": "Teacher is not assigned to this subject in this group." }
+```
+```json
+{ "message": "Subject is not assigned to the group." }
+```
+```json
+{ "message": "Some students do not have an active 'student' role in this organization." }
+```
+```json
+{ "message": "Some students are not active members of the group." }
+```
+```json
+{ "message": "Rule is inactive." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка роли преподавателя (берем из JWT)
->
-> SELECT 1
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
->
-> WHERE user_roles.org_id = :org_id AND user_roles.user_id = :operator_id AND user_roles.revoked_at IS NULL
->
-> LIMIT 1;
->
-> Проверка преподавателя на назначение группе
->
-> SELECT 1 FROM teaching_assignments
->
-> WHERE org_id = :org_id AND teacher_id = :operator_id AND group_id = :group_id AND subject_id = :subject_id
->
-> LIMIT 1;
->
-> Проверка предмета
->
-> SELECT 1 FROM subjects
->
-> WHERE id = :subject_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка предмета на назначение группе
->
-> SELECT 1 FROM group_subjects
->
-> WHERE org_id = :org_id
->
-> AND group_id = :group_id
->
-> AND subject_id = :subject_id
->
-> LIMIT 1;
->
-> Если rule_code не передали
->
-> SET @rule_id := NULL;
->
-> SET @rule_active := NULL;
->
-> Если rule_code передан
->
-> SELECT id, is_active INTO @rule_id, @rule_active
->
-> FROM penguin_rules
->
-> WHERE org_id = :org_id AND code = :rule_code
->
-> LIMIT 1;
->
-> @rule_id IS NULL -\> 404 "Rule not found"
->
-> @rule_active = 0 -\> 409 "Rule is inactive"
->
-> Проверка студентов на роль и принадлежность группе
->
-> роль student активна
->
-> SELECT COUNT(\*) AS bad_student_role
->
-> FROM (
->
-> SELECT DISTINCT sid FROM (
->
-> распакованный список :student_ids (временная таблица)
->
-> SELECT :student_ids AS sid_list
->
-> ) t
->
-> ) ids
->
-> LEFT JOIN user_roles ON user_roles.org_id = :org_id AND user_roles.user_id = ids.sid AND user_roles.revoked_at IS NULL
->
-> LEFT JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
->
-> WHERE roles.id IS NULL;
->
-> если bad_student_role \> 0 -\> 409 "Some students do not have an active 'student' role in this organization."
->
-> пользователь активен и член группы (не archived)
->
-> SELECT COUNT(\*) AS bad_membership
->
-> FROM users
->
-> LEFT JOIN group_members
->
-> ON group_members.group_id = :group_id
->
-> AND group_members.student_id = users.id
->
-> AND group_members.status \<\> 'archived'
->
-> WHERE users.id IN (:student_ids)
->
-> AND (users.status = 'deleted' OR group_members.student_id IS NULL);
->
-> если bad_membership \> 0 -\> 409 "Some students are not active members of the group."
->
-> Создание группового начисления
->
-> INSERT INTO penguin_batches (org_id, group_id, subject_id, operator_id, delta, reason, created_at)
->
-> VALUES (:org_id, :group_id, :subject_id, :operator_id, :delta, :reason, NOW());
->
-> SET @batch_id = LAST_INSERT_ID();
->
-> Для каждого студента логи и обновление баланса
->
-> *(в коде это батчевый INSERT SELECT с UNION ALL / VALUES)*
->
-> пример шаблона для каждого :student_id в :student_ids:
->
-> INSERT INTO penguin_ledger
->
-> (org_id, student_id, group_id, subject_id, operator_id, direction_id, rule_id, batch_id, delta, reason, created_at)
->
-> SELECT :org_id, :student_id, :group_id, :subject_id, :operator_id, g.direction_id, @rule_id, @batch_id, :delta, :reason, NOW()
->
-> FROM groups
->
-> WHERE groups.id = :group_id AND groups.org_id = :org_id;
->
-> INSERT INTO penguin_balances (org_id, student_id, group_id, subject_id, direction_id, total)
->
-> SELECT :org_id, :student_id, :group_id, :subject_id, g.direction_id, :delta
->
-> FROM groups
->
-> WHERE groups.id = :group_id AND groups.org_id = :org_id
->
-> ON DUPLICATE KEY UPDATE total = total + VALUES(total);
->
-> Создание уведомления (по одному на студента)
->
-> INSERT INTO notifications (org_id, user_id, group_id, type, payload, is_read, created_at)
->
-> VALUES
->
-> (:org_id, :student_id, :group_id,
->
-> CASE WHEN :delta \>= 0 THEN 'penguin_award' ELSE 'penguin_deduct' END,
->
-> JSON_OBJECT(
->
-> 'delta', :delta,
->
-> 'reason', :reason,
->
-> 'subject_id', :subject_id,
->
-> 'batch_id', @batch_id
->
-> ),
->
-> 0, NOW());
->
-> Для ответа
->
-> SELECT id, group_id, subject_id, operator_id, delta, reason, created_at
->
-> FROM penguin_batches
->
-> WHERE id = @batch_id;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Получить список групповых начислений:
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка роли преподавателя (берем из JWT)
+SELECT 1 
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
+WHERE user_roles.org_id = :org_id AND user_roles.user_id = :operator_id AND user_roles.revoked_at IS NULL
+LIMIT 1;
+
+--Проверка преподавателя на назначение группе 
+SELECT 1 FROM teaching_assignments
+WHERE org_id = :org_id AND teacher_id = :operator_id AND group_id = :group_id AND subject_id = :subject_id
+LIMIT 1;
+
+--Проверка предмета
+SELECT 1 FROM subjects 
+WHERE id = :subject_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка предмета на назначение группе
+SELECT 1 FROM group_subjects 
+WHERE org_id = :org_id 
+  AND group_id = :group_id 
+  AND subject_id = :subject_id 
+LIMIT 1;
+
+--Если rule_code не передали
+SET @rule_id := NULL;
+SET @rule_active := NULL;
+
+--Если rule_code передан
+SELECT id, is_active INTO @rule_id, @rule_active
+FROM penguin_rules
+WHERE org_id = :org_id AND code = :rule_code
+LIMIT 1;
+--@rule_id IS NULL -> 404 "Rule not found"
+--@rule_active = 0  -> 409 "Rule is inactive"
+
+--Проверка студентов на роль и принадлежность группе
+
+--роль student активна
+SELECT COUNT(*) AS bad_student_role
+FROM (
+  SELECT DISTINCT sid FROM (
+    --распакованный список :student_ids (временная таблица)
+    SELECT :student_ids AS sid_list  
+  ) t 
+) ids
+LEFT JOIN user_roles ON user_roles.org_id = :org_id AND user_roles.user_id = ids.sid AND user_roles.revoked_at IS NULL
+LEFT JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
+WHERE roles.id IS NULL;
+--если bad_student_role > 0 -> 409 "Some students do not have an active 'student' role in this organization."
+
+--пользователь активен и член группы (не archived)
+SELECT COUNT(*) AS bad_membership
+FROM users
+LEFT JOIN group_members
+  ON group_members.group_id = :group_id 
+ AND group_members.student_id = users.id 
+ AND group_members.status <> 'archived'
+WHERE users.id IN (:student_ids)
+  AND (users.status = 'deleted' OR group_members.student_id IS NULL);
+--если bad_membership > 0 -> 409 "Some students are not active members of the group."
+
+--Создание группового начисления
+INSERT INTO penguin_batches (org_id, group_id, subject_id, operator_id, delta, reason, created_at)
+VALUES (:org_id, :group_id, :subject_id, :operator_id, :delta, :reason, NOW());
+
+SET @batch_id = LAST_INSERT_ID();
+
+--Для каждого студента логи и обновление баланса
+--(в коде это батчевый INSERT SELECT с UNION ALL / VALUES)
+--пример шаблона для каждого :student_id в :student_ids:
+INSERT INTO penguin_ledger
+(org_id, student_id, group_id, subject_id, operator_id, direction_id, rule_id, batch_id, delta, reason, created_at)
+SELECT :org_id, :student_id, :group_id, :subject_id, :operator_id, g.direction_id, @rule_id, @batch_id, :delta, :reason, NOW()
+FROM groups
+WHERE groups.id = :group_id AND groups.org_id = :org_id;
+
+INSERT INTO penguin_balances (org_id, student_id, group_id, subject_id, direction_id, total)
+SELECT :org_id, :student_id, :group_id, :subject_id, g.direction_id, :delta
+FROM groups
+WHERE groups.id = :group_id AND groups.org_id = :org_id
+ON DUPLICATE KEY UPDATE total = total + VALUES(total);
+
+--Создание уведомления (по одному на студента)
+INSERT INTO notifications (org_id, user_id, group_id, type, payload, is_read, created_at)
+VALUES
+(:org_id, :student_id, :group_id,
+ CASE WHEN :delta >= 0 THEN 'penguin_award' ELSE 'penguin_deduct' END,
+ JSON_OBJECT(
+   'delta', :delta,
+   'reason', :reason,
+   'subject_id', :subject_id,
+   'batch_id', @batch_id
+ ),
+ 0, NOW());
+
+--Для ответа
+SELECT id, group_id, subject_id, operator_id, delta, reason, created_at
+FROM penguin_batches
+WHERE id = @batch_id;
+
+```
+
+
+#### Получить список групповых начислений:  `GET /orgs/:orgId/penguins/batches?groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=`
 
 суперадмин, админ, преподаватель, сотрудник организации
 
-- GET /orgs/:orgId/penguins/batches?groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=
+  `groupId` - фильтр по группе (опционально)  
+  `subjectId` - фильтр по предмету (опционально)  
+  `operatorId` - фильтр по преподавателю (опционально)  
+  `date_from` - фильтр по дате начало периода (опционально)  
+  `date_to` - фильтр по дате конец периода (опционально)  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> groupId - фильтр по группе (опционально)
->
-> subjectId - фильтр по предмету (опционально)
->
-> operatorId - фильтр по преподавателю (опционально)
->
-> date_from - фильтр по дате начало периода (опционально)
->
-> date_to - фильтр по дате конец периода (опционально)
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
-
-  - subjectId - целое число
-
-  - operatorId - целое число
-
-  - date_from - YYYY-MM-DD
-
-  - date_to - YYYY-MM-DD
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `operatorId` - целое число
+  - `date_from` - `YYYY-MM-DD`
+  - `date_to` - `YYYY-MM-DD`
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - date_from - YYYY-MM-DD
-
-    - date_to - YYYY-MM-DD
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - date_from - YYYY-MM-DD
-
-    - date_to - YYYY-MM-DD
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
 - **Responses**:
 
   - **200 OK**
-
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "batches":
->
-> \[
->
-> "batch": {
->
-> "id": 90001,
->
-> "group_id": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject_id": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "operator_id": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "delta": 3,
->
-> "reason": "Homework week 3",
->
-> "created_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> "affected": 3,
->
-> \]
->
-> }
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "batches": 
+  [ {
+    "batch": {
+    	"id": 90001,
+    	"group_id": { 
+        "id": 510,  
+        "code": "281025-wdm", 
+        "name": "Web-Development-2025-10" 
+        },
+    	"subject_id": { 
+        "id": 108,  
+        "name": "React" 
+        },
+    	"operator_id": { 
+        "id": 1054, 
+        "full_name": "Ivan Petrov" 
+        },
+    	"delta": 3,
+    	"reason": "Homework week 3",
+    	"created_at": "2025-09-02T10:11:12Z"
+      },
+    "affected": 3,
+    },
+  ]
+}
+```
 
 - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: operatorId must be integer" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
->
-> {“message”: ”Invalid path parameter: operatorId must be integer”}
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view penguins in this organization." }
+```
 
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view penguins in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Subject not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM penguin_batches
->
-> JOIN users ON users.id = penguin_batches.operator_id
->
-> WHERE penguin_batches.org_id = :org_id
->
-> AND users.status \<\> 'deleted'
->
-> AND (:group_id IS NULL
->
-> OR penguin_batches.group_id = :group_id)
->
-> AND (:subject_id IS NULL
->
-> OR penguin_batches.subject_id = :subject_id)
->
-> AND (:operator_id IS NULL
->
-> OR penguin_batches.operator_id = :operator_id)
->
-> AND (:date_from IS NULL
->
-> OR penguin_batches.created_at \>= :date_from)
->
-> AND (:date_to IS NULL
->
-> OR penguin_batches.created_at \< :date_to);
->
-> page
->
-> SELECT
->
-> penguin_batches.id,
->
-> penguin_batches.delta,
->
-> penguin_batches.reason,
->
-> penguin_batches.created_at,
->
-> groups.id AS group_id,
->
-> groups.code AS group_code,
->
-> groups.name AS group_name,
->
-> subjects.id AS subject_id,
->
-> subjects.name AS subject_name,
->
-> users.id AS operator_id,
->
-> users.full_name AS operator_name,
->
-> COALESCE(bstats.affected, 0) AS affected
->
-> FROM penguin_batches
->
-> JOIN users ON users.id = penguin_batches.operator_id AND users.status \<\> 'deleted'
->
-> JOIN groups ON groups.id = penguin_batches.group_id
->
-> JOIN subjects ON subjects.id = penguin_batches.subject_id
->
-> LEFT JOIN (
->
-> SELECT penguin_ledger.batch_id, COUNT(\*) AS affected
->
-> FROM penguin_ledger
->
-> JOIN users students ON students.id = penguin_ledger.student_id AND students.status \<\> 'deleted'
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> GROUP BY penguin_ledger.batch_id
->
-> ) bstats ON bstats.batch_id = penguin_batches.id
->
-> WHERE penguin_batches.org_id = :org_id
->
-> AND (:group_id IS NULL OR penguin_batches.group_id = :group_id)
->
-> AND (:subject_id IS NULL OR penguin_batches.subject_id = :subject_id)
->
-> AND (:operator_id IS NULL OR penguin_batches.operator_id = :operator_id)
->
-> AND (:date_from IS NULL OR penguin_batches.created_at \>= :date_from)
->
-> AND (:date_to IS NULL OR penguin_batches.created_at \< :date_to)
->
-> ORDER BY penguin_batches.created_at DESC, penguin_batches.id DESC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить список студентов при групповом начислении:
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM penguin_batches
+JOIN users ON users.id = penguin_batches.operator_id
+WHERE penguin_batches.org_id = :org_id
+  AND users.status <> 'deleted'
+  AND (:group_id IS NULL 
+OR penguin_batches.group_id = :group_id)
+  AND (:subject_id IS NULL 
+OR penguin_batches.subject_id = :subject_id)
+  AND (:operator_id IS NULL 
+OR penguin_batches.operator_id = :operator_id)
+  AND (:date_from IS NULL 
+OR penguin_batches.created_at >= :date_from)
+  AND (:date_to IS NULL 
+OR penguin_batches.created_at < :date_to);
+
+--page
+SELECT
+  penguin_batches.id,
+  penguin_batches.delta,
+  penguin_batches.reason,
+  penguin_batches.created_at,
+  groups.id   AS group_id,
+  groups.code AS group_code,
+  groups.name AS group_name,
+  subjects.id   AS subject_id,
+  subjects.name AS subject_name,
+  users.id        AS operator_id,
+  users.full_name AS operator_name,
+  COALESCE(bstats.affected, 0) AS affected
+FROM penguin_batches
+JOIN users ON users.id = penguin_batches.operator_id AND users.status <> 'deleted'
+JOIN groups ON groups.id = penguin_batches.group_id
+JOIN subjects ON subjects.id = penguin_batches.subject_id
+LEFT JOIN (
+  SELECT penguin_ledger.batch_id, COUNT(*) AS affected
+  FROM penguin_ledger
+  JOIN users students ON students.id = penguin_ledger.student_id AND students.status <> 'deleted'
+  WHERE penguin_ledger.org_id = :org_id
+  GROUP BY penguin_ledger.batch_id
+) bstats ON bstats.batch_id = penguin_batches.id
+WHERE penguin_batches.org_id = :org_id
+  AND (:group_id IS NULL OR penguin_batches.group_id = :group_id)
+  AND (:subject_id IS NULL OR penguin_batches.subject_id = :subject_id)
+  AND (:operator_id IS NULL OR penguin_batches.operator_id = :operator_id)
+  AND (:date_from IS NULL OR penguin_batches.created_at >= :date_from)
+  AND (:date_to IS NULL OR penguin_batches.created_at < :date_to)
+ORDER BY penguin_batches.created_at DESC, penguin_batches.id DESC
+LIMIT @limit OFFSET @offset;
+
+```
+
+#### Получить список студентов при групповом начислении:  `GET /orgs/:orgId/penguins/batches/:id/students?page=&limit=`
 
 суперадмин, админ, преподаватель, сотрудник организации
 
-- GET /orgs/:orgId/penguins/batches/:id/students?page=&limit=
+  `id` - ід группового начисления  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> id - ід группового начисления
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - id - целое число
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `id` - целое число
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
 - **Responses**:
 
-  - **200 OK**
+- **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "students": 
+  [
+    { 
+      "id": 3001, 
+      "full_name": "Alice Student" 
+    },
+    { 
+      "id": 3002, 
+      "full_name": "Bob Student" 
+    },
+  ]
+}
+```
 
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "students":
->
-> \[
->
-> { "id": 3001,
->
-> "full_name": "Alice Student"
->
-> },
->
-> { "id": 3002,
->
-> "full_name": "Bob Student"
->
-> }
->
-> \]
->
-> }
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: id must be integer”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view penguins in this organization." }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view penguins in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Batch not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Batch not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка батча
->
-> SELECT 1 FROM penguin_batches
->
-> WHERE id = :batch_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM penguin_ledger
->
-> JOIN users ON users.id = penguin_ledger.student_id
->
-> WHERE penguin_ledger.org_id = :org_id AND penguin_ledger.batch_id = :batch_id
->
-> AND users.status \<\> 'deleted';
->
-> page
->
-> SELECT users.id, users.full_name
->
-> FROM penguin_ledger
->
-> JOIN users ON users.id = penguin_ledger.student_id
->
-> WHERE penguin_ledger.org_id = :org_id AND penguin_ledger.batch_id = :batch_id
->
-> AND users.status \<\> 'deleted'
->
-> ORDER BY users.full_name ASC, users.id ASC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить групповое начисление по id (детальная карточка):
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка батча
+SELECT 1 FROM penguin_batches 
+WHERE id = :batch_id AND org_id = :org_id 
+LIMIT 1;
+
+
+--total
+SELECT COUNT(*) AS total
+FROM penguin_ledger
+JOIN users ON users.id = penguin_ledger.student_id
+WHERE penguin_ledger.org_id = :org_id AND penguin_ledger.batch_id = :batch_id
+  AND users.status <> 'deleted';
+
+--page
+SELECT users.id, users.full_name
+FROM penguin_ledger
+JOIN users ON users.id = penguin_ledger.student_id
+WHERE penguin_ledger.org_id = :org_id AND penguin_ledger.batch_id = :batch_id
+  AND users.status <> 'deleted'
+ORDER BY users.full_name ASC, users.id ASC
+LIMIT @limit OFFSET @offset;
+
+```
+
+
+#### Получить групповое начисление по id (детальная карточка):  `GET /orgs/:orgId/penguins/batches/:id`
 
 суперадмин, админ, преподаватель, сотрудник организации
 
-- GET /orgs/:orgId/penguins/batches/:id
+  `id` - ід группового начисления  
 
-> id - ід группового начисления
+- **Назначение:** Показывает один батч - базовые поля + человекочитаемые названия (группа/предмет/оператор), привязанное правило (если было), количество затронутых студентов (`affected`) и полный список студентов этого батча.
 
-- **Назначение:** Показывает один батч - базовые поля + человекочитаемые названия (группа/предмет/оператор), привязанное правило (если было), количество затронутых студентов (affected) и полный список студентов этого батча.
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - id - целое число
+  - `orgId` - целое число
+  - `id` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
   - Батч принадлежит этой организации
 
 - **Validation**:
 
   - Frontend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
-
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
 - **Responses**:
 
   - **200 OK**
+```json
+{ 
+  "id": 90001,
+  "delta": 3,
+  "reason": "Homework week 3",
+  "created_at": "2025-09-02T10:11:12Z",
 
-> {
->
-> "id": 90001,
->
-> "delta": 3,
->
-> "reason": "Homework week 3",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "operator": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "rule": {
->
-> "id": 14,
->
-> "code": "HOMEWORK",
->
-> "title": "Homework submission",
->
-> "default_delta": 3
->
-> },
->
-> "affected": 3,
->
-> "students": \[
->
-> {
->
-> "id": 3001,
->
-> "full_name": "Alice Student",
->
-> "email": "alice@example.com"
->
-> },
->
-> {
->
-> "id": 3002,
->
-> "full_name": "Bob Student",
->
-> "email": "bob@example.com"
->
-> },
->
-> {
->
-> "id": 3003,
->
-> "full_name": "Carol Student",
->
-> "email": "carol@example.com"
->
-> },
->
-> \]
->
-> }
+  "group": {
+    "id": 510,
+    "code": "281025-wdm",
+    "name": "Web-Development-2025-10"
+    },
+  "subject": {
+    "id": 108,
+    "name": "React"
+    },
+  "operator": {
+    "id": 1054,
+    "full_name": "Ivan Petrov"
+    },
+  "rule": {
+    "id": 14,
+    "code": "HOMEWORK",
+    "title": "Homework submission",
+    "default_delta": 3
+    },
+  "affected": 3,
+  "students": [
+    { 
+      "id": 3001, 
+      "full_name": "Alice Student", 
+      "email": "alice@example.com" 
+    },
+    { 
+      "id": 3002, 
+      "full_name": "Bob Student",   
+      "email": "bob@example.com"   
+    },
+    { 
+      "id": 3003, 
+      "full_name": "Carol Student", 
+      "email": "carol@example.com" 
+    },
+  ]
+}
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: id must be integer”}
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view penguins in this organization." }
+```
 
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view penguins in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Batch not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Batch not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка батча
->
-> SELECT 1 FROM penguin_batches
->
-> WHERE id = :batch_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Карточка батча: базовые поля + человекочитаемые названия
->
-> SELECT
->
-> penguin_batches.id,
->
-> penguin_batches.delta,
->
-> penguin_batches.reason,
->
-> penguin_batches.created_at,
->
-> groups.id AS group_id,
->
-> groups.code AS group_code,
->
-> groups.name AS group_name,
->
-> subjects.id AS subject_id,
->
-> subjects.name AS subject_name,
->
-> users.id AS operator_id,
->
-> users.full_name AS operator_name
->
-> FROM penguin_batches
->
-> JOIN groups ON groups.id = penguin_batches.group_id
->
-> JOIN subjects ON subjects.id = penguin_batches.subject_id
->
-> LEFT JOIN users ON users.id = penguin_batches.operator_id
->
-> WHERE penguin_batches.org_id = :org_id AND penguin_batches.id = :id
->
-> LIMIT 1;
->
-> Правило батча: берем из ledger (если rule использовали при создании)
->
-> (ожидается один и тот же rule_id для всех строк батча; если NULL — правила нет)
->
-> SELECT
->
-> penguin_rules.id,
->
-> penguin_rules.code,
->
-> penguin_rules.title,
->
-> penguin_rules.default_delta
->
-> FROM penguin_ledger
->
-> JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> AND penguin_ledger.batch_id = :id
->
-> AND penguin_ledger.rule_id IS NOT NULL
->
-> LIMIT 1;
->
-> Количество затронутых студентов (affected)
->
-> SELECT COUNT(\*) AS affected
->
-> FROM penguin_ledger
->
-> JOIN users ON users.id = penguin_ledger.student_id
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> AND penguin_ledger.batch_id = :id
->
-> AND users.status \<\> 'deleted';
->
-> Полный список студентов батча (упорядочен по ФИО)
->
-> SELECT
->
-> users.id,
->
-> users.full_name,
->
-> users.email
->
-> FROM penguin_ledger
->
-> JOIN users ON users.id = penguin_ledger.student_id
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> AND penguin_ledger.batch_id = :id
->
-> AND users.status \<\> 'deleted'
->
-> ORDER BY users.full_name ASC, users.id ASC;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-#### Логирование (Индивидуальное начисление / списание) penguin_ledger
+--Проверка батча
+SELECT 1 FROM penguin_batches 
+WHERE id = :batch_id AND org_id = :org_id 
+LIMIT 1;
 
-POST /orgs/:orgId/penguins/ledger  
-создать индивидуальное начисление/списание пингвинов
+--Карточка батча: базовые поля + человекочитаемые названия
+SELECT
+  penguin_batches.id,
+  penguin_batches.delta,
+  penguin_batches.reason,
+  penguin_batches.created_at,
+  groups.id   AS group_id,
+  groups.code AS group_code,
+  groups.name AS group_name,
+  subjects.id   AS subject_id,
+  subjects.name AS subject_name,
+  users.id        AS operator_id,
+  users.full_name AS operator_name
+FROM penguin_batches
+JOIN groups ON groups.id = penguin_batches.group_id
+JOIN subjects ON subjects.id = penguin_batches.subject_id
+LEFT JOIN users ON users.id = penguin_batches.operator_id   
+WHERE penguin_batches.org_id = :org_id AND penguin_batches.id = :id
+LIMIT 1;
 
-GET /orgs/:orgId/penguins/ledger?q=&studentId=&groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=  
-получить список начислений/снятий
+--Правило батча: берем из ledger (если rule использовали при создании)
+--(ожидается один и тот же rule_id для всех строк батча; если NULL — правила нет)
+SELECT
+  penguin_rules.id,
+  penguin_rules.code,
+  penguin_rules.title,
+  penguin_rules.default_delta
+FROM penguin_ledger
+JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
+WHERE penguin_ledger.org_id = :org_id
+  AND penguin_ledger.batch_id = :id
+  AND penguin_ledger.rule_id IS NOT NULL
+LIMIT 1;
 
-GET /orgs/:orgId/penguins/ledger/:id  
-получить операцию по id
+--Количество затронутых студентов (affected)
+SELECT COUNT(*) AS affected
+FROM penguin_ledger 
+JOIN users ON users.id = penguin_ledger.student_id
+WHERE penguin_ledger.org_id = :org_id
+  AND penguin_ledger.batch_id = :id
+  AND users.status <> 'deleted';
 
-##### Создать индивидуальное начисление/списание пингвинов:
+--Полный список студентов батча (упорядочен по ФИО)
+SELECT
+  users.id,
+  users.full_name,
+  users.email
+FROM penguin_ledger
+JOIN users ON users.id = penguin_ledger.student_id
+WHERE penguin_ledger.org_id = :org_id
+  AND penguin_ledger.batch_id = :id
+  AND users.status <> 'deleted'
+ORDER BY users.full_name ASC, users.id ASC;
+
+```
+
+
+### Логирование (Индивидуальное начисление / списание) penguin_ledger
+
+`POST /orgs/:orgId/penguins/ledger`  
+создать индивидуальное начисление/списание пингвинов  
+
+`GET /orgs/:orgId/penguins/ledger?q=&studentId=&groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=`    
+получить список начислений/снятий  
+
+`GET /orgs/:orgId/penguins/ledger/:id`    
+получить операцию по id  
+
+#### Создать индивидуальное начисление/списание пингвинов:  `POST /orgs/:orgId/penguins/ledger`
 
 суперадмин, админ, преподаватель
 
-- POST /orgs/:orgId/penguins/ledger
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "student_id": 3001,
->
-> "group_id": 510,
->
-> "subject_id": 108,
->
-> "delta": -2,
->
-> "reason": "Late submission",
->
-> "rule_code": "DEDUCT_LATE"
->
-> }
+```json
+{ 
+  "student_id": 3001,
+  "group_id": 510,
+  "subject_id": 108,
+  "delta": -2,
+  "reason": "Late submission",
+  "rule_code": "DEDUCT_LATE"
+}
+```
 
 - **Бизнес-правила:**
 
   - Группа принадлежит этой организации
-
   - Предмет принадлежит этой организации
-
-  - Преподаватель имеет активную роль teacher в этой организации и имеет назначение на эту группу/предмет teaching_assignments
-
-  - Студент имеет активную роль student в этой организации и состоит в группе group_members.status \<\> 'archived'
-
-  - Предмет привязан к группе group_subjects
-
-  - rule_code правило существует и is_active=1
-
-  - Для студента обновляется penguin_balances, создается notifications , тип penguin_award\|penguin_deduct по знаку delta
+  - Преподаватель имеет активную роль `teacher` в этой организации и имеет назначение на эту группу/предмет `teaching_assignments`
+  - Студент имеет активную роль `student` в этой организации и состоит в группе `group_members.status <> 'archived'`
+  - Предмет привязан к группе `group_subjects`
+  - `rule_code` правило существует и `is_active=1`
+  - Для студента обновляется `penguin_balances`, создается `notifications` , тип `penguin_award|penguin_deduct` по знаку `delta`
 
 - **Path / Query params:**
 
-  - orgId - целое число
+  - `orgId` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
-  - operator_id берём из JWT
-
-  - delta — целое, не 0 (плюс - награда, минус - списание)
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
+  - `operator_id` берем из JWT
+  - `delta` — целое, не 0 (плюс - награда, минус - списание)
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - group_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
-
-  - subject_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
-
-  - student_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
-
-  - delta - integer ≠ 0, обязательное поле
-
-  - reason - string\[1..255\], trim
-
-  - rule_code - ^\[A-Za-z0-9.\_-\]{2,50}\$
-
-  - 
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `group_id` - /^\[1-9\]\d{0,9}\$/ - `int`, обязательное поле
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/ - `int`, обязательное поле
+    - `student_ids` - `array[1..1000]` - `int`, обязательное поле
+    - `delta` - `integer ≠ 0`, обязательное поле
+    - `reason` - `string[1..255]`, `trim`
+    - `rule_code` - ^\[A-Za-z0-9.\_-\]{2,50}\$
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `group_id` - /^\[1-9\]\d{0,9}\$/ - `int`, обязательное поле
+    - `subject_id` - /^\[1-9\]\d{0,9}\$/ - `int`, обязательное поле
+    - `student_ids` - `array[1..1000]` - `int`, обязательное поле
+    - `delta` - `integer ≠ 0`, обязательное поле
+    - `reason` - `string[1..255]`, `trim`
+    - `rule_code` - ^\[A-Za-z0-9.\_-\]{2,50}\$
 
-    - group_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
+- **Responses**:
 
-    - subject_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
-
-    - student_id - /^\[1-9\]\d{0,9}\$/ - int, обязательное поле
-
-    - delta - integer ≠ 0, обязательное поле
-
-    - reason - string\[1..255\], trim
-
-    - rule_code - ^\[A-Za-z0-9.\_-\]{2,50}\$
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **201 Created** начисление/ снятие пингвинов успешно
-
-> {
->
-> "id": 120045,
->
-> "student": {
->
-> "id": 3001,
->
-> "full_name": "Alice Student"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "operator": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "rule": {
->
-> "id": 12,
->
-> "code": "DEDUCT_LATE"
->
-> },
->
-> "delta": -2,
->
-> "reason": "Late submission",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> },
+  - **201 Created** начисление/ снятие пингвинов успешно
+```json
+{ 
+  "id": 120045,
+  "student": { 
+    "id": 3001, 
+    "full_name": "Alice Student" 
+    },
+  "group": { 
+    "id": 510, 
+    "code": "281025-wdm", 
+    "name": "Web-Development-2025-10" 
+    },
+  "subject": { 
+    "id": 108, 
+    "name": "React" 
+    },
+  "operator": { 
+    "id": 1054, 
+    "full_name": "Ivan Petrov" 
+    },
+  "rule": { 
+    "id": 12, 
+    "code": "DEDUCT_LATE" 
+    },
+  "delta": -2,
+  "reason": "Late submission",
+  "created_at": "2025-09-02T10:11:12Z",
+}
+```
 
 - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "group_id is required" }
+```
+```json
+{ "message": "subject_id is required" }
+```
+```json
+{ "message": "student_ids is required" }
+```
+```json
+{ "message": "delta is required" }
+```
+```json
+{ "message": "delta must be a non-zero integer" }
+```
+```json
+{ "message": "group_id must be integer" }
+```
+```json
+{ "message": "subject_id must be integer" }
+```
+```json
+{ "message": "student_id must be integer" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”group_id is required”}
->
-> {“message”: ”subject_id is required”}
->
-> {“message”: ”student_id is required”}
->
-> {“message”: ”delta is required”}
->
-> {“message”: ”delta must be a non-zero integer”}
->
-> {“message”: ”group_id must be integer”}
->
-> {“message”: ”subject_id must be integer”}
->
-> {“message”: ”student_id must be integer”}
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to award penguins in this organization." }
+```
 
-- **401 Unauthorized** токен просрочен
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "User not found" }
+```
+```json
+{ "message": "Rule not found" }
+```
 
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to award penguins in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
->
-> {“message”: ”User not found”}
->
-> {“message”: ”Rule not found”}
-
-- **409 Conflict** не выполняется условие
-
-> {“message”: ”User does not have an active 'teacher' role in this organization.”}
->
-> {“message”: ”Teacher is not assigned to this subject in this group.”}
->
-> {“message”: ”Subject is not assigned to the group.”}
->
-> {“message”: ”Student do not have an active 'student' role in this organization.”}
->
-> {“message”: ”Student is not an active member of the group.”}
->
-> {“message”: ”Rule is inactive.”}
+  - **409 Conflict** не выполняется условие
+```json
+{ "message": "User does not have an active 'teacher' role in this organization." }
+```
+```json
+{ "message": "Teacher is not assigned to this subject in this group." }
+```
+```json
+{ "message": "Subject is not assigned to the group." }
+```
+```json
+{ "message": "Student do not have an active 'student' role in this organization." }
+```
+```json
+{ "message": "Student is not an active member of the group." }
+```
+```json
+{ "message": "Rule is inactive." }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка роли преподавателя (берем из JWT)
->
-> SELECT 1
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
->
-> WHERE user_roles.org_id = :org_id AND user_roles.user_id = :teacher_id AND user_roles.revoked_at IS NULL
->
-> LIMIT 1;
->
-> Проверка преподавателя на назначение группе
->
-> SELECT 1 FROM teaching_assignments
->
-> WHERE org_id = :org_id AND teacher_id = :operator_id AND group_id = :group_id AND subject_id = :subject_id
->
-> LIMIT 1;
->
-> Проверка предмета
->
-> SELECT 1 FROM subjects
->
-> WHERE id = :subject_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка предмета на назначение группе
->
-> SELECT 1 FROM group_subjects
->
-> WHERE org_id = :org_id
->
-> AND group_id = :group_id
->
-> AND subject_id = :subject_id
->
-> LIMIT 1;
->
-> Проверка правила (если оно передано)
->
-> если не передали rule_code:
->
-> SET @rule_id := NULL;
->
-> SET @rule_active := NULL;
->
-> если передали rule_code:
->
-> SELECT id, is_active INTO @rule_id, @rule_active
->
-> FROM penguin_rules
->
-> WHERE org_id = :org_id AND code = :rule_code
->
-> LIMIT 1;
->
-> если :rule_code передано і @rule_id IS NULL -\> 404 Rule not found
->
-> если :rule_code передано і @rule_active = 0 -\> 409 Rule is inactive
->
-> Проверка роли студента
->
-> SELECT 1
->
-> FROM user_roles
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
->
-> WHERE user_roles.org_id = :org_id AND user_roles.user_id = :student_id AND user_roles.revoked_at IS NULL
->
-> LIMIT 1;
->
-> Проверка студента на принадлежность группе (не archived)
->
-> SELECT COUNT(\*) AS bad_membership
->
-> FROM users
->
-> LEFT JOIN group_members
->
-> ON group_members.group_id = :group_id
->
-> AND group_members.student_id = users.id
->
-> AND group_members.status \<\> 'archived'
->
-> WHERE users.id IN (:student_id)
->
-> AND (users.status = 'deleted' OR group_members.student_id IS NULL);
->
-> если bad_membership \> 0 -\> 409 "Student is not an active member of the group."
->
-> Создание начисления/списания пингвина
->
-> INSERT INTO penguin_ledger
->
-> (org_id, student_id, group_id, subject_id, operator_id, direction_id, rule_id, batch_id, delta, reason, created_at)
->
-> SELECT :org_id, :student_id, :group_id, :subject_id, :operator_id, g.direction_id, @rule_id, @batch_id, :delta, :reason, NOW()
->
-> FROM groups
->
-> WHERE groups.id = :group_id AND groups.org_id = :org_id;
->
-> Обновление баланса
->
-> INSERT INTO penguin_balances (org_id, student_id, group_id, subject_id, direction_id, total)
->
-> SELECT :org_id, :student_id, :group_id, :subject_id, g.direction_id, :delta
->
-> FROM groups
->
-> WHERE groups.id = :group_id AND groups.org_id = :org_id
->
-> ON DUPLICATE KEY UPDATE total = total + VALUES(total);
->
-> Создание уведомления
->
-> INSERT INTO notifications (org_id, user_id, group_id, type, payload, is_read, created_at)
->
-> VALUES
->
-> (:org_id, :student_id, :group_id,
->
-> CASE WHEN :delta \>= 0 THEN 'penguin_award' ELSE 'penguin_deduct' END,
->
-> JSON_OBJECT(
->
-> 'delta', :delta,
->
-> 'reason', :reason,
->
-> 'subject_id', :subject_id,
->
-> 'batch_id', @batch_id
->
-> ),
->
-> 0, NOW());
->
-> Для ответа
->
-> SELECT
->
-> penguin_ledger.id, penguin_ledger.delta, penguin_ledger.reason, penguin_ledger.created_at,
->
-> users.id AS student_id, users.full_name AS student_name,
->
-> teacher.id AS operator_id, teacher.full_name AS operator_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> groups.id AS group_id, groups.code, groups.name AS group_name,
->
-> penguin_rules.id AS rule_id, penguin_rules.code AS rule_code
->
-> FROM penguin_ledger
->
-> JOIN users ON users.id = penguin_ledger.student_id
->
-> JOIN users teacher ON teacher.id = penguin_ledger.operator_id
->
-> JOIN subjects ON subjects.id = penguin_ledger.subject_id
->
-> JOIN groups ON groups.id = penguin_ledger.group_id
->
-> LEFT JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
->
-> WHERE penguin_ledger.id = LAST_INSERT_ID();
 
-##### Получить список начислений/списаний (Журнал):
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка роли преподавателя (берем из JWT)
+SELECT 1 
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'teacher'
+WHERE user_roles.org_id = :org_id AND user_roles.user_id = :teacher_id AND user_roles.revoked_at IS NULL
+LIMIT 1;
+
+--Проверка преподавателя на назначение группе 
+SELECT 1 FROM teaching_assignments
+WHERE org_id = :org_id AND teacher_id = :operator_id AND group_id = :group_id AND subject_id = :subject_id
+LIMIT 1;
+
+--Проверка предмета
+SELECT 1 FROM subjects 
+WHERE id = :subject_id AND org_id = :org_id 
+LIMIT 1;
+
+--Проверка предмета на назначение группе
+SELECT 1 FROM group_subjects 
+WHERE org_id = :org_id 
+  AND group_id = :group_id 
+  AND subject_id = :subject_id 
+LIMIT 1;
+
+--Проверка правила (если оно передано)
+--если не передали rule_code:
+SET @rule_id := NULL;
+SET @rule_active := NULL;
+--если передали rule_code:
+SELECT id, is_active INTO @rule_id, @rule_active
+FROM penguin_rules
+WHERE org_id = :org_id AND code = :rule_code
+LIMIT 1;
+--если :rule_code передано і @rule_id IS NULL -> 404 Rule not found
+--если :rule_code передано і @rule_active = 0 -> 409 Rule is inactive
+
+--Проверка роли студента
+SELECT 1 
+FROM user_roles
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
+WHERE user_roles.org_id = :org_id AND user_roles.user_id = :student_id AND user_roles.revoked_at IS NULL
+LIMIT 1;
+
+--Проверка студента на принадлежность группе (не archived)
+SELECT COUNT(*) AS bad_membership
+FROM users
+LEFT JOIN group_members
+  ON group_members.group_id = :group_id 
+ AND group_members.student_id = users.id 
+ AND group_members.status <> 'archived'
+WHERE users.id IN (:student_id)
+  AND (users.status = 'deleted' OR group_members.student_id IS NULL);
+--если bad_membership > 0 -> 409 "Student is not an active member of the group."
+
+--Создание начисления/списания пингвина
+INSERT INTO penguin_ledger
+(org_id, student_id, group_id, subject_id, operator_id, direction_id, rule_id, batch_id, delta, reason, created_at)
+SELECT :org_id, :student_id, :group_id, :subject_id, :operator_id, g.direction_id, @rule_id, @batch_id, :delta, :reason, NOW()
+FROM groups
+WHERE groups.id = :group_id AND groups.org_id = :org_id;
+
+--Обновление баланса
+INSERT INTO penguin_balances (org_id, student_id, group_id, subject_id, direction_id, total)
+SELECT :org_id, :student_id, :group_id, :subject_id, g.direction_id, :delta
+FROM groups
+WHERE groups.id = :group_id AND groups.org_id = :org_id
+ON DUPLICATE KEY UPDATE total = total + VALUES(total);
+
+--Создание уведомления 
+INSERT INTO notifications (org_id, user_id, group_id, type, payload, is_read, created_at)
+VALUES
+(:org_id, :student_id, :group_id,
+ CASE WHEN :delta >= 0 THEN 'penguin_award' ELSE 'penguin_deduct' END,
+ JSON_OBJECT(
+   'delta', :delta,
+   'reason', :reason,
+   'subject_id', :subject_id,
+   'batch_id', @batch_id
+ ),
+ 0, NOW());
+
+--Для ответа
+SELECT
+  penguin_ledger.id, penguin_ledger.delta, penguin_ledger.reason, penguin_ledger.created_at,
+  users.id AS student_id, users.full_name AS student_name,
+  teacher.id AS operator_id, teacher.full_name AS operator_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  groups.id AS group_id, groups.code, groups.name AS group_name,
+  penguin_rules.id AS rule_id, penguin_rules.code AS rule_code
+FROM penguin_ledger
+JOIN users ON users.id = penguin_ledger.student_id
+JOIN users teacher ON teacher.id = penguin_ledger.operator_id
+JOIN subjects ON subjects.id = penguin_ledger.subject_id
+JOIN groups ON groups.id = penguin_ledger.group_id
+LEFT JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
+WHERE penguin_ledger.id = LAST_INSERT_ID(); 
+
+```
+
+
+#### Получить список начислений/списаний (Журнал):  
+
+`GET /orgs/:orgId/penguins/ledger?q=&studentId=&groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=`  
 
 суперадмин, админ, преподаватель, сотрудник организации, студент
 
-- GET /orgs/:orgId/penguins/ledger?q=&studentId=&groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=
 
-> q - поиск по reason (опционально)
->
-> studentId - фильтр по студенту (опционально)
->
-> groupId - фильтр по группе (опционально)
->
-> subjectId - фильтр по предмету (опционально)
->
-> operatorId - фильтр по преподавателю (опционально)
->
-> date_from - фильтр по дате начало периода (опционально)
->
-> date_to - фильтр по дате конец периода (опционально)
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+  `q` - поиск по `reason` (опционально)  
+  `studentId` - фильтр по студенту (опционально)  
+  `groupId` - фильтр по группе (опционально)  
+  `subjectId` - фильтр по предмету (опционально)  
+  `operatorId` - фильтр по преподавателю (опционально)  
+  `date_from` - фильтр по дате начало периода (опционально)  
+  `date_to` - фильтр по дате конец периода (опционально)  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-- **Content-type:** application/json
+- **Content-type:** `application/json`
 
-- **Authorization:** Bearer \<jwt\>
+- **Authorization:** `Bearer <jwt>`
 
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
-
-  - subjectId - целое число
-
-  - operatorId - целое число
-
-  - date_from - YYYY-MM-DD
-
-  - date_to - YYYY-MM-DD
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `studentId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `operatorId` - целое число
+  - `date_from` - `YYYY-MM-DD`
+  - `date_to` - `YYYY-MM-DD`
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - date_from - YYYY-MM-DD
-
-    - date_to - YYYY-MM-DD
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - date_from - YYYY-MM-DD
-
-    - date_to - YYYY-MM-DD
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
 - **Responses**:
 
   - **200 OK**
-
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "ledger":
->
-> \[
->
-> {
->
-> "id": 120045,
->
-> "student": {
->
-> "id": 3001,
->
-> "full_name": "Alice Student"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "operator": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "rule": {
->
-> "id": 12,
->
-> "code": "DEDUCT_LATE"
->
-> },
->
-> "delta": -2,
->
-> "reason": "Late submission",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> },
->
-> \]
->
-> }
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "ledger": 
+  [
+    {
+      "id": 120045,
+      "student": { 
+        "id": 3001, 
+        "full_name": "Alice Student" 
+        },
+      "group": { 
+        "id": 510, 
+        "code": "281025-wdm", 
+        "name": "Web-Development-2025-10" 
+        },
+      "subject": { 
+        "id": 108, 
+        "name": "React" 
+        },
+      "operator": { 
+        "id": 1054, 
+        "full_name": "Ivan Petrov" 
+        },
+      "rule": { 
+        "id": 12, 
+        "code": "DEDUCT_LATE" 
+        },
+      "delta": -2,
+      "reason": "Late submission",
+      "created_at": "2025-09-02T10:11:12Z",
+    },
+  ]
+}
+```
 
 - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: studentId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: operatorId must be integer" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: studentId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
->
-> {“message”: ”Invalid path parameter: operatorId must be integer”}
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
 - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view penguins in this organization." }
+```
 
-> {“message”: ”Permission denied: You are not allowed to view penguins in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Student not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Subject not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM penguin_ledger
->
-> JOIN users ON users.id = penguin_ledger.student_id
->
-> JOIN users teacher ON teacher.id = penguin_ledger.operator_id
->
-> JOIN subjects ON subjects.id = penguin_ledger.subject_id
->
-> JOIN groups ON groups.id = penguin_ledger.group_id
->
-> LEFT JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> AND users.status \<\> 'deleted' AND teacher.status \<\> 'deleted'
->
-> AND (:student_id IS NULL OR penguin_ledger.student_id = :student_id)
->
-> AND (:group_id IS NULL OR penguin_ledger.group_id = :group_id)
->
-> AND (:subject_id IS NULL OR penguin_ledger.subject_id = :subject_id)
->
-> AND (:operator_id IS NULL OR penguin_ledger.operator_id = :operator_id)
->
-> AND (:date_from IS NULL OR penguin_ledger.created_at \>= :date_from)
->
-> AND (:date_to IS NULL OR penguin_ledger.created_at \< :date_to)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR penguin_ledger.reason LIKE CONCAT('%', :q, '%')
->
-> );
->
-> page
->
-> SELECT
->
-> penguin_ledger.id, penguin_ledger.delta, penguin_ledger.reason, penguin_ledger.created_at,
->
-> users.id AS student_id, users.full_name AS student_name,
->
-> teacher.id AS operator_id, teacher.full_name AS operator_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> groups.id AS group_id, groups.code, groups.name AS group_name,
->
-> penguin_rules.id AS rule_id, penguin_rules.code AS rule_code
->
-> FROM penguin_ledger
->
-> JOIN users ON users.id = penguin_ledger.student_id
->
-> JOIN users teacher ON teacher.id = penguin_ledger.operator_id
->
-> JOIN subjects ON subjects.id = penguin_ledger.subject_id
->
-> JOIN groups ON groups.id = penguin_ledger.group_id
->
-> LEFT JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> AND users.status \<\> 'deleted' AND teacher.status \<\> 'deleted'
->
-> AND (:student_id IS NULL OR penguin_ledger.student_id = :student_id)
->
-> AND (:group_id IS NULL OR penguin_ledger.group_id = :group_id)
->
-> AND (:subject_id IS NULL OR penguin_ledger.subject_id = :subject_id)
->
-> AND (:operator_id IS NULL OR penguin_ledger.operator_id = :operator_id)
->
-> AND (:date_from IS NULL OR penguin_ledger.created_at \>= :date_from)
->
-> AND (:date_to IS NULL OR penguin_ledger.created_at \< :date_to)
->
-> AND (
->
-> COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
->
-> OR penguin_ledger.reason LIKE CONCAT('%', :q, '%')
->
-> )
->
-> ORDER BY penguin_ledger.created_at DESC, penguin_ledger.id DESC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить одно начисление/списание пингвина по id:
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM penguin_ledger
+JOIN users ON users.id = penguin_ledger.student_id
+JOIN users teacher ON teacher.id = penguin_ledger.operator_id
+JOIN subjects ON subjects.id = penguin_ledger.subject_id
+JOIN groups ON groups.id = penguin_ledger.group_id
+LEFT JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
+WHERE penguin_ledger.org_id = :org_id
+  AND users.status <> 'deleted' AND teacher.status <> 'deleted'
+  AND (:student_id IS NULL OR penguin_ledger.student_id = :student_id)
+  AND (:group_id IS NULL OR penguin_ledger.group_id = :group_id)
+  AND (:subject_id IS NULL OR penguin_ledger.subject_id = :subject_id)
+  AND (:operator_id IS NULL OR penguin_ledger.operator_id = :operator_id)
+  AND (:date_from IS NULL OR penguin_ledger.created_at >= :date_from)
+  AND (:date_to IS NULL OR penguin_ledger.created_at < :date_to)
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR penguin_ledger.reason LIKE CONCAT('%', :q, '%')
+  );
+
+--page
+SELECT
+  penguin_ledger.id, penguin_ledger.delta, penguin_ledger.reason, penguin_ledger.created_at,
+  users.id AS student_id, users.full_name AS student_name,
+  teacher.id AS operator_id, teacher.full_name AS operator_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  groups.id AS group_id, groups.code, groups.name AS group_name,
+  penguin_rules.id AS rule_id, penguin_rules.code AS rule_code
+FROM penguin_ledger
+JOIN users ON users.id = penguin_ledger.student_id
+JOIN users teacher ON teacher.id = penguin_ledger.operator_id
+JOIN subjects ON subjects.id = penguin_ledger.subject_id
+JOIN groups ON groups.id = penguin_ledger.group_id
+LEFT JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
+WHERE penguin_ledger.org_id = :org_id
+  AND users.status <> 'deleted' AND teacher.status <> 'deleted'
+  AND (:student_id IS NULL OR penguin_ledger.student_id = :student_id)
+  AND (:group_id IS NULL OR penguin_ledger.group_id = :group_id)
+  AND (:subject_id IS NULL OR penguin_ledger.subject_id = :subject_id)
+  AND (:operator_id IS NULL OR penguin_ledger.operator_id = :operator_id)
+  AND (:date_from IS NULL OR penguin_ledger.created_at >= :date_from)
+  AND (:date_to IS NULL OR penguin_ledger.created_at < :date_to)
+  AND (
+    COALESCE(NULLIF(TRIM(:q), ''), NULL) IS NULL
+    OR penguin_ledger.reason LIKE CONCAT('%', :q, '%')
+  )
+ORDER BY penguin_ledger.created_at DESC, penguin_ledger.id DESC
+LIMIT @limit OFFSET @offset;
+
+```
+
+
+#### Получить одно начисление/списание пингвина по id:  `GET /orgs/:orgId/penguins/ledger/:id`
 
 суперадмин, админ, преподаватель, сотрудник организации, студент
 
-- GET /orgs/:orgId/penguins/ledger/:id
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:** `{}`
 
-  - **Body:** {}
+- **Path / Query params:**
 
-  - **Path / Query params:**
+  - `orgId` - целое число
+  - `id` - целое число
 
-    - orgId - целое число
+- **Backend-правила:**
 
-    - id - целое число
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
-  - **Backend-правила:**
+- **Validation**:
 
-    - orgId из пути должен совпадать с org в JWT  
-      (для superadmin - любой org)
+  - Frontend:
 
-    - Организация orgId существует и status IN ('active','pending')
-
-  - **Validation**:
-
-    - Frontend:
-
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
 
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+- **Responses**:
 
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "id": 120045,
->
-> "student": {
->
-> "id": 3001,
->
-> "full_name": "Alice Student"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "operator": {
->
-> "id": 1054,
->
-> "full_name": "Ivan Petrov"
->
-> },
->
-> "rule": {
->
-> "id": 12,
->
-> "code": "DEDUCT_LATE"
->
-> },
->
-> "delta": -2,
->
-> "reason": "Late submission",
->
-> "created_at": "2025-09-02T10:11:12Z",
->
-> },
+  - **200 OK**
+```json
+{ 
+  "id": 120045,
+  "student": { 
+    "id": 3001, 
+    "full_name": "Alice Student" 
+    },
+  "group": { 
+    "id": 510, 
+    "code": "281025-wdm", 
+    "name": "Web-Development-2025-10" 
+    },
+  "subject": { 
+    "id": 108, 
+    "name": "React" 
+    },
+  "operator": { 
+    "id": 1054, 
+    "full_name": "Ivan Petrov" 
+    },
+  "rule": { 
+    "id": 12, 
+    "code": "DEDUCT_LATE" 
+    },
+  "delta": -2,
+  "reason": "Late submission",
+  "created_at": "2025-09-02T10:11:12Z",
+}
+```
 
 - **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: id must be integer”}
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
 
 - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** токен просрочен
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view penguins in this organization." }
+```
 
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view penguins in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {"message": "Penguin accrual/debit not found"}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Penguin accrual/debit not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Выборка
->
-> SELECT
->
-> penguin_ledger.id, penguin_ledger.delta, penguin_ledger.reason, penguin_ledger.created_at,
->
-> users.id AS student_id, users.full_name AS student_name,
->
-> teacher.id AS operator_id, teacher.full_name AS operator_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> groups.id AS group_id, groups.code, groups.name AS group_name,
->
-> penguin_rules.id AS rule_id, penguin_rules.code AS rule_code
->
-> FROM penguin_ledger
->
-> JOIN users ON users.id = penguin_ledger.student_id
->
-> JOIN users teacher ON teacher.id = penguin_ledger.operator_id
->
-> JOIN subjects ON subjects.id = penguin_ledger.subject_id
->
-> JOIN groups ON groups.id = penguin_ledger.group_id
->
-> LEFT JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
->
-> WHERE penguin_ledger.org_id=:org_id AND penguin_ledger.id=:id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Выборка
+SELECT
+  penguin_ledger.id, penguin_ledger.delta, penguin_ledger.reason, penguin_ledger.created_at,
+  users.id AS student_id, users.full_name AS student_name,
+  teacher.id AS operator_id, teacher.full_name AS operator_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  groups.id AS group_id, groups.code, groups.name AS group_name,
+  penguin_rules.id AS rule_id, penguin_rules.code AS rule_code
+FROM penguin_ledger
+JOIN users ON users.id = penguin_ledger.student_id
+JOIN users teacher ON teacher.id = penguin_ledger.operator_id
+JOIN subjects ON subjects.id = penguin_ledger.subject_id
+JOIN groups ON groups.id = penguin_ledger.group_id
+LEFT JOIN penguin_rules ON penguin_rules.id = penguin_ledger.rule_id
+WHERE penguin_ledger.org_id=:org_id AND penguin_ledger.id=:id 
+LIMIT 1;
+
+```
+
 
 #### Статистика (день/неделя/месяц) penguin_ledger
 
