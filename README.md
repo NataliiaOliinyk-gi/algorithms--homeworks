@@ -9785,9 +9785,7 @@ WHERE penguin_ledger.id = LAST_INSERT_ID();
 ```
 
 
-#### Получить список начислений/списаний (Журнал):  
-
-`GET /orgs/:orgId/penguins/ledger?q=&studentId=&groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=`  
+#### Получить список начислений/списаний (Журнал):  `GET /orgs/:orgId/penguins/ledger?q=&studentId=&groupId=&subjectId=&operatorId=&date_from=&date_to=&page=&limit=`  
 
 суперадмин, админ, преподаватель, сотрудник организации, студент
 
@@ -10134,1833 +10132,1387 @@ LIMIT 1;
 ```
 
 
-#### Статистика (день/неделя/месяц) penguin_ledger
+### Статистика (день/неделя/месяц) penguin_ledger
 
-GET /orgs/:orgId/penguins/stats/daily?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=  
-получить статистику за день
+`GET /orgs/:orgId/penguins/stats/daily?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=`    
+получить статистику за день  
 
-GET /orgs/:orgId/penguins/stats/weekly?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=  
-получить статистику за неделю
+`GET /orgs/:orgId/penguins/stats/weekly?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=`   
+получить статистику за неделю  
 
-GET /orgs/:orgId/penguins/stats/monthly?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=  
-получить статистику за месяц
+`GET /orgs/:orgId/penguins/stats/monthly?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=`    
+получить статистику за месяц  
 
-##### Получить статистику за день:
+#### Получить статистику за день: `GET /orgs/:orgId/penguins/stats/daily?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=`
 
 суперадмин, админ, преподаватель, сотрудник организации, студент
 
-- GET /orgs/:orgId/penguins/stats/daily?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=
+  `studentId` - фильтр по студенту (опционально)  
+  `groupId` - фильтр по группе (опционально)  
+  `subjectId` - фильтр по предмету (опционально)  
+  `operatorId` - фильтр по преподавателю (опционально)  
+  `directionId` - фильтр по направлению (опционально)  
+  `date_from` - фильтр по дате начало периода (опционально)  
+  `date_to` - фильтр по дате конец периода (опционально)  
 
-> studentId - фильтр по студенту (опционально)
->
-> groupId - фильтр по группе (опционально)
->
-> subjectId - фильтр по предмету (опционально)
->
-> operatorId - фильтр по преподавателю (опционально)
->
-> directionId - фильтр по направлению (опционально)
->
-> date_from - фильтр по дате начало периода (опционально)
->
-> date_to - фильтр по дате конец периода (опционально)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - studentId - целое число
-
-  - groupId - целое число
-
-  - subjectId - целое число
-
-  - operatorId - целое число
-
-  - directionId - целое число
-
-  - date_from - YYYY-MM-DD
-
-  - date_to - YYYY-MM-DD
+  - `orgId` - целое число
+  - `studentId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `operatorId` - целое число
+  - `directionId` - целое число
+  - `date_from` - `YYYY-MM-DD`
+  - `date_to` - `YYYY-MM-DD`
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Бизнес-правила:**
 
-  - Студент получает только свою статистику (studentId = current)
+  - Студент получает только свою статистику (`studentId = current`)
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - studentId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - date_from - YYYY-MM-DD
-
-  - date_to - YYYY-MM-DD
-
-  <!-- -->
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path
+- **Responses**:
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **200 OK**
+```json
+{ 
+  "series": [
+    { 
+      "date": "2025-09-01", 
+      "net_total": 12, 
+      "awards": 15, 
+      "deducts": -3, 
+      "count_ops": 7 
+    },
+    { 
+      "date": "2025-09-02", 
+      "net_total":  5, 
+      "awards":  8, 
+      "deducts": -3, 
+      "count_ops": 4 
+    },
+  ]
+}
+```
 
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: studentId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: operatorId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
 
-    - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-    - date_from - YYYY-MM-DD
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view penguin statistics in this organization." }
+```
 
-    - date_to - YYYY-MM-DD
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "series": \[
->
-> {
->
-> "date": "2025-09-01",
->
-> "net_total": 12,
->
-> "awards": 15,
->
-> "deducts": -3,
->
-> "count_ops": 7
->
-> },
->
-> {
->
-> "date": "2025-09-02",
->
-> "net_total": 5,
->
-> "awards": 8,
->
-> "deducts": -3,
->
-> "count_ops": 4
->
-> }
->
-> \]
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: studentId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
->
-> {“message”: ”Invalid path parameter: operatorId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view penguin statistics in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Student not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Direction not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Выборка
->
-> SELECT
->
-> DATE(penguin_ledger.created_at) AS bucket_date,
->
-> SUM(penguin_ledger.delta) AS net_total,
->
-> SUM(CASE WHEN penguin_ledger.delta \>= 0 THEN penguin_ledger.delta ELSE 0 END) AS awards,
->
-> SUM(CASE WHEN penguin_ledger.delta \< 0 THEN penguin_ledger.delta ELSE 0 END) AS deducts,
->
-> COUNT(\*) AS count_ops
->
-> FROM penguin_ledger
->
-> JOIN users student ON student.id = penguin_ledger.student_id AND student.status \<\> 'deleted'
->
-> JOIN users teacher ON teacher.id = penguin_ledger.operator_id AND teacher.status \<\> 'deleted'
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> AND (:student_id IS NULL
->
-> OR penguin_ledger.student_id = :student_id)
->
-> AND (:group_id IS NULL
->
-> OR penguin_ledger.group_id = :group_id)
->
-> AND (:subject_id IS NULL
->
-> OR penguin_ledger.subject_id = :subject_id)
->
-> AND (:operator_id IS NULL
->
-> OR penguin_ledger.operator_id = :operator_id)
->
-> AND (:direction_id IS NULL
->
-> OR penguin_ledger.direction_id = :direction_id)
->
-> AND (:date_from IS NULL
->
-> OR penguin_ledger.created_at \>= :date_from)
->
-> AND (:date_to IS NULL
->
-> OR penguin_ledger.created_at \< :date_to)
->
-> GROUP BY bucket_date
->
-> ORDER BY bucket_date ASC;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Получить статистику за неделю:
+--Выборка
+SELECT
+  DATE(penguin_ledger.created_at) AS bucket_date,
+  SUM(penguin_ledger.delta) AS net_total,
+  SUM(CASE WHEN penguin_ledger.delta >= 0 THEN penguin_ledger.delta ELSE 0 END) AS awards,
+  SUM(CASE WHEN penguin_ledger.delta < 0 THEN penguin_ledger.delta ELSE 0 END) AS deducts,
+  COUNT(*) AS count_ops
+FROM penguin_ledger
+JOIN users student ON student.id = penguin_ledger.student_id AND student.status <> 'deleted'
+JOIN users teacher ON teacher.id  = penguin_ledger.operator_id AND teacher.status  <> 'deleted'
+WHERE penguin_ledger.org_id = :org_id
+  AND (:student_id   IS NULL 
+OR penguin_ledger.student_id   = :student_id)
+  AND (:group_id     IS NULL 
+OR penguin_ledger.group_id     = :group_id)
+  AND (:subject_id   IS NULL 
+OR penguin_ledger.subject_id   = :subject_id)
+  AND (:operator_id  IS NULL 
+OR penguin_ledger.operator_id  = :operator_id)
+  AND (:direction_id IS NULL 
+OR penguin_ledger.direction_id = :direction_id)
+  AND (:date_from    IS NULL 
+OR penguin_ledger.created_at  >= :date_from)
+  AND (:date_to      IS NULL 
+OR penguin_ledger.created_at  <  :date_to)
+GROUP BY bucket_date
+ORDER BY bucket_date ASC;
+
+```
+
+#### Получить статистику за неделю:  `GET /orgs/:orgId/penguins/stats/weekly?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=`
 
 суперадмин, админ, преподаватель, сотрудник организации, студент
 
-- GET /orgs/:orgId/penguins/stats/weekly?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=
+  `studentId` - фильтр по студенту (опционально)  
+  `groupId` - фильтр по группе (опционально)  
+  `subjectId` - фильтр по предмету (опционально)  
+  `operatorId` - фильтр по преподавателю (опционально)  
+  `directionId` - фильтр по направлению (опционально)  
+  `date_from` - фильтр по дате начало периода (опционально)  
+  `date_to` - фильтр по дате конец периода (опционально)  
 
-> studentId - фильтр по студенту (опционально)
->
-> groupId - фильтр по группе (опционально)
->
-> subjectId - фильтр по предмету (опционально)
->
-> operatorId - фильтр по преподавателю (опционально)
->
-> directionId - фильтр по направлению (опционально)
->
-> date_from - фильтр по дате начало периода (опционально)
->
-> date_to - фильтр по дате конец периода (опционально)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - studentId - целое число
-
-  - groupId - целое число
-
-  - subjectId - целое число
-
-  - operatorId - целое число
-
-  - directionId - целое число
-
-  - date_from - YYYY-MM-DD
-
-  - date_to - YYYY-MM-DD
+  - `orgId` - целое число
+  - `studentId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `operatorId` - целое число
+  - `directionId` - целое число
+  - `date_from` - `YYYY-MM-DD`
+  - `date_to` - `YYYY-MM-DD`
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Бизнес-правила:**
 
-  - Студент получает только свою статистику (studentId = current)
+  - Студент получает только свою статистику (`studentId = current`)
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - studentId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - date_from - YYYY-MM-DD
-
-  - date_to - YYYY-MM-DD
-
-  <!-- -->
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path
+- **Responses**:
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **200 OK**
+```json
+{ 
+  "series": [
+    { 
+    "week": "2025-W35", 
+    "net_total": 22, 
+    "awards": 26, 
+    "deducts": -4, 
+    "count_ops": 11 
+    }
+  ]
+}
+```
 
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: studentId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: operatorId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
 
-    - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-    - date_from - YYYY-MM-DD
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view penguin statistics in this organization." }
+```
 
-    - date_to - YYYY-MM-DD
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "series": \[
->
-> {
->
-> "week": "2025-W35",
->
-> "net_total": 22,
->
-> "awards": 26,
->
-> "deducts": -4,
->
-> "count_ops": 11
->
-> }
->
-> \]
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: studentId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
->
-> {“message”: ”Invalid path parameter: operatorId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view penguin statistics in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Student not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Direction not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Выборка
->
-> SELECT
->
-> DATE_FORMAT(penguin_ledger.created_at - INTERVAL (WEEKDAY(penguin_ledger.created_at)) DAY, '%Y-%m-%d') AS week_start,
->
-> CONCAT(YEARWEEK(penguin_ledger.created_at, 3) DIV 100, '-W', LPAD(YEARWEEK(penguin_ledger.created_at, 3) % 100, 2, '0')) AS week_label,
->
-> SUM(penguin_ledger.delta) AS net_total,
->
-> SUM(CASE WHEN penguin_ledger.delta \>= 0 THEN penguin_ledger.delta ELSE 0 END) AS awards,
->
-> SUM(CASE WHEN penguin_ledger.delta \< 0 THEN penguin_ledger.delta ELSE 0 END) AS deducts,
->
-> COUNT(\*) AS count_ops
->
-> FROM penguin_ledger
->
-> JOIN users student ON student.id = penguin_ledger.student_id AND student.status \<\> 'deleted'
->
-> JOIN users teacher ON teacher.id = penguin_ledger.operator_id AND teacher.status \<\> 'deleted'
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> AND (:student_id IS NULL
->
-> OR penguin_ledger.student_id = :student_id)
->
-> AND (:group_id IS NULL
->
-> OR penguin_ledger.group_id = :group_id)
->
-> AND (:subject_id IS NULL
->
-> OR penguin_ledger.subject_id = :subject_id)
->
-> AND (:operator_id IS NULL
->
-> OR penguin_ledger.operator_id = :operator_id)
->
-> AND (:direction_id IS NULL
->
-> OR penguin_ledger.direction_id = :direction_id)
->
-> AND (:date_from IS NULL
->
-> OR penguin_ledger.created_at \>= :date_from)
->
-> AND (:date_to IS NULL
->
-> OR penguin_ledger.created_at \< :date_to)
->
-> GROUP BY week_start, week_label
->
-> ORDER BY week_start ASC;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-##### Получить статистику за месяц:
+--Выборка
+SELECT
+  DATE_FORMAT(penguin_ledger.created_at - INTERVAL (WEEKDAY(penguin_ledger.created_at)) DAY, '%Y-%m-%d') AS week_start,
+  CONCAT(YEARWEEK(penguin_ledger.created_at, 3) DIV 100, '-W', LPAD(YEARWEEK(penguin_ledger.created_at, 3) % 100, 2, '0')) AS week_label,
+  SUM(penguin_ledger.delta) AS net_total,
+  SUM(CASE WHEN penguin_ledger.delta >= 0 THEN penguin_ledger.delta ELSE 0 END) AS awards,
+  SUM(CASE WHEN penguin_ledger.delta <  0 THEN penguin_ledger.delta ELSE 0 END) AS deducts,
+  COUNT(*) AS count_ops
+FROM penguin_ledger
+JOIN users student ON student.id = penguin_ledger.student_id AND student.status <> 'deleted'
+JOIN users teacher ON teacher.id  = penguin_ledger.operator_id AND teacher.status  <> 'deleted'
+WHERE penguin_ledger.org_id = :org_id
+  AND (:student_id   IS NULL 
+OR penguin_ledger.student_id   = :student_id)
+  AND (:group_id     IS NULL 
+OR penguin_ledger.group_id     = :group_id)
+  AND (:subject_id   IS NULL 
+OR penguin_ledger.subject_id   = :subject_id)
+  AND (:operator_id  IS NULL 
+OR penguin_ledger.operator_id  = :operator_id)
+  AND (:direction_id IS NULL 
+OR penguin_ledger.direction_id = :direction_id)
+  AND (:date_from    IS NULL 
+OR penguin_ledger.created_at  >= :date_from)
+  AND (:date_to      IS NULL 
+OR penguin_ledger.created_at  <  :date_to)
+GROUP BY week_start, week_label
+ORDER BY week_start ASC;
+
+```
+
+#### Получить статистику за месяц:  `GET /orgs/:orgId/penguins/stats/monthly?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=`
 
 суперадмин, админ, преподаватель, сотрудник организации, студент
 
-- GET /orgs/:orgId/penguins/stats/monthly?studentId=&groupId=&subjectId=&operatorId=&directionId=&date_from=&date_to=
+  `studentId` - фильтр по студенту (опционально)  
+  `groupId` - фильтр по группе (опционально)  
+  `subjectId` - фильтр по предмету (опционально)  
+  `operatorId` - фильтр по преподавателю (опционально)  
+  `directionId` - фильтр по направлению (опционально)  
+  `date_from` - фильтр по дате начало периода (опционально)  
+  `date_to` - фильтр по дате конец периода (опционально)  
 
-> studentId - фильтр по студенту (опционально)
->
-> groupId - фильтр по группе (опционально)
->
-> subjectId - фильтр по предмету (опционально)
->
-> operatorId - фильтр по преподавателю (опционально)
->
-> directionId - фильтр по направлению (опционально)
->
-> date_from - фильтр по дате начало периода (опционально)
->
-> date_to - фильтр по дате конец периода (опционально)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - studentId - целое число
-
-  - groupId - целое число
-
-  - subjectId - целое число
-
-  - operatorId - целое число
-
-  - directionId - целое число
-
-  - date_from - YYYY-MM-DD
-
-  - date_to - YYYY-MM-DD
+  - `orgId` - целое число
+  - `studentId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `operatorId` - целое число
+  - `directionId` - целое число
+  - `date_from` - `YYYY-MM-DD`
+  - `date_to` - `YYYY-MM-DD`
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Бизнес-правила:**
 
-  - Студент получает только свою статистику (studentId = current)
+  - Студент получает только свою статистику (`studentId = current`)
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - studentId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-  - date_from - YYYY-MM-DD
-
-  - date_to - YYYY-MM-DD
-
-  <!-- -->
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `operatorId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `date_from` - `YYYY-MM-DD`
+    - `date_to` - `YYYY-MM-DD`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path
+- **Responses**:
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **200 OK**
+```json
+{ 
+  "series": [
+    { 
+    "month": "2025-09", 
+    "net_total": 120, 
+    "awards": 150, 
+    "deducts": -30, 
+    "count_ops": 64 
+    }
+  ]
+}
+```
 
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: studentId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: operatorId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
 
-    - operatorId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-    - date_from - YYYY-MM-DD
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view penguin statistics in this organization." }
+```
 
-    - date_to - YYYY-MM-DD
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "series": \[
->
-> {
->
-> "month": "2025-09",
->
-> "net_total": 120,
->
-> "awards": 150,
->
-> "deducts": -30,
->
-> "count_ops": 64
->
-> }
->
-> \]
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: studentId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
->
-> {“message”: ”Invalid path parameter: operatorId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
-
-- **401 Unauthorized** отсутствует Authorization
-
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view penguin statistics in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Student not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
->
-> {“message”: ”Teacher not found”}
->
-> {“message”: ”Direction not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "Teacher not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending') LIMIT 1;
->
-> Выборка
->
-> SELECT
->
-> DATE_FORMAT(penguin_ledger.created_at, '%Y-%m') AS month_label,
->
-> SUM(penguin_ledger.delta) AS net_total,
->
-> SUM(CASE WHEN penguin_ledger.delta \>= 0 THEN penguin_ledger.delta ELSE 0 END) AS awards,
->
-> SUM(CASE WHEN penguin_ledger.delta \< 0 THEN penguin_ledger.delta ELSE 0 END) AS deducts,
->
-> COUNT(\*) AS count_ops
->
-> FROM penguin_ledger
->
-> JOIN users student ON student.id = penguin_ledger.student_id AND student.status \<\> 'deleted'
->
-> JOIN users teacher ON teacher.id = penguin_ledger.operator_id AND teacher.status \<\> 'deleted'
->
-> WHERE penguin_ledger.org_id = :org_id
->
-> AND (:student_id IS NULL
->
-> OR penguin_ledger.student_id = :student_id)
->
-> AND (:group_id IS NULL
->
-> OR penguin_ledger.group_id = :group_id)
->
-> AND (:subject_id IS NULL
->
-> OR penguin_ledger.subject_id = :subject_id)
->
-> AND (:operator_id IS NULL
->
-> OR penguin_ledger.operator_id = :operator_id)
->
-> AND (:direction_id IS NULL
->
-> OR penguin_ledger.direction_id = :direction_id)
->
-> AND (:date_from IS NULL
->
-> OR penguin_ledger.created_at \>= :date_from)
->
-> AND (:date_to IS NULL
->
-> OR penguin_ledger.created_at \< :date_to)
->
-> GROUP BY month_label
->
-> ORDER BY month_label ASC;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-#### Балансы penguin_balances
+--Выборка
+SELECT
+  DATE_FORMAT(penguin_ledger.created_at, '%Y-%m') AS month_label,
+  SUM(penguin_ledger.delta) AS net_total,
+  SUM(CASE WHEN penguin_ledger.delta >= 0 THEN penguin_ledger.delta ELSE 0 END) AS awards,
+  SUM(CASE WHEN penguin_ledger.delta <  0 THEN penguin_ledger.delta ELSE 0 END) AS deducts,
+  COUNT(*) AS count_ops
+FROM penguin_ledger
+JOIN users student ON student.id = penguin_ledger.student_id AND student.status <> 'deleted'
+JOIN users teacher ON teacher.id  = penguin_ledger.operator_id AND teacher.status  <> 'deleted'
+WHERE penguin_ledger.org_id = :org_id
+  AND (:student_id   IS NULL 
+OR penguin_ledger.student_id   = :student_id)
+  AND (:group_id     IS NULL 
+OR penguin_ledger.group_id     = :group_id)
+  AND (:subject_id   IS NULL 
+OR penguin_ledger.subject_id   = :subject_id)
+  AND (:operator_id  IS NULL 
+OR penguin_ledger.operator_id  = :operator_id)
+  AND (:direction_id IS NULL 
+OR penguin_ledger.direction_id = :direction_id)
+  AND (:date_from    IS NULL 
+OR penguin_ledger.created_at  >= :date_from)
+  AND (:date_to      IS NULL 
+OR penguin_ledger.created_at  <  :date_to)
+GROUP BY month_label
+ORDER BY month_label ASC;
 
-GET /orgs/:orgId/students/:studentId/penguins/balances?groupId=&subjectId=&directionId=&page=&limit=  
-получить баланс студента
+```
 
-GET /orgs/:orgId/my/penguins/balances?groupId=&subjectId=&directionId=&page=&limit=  
-получить свой баланс пингвинов (студент для себя)
 
-GET /orgs/:orgId/penguins/leaderboard?groupId=&subjectId=&directionId=&page=&limit=  
-получить лидборд (топ студентов)
+### Балансы penguin_balances
 
-##### Получить баланс студента по id:
+`GET /orgs/:orgId/students/:studentId/penguins/balances?groupId=&subjectId=&directionId=&page=&limit=`    
+получить баланс студента  
+
+`GET /orgs/:orgId/my/penguins/balances?groupId=&subjectId=&directionId=&page=&limit=`    
+получить свой баланс пингвинов (студент для себя)  
+
+`GET /orgs/:orgId/penguins/leaderboard?groupId=&subjectId=&directionId=&page=&limit=`    
+получить лидборд (топ студентов)  
+
+
+#### Получить баланс студента по id:  `GET /orgs/:orgId/students/:studentId/penguins/balances?groupId=&subjectId=&directionId=&page=&limit=`
 
 суперадмин, админ, преподаватель, сотрудник организации
 
-- GET /orgs/:orgId/students/:studentId/penguins/balances?groupId=&subjectId=&directionId=&page=&limit=
+  `studentId` - id студента  
+  `groupId` - фильтр по группе (опционально)  
+  `subjectId` - фильтр по предмету (опционально)  
+  `directionId` - фильтр по направлению (опционально)  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> studentId - id студента
->
-> groupId - фильтр по группе (опционально)
->
-> subjectId - фильтр по предмету (опционально)
->
-> directionId - фильтр по направлению (опционально)
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - studentId - целое число
-
-  - groupId - целое число
-
-  - subjectId - целое число
-
-  - directionId - целое число
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `studentId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `directionId` - целое число
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
   - Студент принадлежит этой организации
 
 - **Validation**:
 
   - Frontend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - studentId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `studentId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
 - **Responses**:
 
   - **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "balances": 
+  [
+    {
+    "group": { 
+      "id": 510, 
+      "code": "281025-wdm", 
+      "name": "Web-Development-2025-10" 
+      },
+    "subject": { 
+      "id": 108, 
+      "name": "React" 
+      },
+    "direction": { 
+      "id": 8, 
+      "name": "Web Development" 
+      },
+    "total": 15,
+    },
+  ]
+}
+```
 
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "balances":
->
-> \[
->
-> {
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "direction": {
->
-> "id": 8,
->
-> "name": "Web Development"
->
-> },
->
-> "total": 15,
->
-> },
->
-> \]
->
-> }
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: studentId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: studentId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view this student's penguin balances in this organization." }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view this student's penguin balances in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Student not found”}
->
-> {“message”: ”Direction not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка студента
->
-> SELECT 1 FROM users
->
-> JOIN user_roles ON user_roles.org_id = :org_id AND user_roles.user_id = users.id AND user_roles.revoked_at IS NULL
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
->
-> WHERE users.id = :student_id AND users.status \<\> 'deleted'
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM penguin_balances
->
-> JOIN groups ON groups.id = penguin_balances.group_id
->
-> JOIN subjects ON subjects.id = penguin_balances.subject_id
->
-> JOIN directions ON directions.id = penguin_balances.direction_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.student_id = :student_id
->
-> AND (:group_id IS NULL OR penguin_balances.group_id = :group_id)
->
-> AND (:subject_id IS NULL OR penguin_balances.subject_id = :subject_id)
->
-> AND (:direction_id IS NULL OR penguin_balances.direction_id = :direction_id);
->
-> page
->
-> SELECT
->
-> penguin_balances.total,
->
-> groups.id AS group_id, groups.code AS group_code, groups.name AS group_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> directions.id AS direction_id, directions.name AS direction_name
->
-> FROM penguin_balances
->
-> JOIN groups ON groups.id = penguin_balances.group_id
->
-> JOIN subjects ON subjects.id = penguin_balances.subject_id
->
-> JOIN directions ON directions.id = penguin_balances.direction_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.student_id = :student_id
->
-> AND (:group_id IS NULL OR penguin_balances.group_id = :group_id)
->
-> AND (:subject_id IS NULL OR penguin_balances.subject_id = :subject_id)
->
-> AND (:direction_id IS NULL OR penguin_balances.direction_id = :direction_id)
->
-> ORDER BY penguin_balances.total DESC, subjects.name ASC, groups.name ASC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить свой баланс пингвинов:
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка студента
+SELECT 1 FROM users
+JOIN user_roles ON user_roles.org_id = :org_id AND user_roles.user_id = users.id AND user_roles.revoked_at IS NULL
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
+WHERE users.id = :student_id AND users.status <> 'deleted'
+LIMIT 1;
+
+
+--total
+SELECT COUNT(*) AS total
+FROM penguin_balances
+JOIN groups ON groups.id = penguin_balances.group_id
+JOIN subjects ON subjects.id = penguin_balances.subject_id
+JOIN directions ON directions.id = penguin_balances.direction_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.student_id = :student_id
+  AND (:group_id IS NULL OR penguin_balances.group_id = :group_id)
+  AND (:subject_id IS NULL OR penguin_balances.subject_id = :subject_id)
+  AND (:direction_id IS NULL OR penguin_balances.direction_id = :direction_id);
+
+--page
+SELECT
+  penguin_balances.total,
+  groups.id AS group_id, groups.code AS group_code, groups.name AS group_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  directions.id AS direction_id, directions.name AS direction_name
+FROM penguin_balances
+JOIN groups ON groups.id = penguin_balances.group_id
+JOIN subjects ON subjects.id = penguin_balances.subject_id
+JOIN directions ON directions.id = penguin_balances.direction_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.student_id = :student_id
+  AND (:group_id IS NULL OR penguin_balances.group_id = :group_id)
+  AND (:subject_id IS NULL OR penguin_balances.subject_id = :subject_id)
+  AND (:direction_id IS NULL OR penguin_balances.direction_id = :direction_id)
+ORDER BY penguin_balances.total DESC, subjects.name ASC, groups.name ASC
+LIMIT @limit OFFSET @offset;
+
+```
+
+##### Получить свой баланс пингвинов:  `GET /orgs/:orgId/my/penguins/balances?groupId=&subjectId=&directionId=&page=&limit=`
 
 студент (для себя)
+ 
+  `groupId` - фильтр по группе (опционально)  
+  `subjectId` - фильтр по предмету (опционально)  
+  `directionId` - фильтр по направлению (опционально)  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-- GET /orgs/:orgId/my/penguins/balances?groupId=&subjectId=&directionId=&page=&limit=
+- **Content-type:** `application/json`
 
-> groupId - фильтр по группе (опционально)
->
-> subjectId - фильтр по предмету (опционально)
->
-> directionId - фильтр по направлению (опционально)
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Authorization:** `Bearer <jwt>`
 
-- **Content-type:** application/json
-
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
-
-  - subjectId - целое число
-
-  - directionId - целое число
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `directionId` - целое число
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
-
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
   - Студент принадлежит этой организации
 
 - **Validation**:
 
   - Frontend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
-
-- **Responses**:
+- **Responses**: 
 
   - **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "balances": 
+  [
+    {
+    "group": { 
+      "id": 510, 
+      "code": "281025-wdm", 
+      "name": "Web-Development-2025-10" 
+      },
+    "subject": { 
+      "id": 108, 
+      "name": "React" 
+      },
+    "direction": { 
+      "id": 8, 
+      "name": "Web Development" 
+      },
+    "total": 15,
+    },
+  ]
+}
+```
 
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "balances":
->
-> \[
->
-> {
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "direction": {
->
-> "id": 8,
->
-> "name": "Web Development"
->
-> },
->
-> "total": 15,
->
-> },
->
-> \]
->
-> }
+ - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You can only view your own penguin balances." }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You can only view your own penguin balances.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Student not found”}
->
-> {“message”: ”Direction not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Student not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка студента (берем из JWT)
->
-> SELECT 1 FROM users
->
-> JOIN user_roles ON user_roles.org_id = :org_id AND user_roles.user_id = users.id AND user_roles.revoked_at IS NULL
->
-> JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
->
-> WHERE users.id = :current_user_id AND users.status \<\> 'deleted'
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM penguin_balances
->
-> JOIN groups ON groups.id = penguin_balances.group_id
->
-> JOIN subjects ON subjects.id = penguin_balances.subject_id
->
-> JOIN directions ON directions.id = penguin_balances.direction_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.student_id = :current_user_id
->
-> AND (:group_id IS NULL OR penguin_balances.group_id = :group_id)
->
-> AND (:subject_id IS NULL OR penguin_balances.subject_id = :subject_id)
->
-> AND (:direction_id IS NULL OR penguin_balances.direction_id = :direction_id);
->
-> page
->
-> SELECT
->
-> penguin_balances.total,
->
-> groups.id AS group_id, groups.code AS group_code, groups.name AS group_name,
->
-> subjects.id AS subject_id, subjects.name AS subject_name,
->
-> directions.id AS direction_id, directions.name AS direction_name
->
-> FROM penguin_balances
->
-> JOIN groups ON groups.id = penguin_balances.group_id
->
-> JOIN subjects ON subjects.id = penguin_balances.subject_id
->
-> JOIN directions ON directions.id = penguin_balances.direction_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.student_id = :current_user_id
->
-> AND (:group_id IS NULL OR penguin_balances.group_id = :group_id)
->
-> AND (:subject_id IS NULL OR penguin_balances.subject_id = :subject_id)
->
-> AND (:direction_id IS NULL OR penguin_balances.direction_id = :direction_id)
->
-> ORDER BY penguin_balances.total DESC, subjects.name ASC, groups.name ASC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Получить лидборд (топ студентов):
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка студента  (берем из JWT)
+SELECT 1 FROM users
+JOIN user_roles ON user_roles.org_id = :org_id AND user_roles.user_id = users.id AND user_roles.revoked_at IS NULL
+JOIN roles ON roles.id = user_roles.role_id AND roles.code = 'student'
+WHERE users.id = :current_user_id AND users.status <> 'deleted'
+LIMIT 1;
+
+
+--total
+SELECT COUNT(*) AS total
+FROM penguin_balances
+JOIN groups ON groups.id = penguin_balances.group_id
+JOIN subjects ON subjects.id = penguin_balances.subject_id
+JOIN directions ON directions.id = penguin_balances.direction_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.student_id = :current_user_id
+  AND (:group_id IS NULL OR penguin_balances.group_id = :group_id)
+  AND (:subject_id IS NULL OR penguin_balances.subject_id = :subject_id)
+  AND (:direction_id IS NULL OR penguin_balances.direction_id = :direction_id);
+
+--page
+SELECT
+  penguin_balances.total,
+  groups.id AS group_id, groups.code AS group_code, groups.name AS group_name,
+  subjects.id AS subject_id, subjects.name AS subject_name,
+  directions.id AS direction_id, directions.name AS direction_name
+FROM penguin_balances
+JOIN groups ON groups.id = penguin_balances.group_id
+JOIN subjects ON subjects.id = penguin_balances.subject_id
+JOIN directions ON directions.id = penguin_balances.direction_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.student_id = :current_user_id
+  AND (:group_id IS NULL OR penguin_balances.group_id = :group_id)
+  AND (:subject_id IS NULL OR penguin_balances.subject_id = :subject_id)
+  AND (:direction_id IS NULL OR penguin_balances.direction_id = :direction_id)
+ORDER BY penguin_balances.total DESC, subjects.name ASC, groups.name ASC
+LIMIT @limit OFFSET @offset;
+
+```
+
+#### Получить лидборд (топ студентов):  `GET /orgs/:orgId/penguins/leaderboard?groupId=&subjectId=&directionId=&page=&limit=`
 
 суперадмин, админ, преподаватель, сотрудник организации, студент
 
-- GET /orgs/:orgId/penguins/leaderboard?groupId=&subjectId=&directionId=&page=&limit=
+  Один из фильтров обязателен:  
+  `groupId+subjectId` - фильтр по группе и по предмету  
+  `directionId+subjectId` - фильтр по направлению и предмету  
+  `directionId` - фильтр по направлению и всем предметам суммарно  
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> Один из фильтров обязателен:
->
-> groupId+subjectId - фильтр по группе и по предмету
->
-> directionId+subjectId - фильтр по направлению и предмету
->
-> directionId - фильтр по направлению и всем предметам суммарно
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - groupId - целое число
-
-  - subjectId - целое число
-
-  - directionId - целое число
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `groupId` - целое число
+  - `subjectId` - целое число
+  - `directionId` - целое число
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit`- целое число, 1..200, по умолчанию 50
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-    - groupId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - subjectId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - directionId - /^\[1-9\]\d{0,9}\$/ - в path
-
-    - page - целое число, \>=1, по умолчанию - 1
-
-    - limit - целое число, 1..200, по умолчанию - 50
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `groupId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `subjectId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
 - **Responses**:
 
   - **200 OK**
+```json
+{ 
+  "total": 1,
+  "page": 1,
+  "limit": 50,
+  "leaderboard": 
+  [
+    {
+    "student": { 
+      "id": 3001, 
+      "full_name": "Alice Student" 
+      },
+    "group": { 
+      "id": 510, 
+      "code": "281025-wdm", 
+      "name": "Web-Development-2025-10" 
+      },
+    "subject": { 
+      "id": 108, 
+      "name": "React" 
+      },
+    "total": 15,
+    },
+  ]
+}
+```
 
-> {
->
-> "total": 1,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "leaderboard":
->
-> \[
->
-> {
->
-> "student": {
->
-> "id": 3001,
->
-> "full_name": "Alice Student"
->
-> },
->
-> "group": {
->
-> "id": 510,
->
-> "code": "281025-wdm",
->
-> "name": "Web-Development-2025-10"
->
-> },
->
-> "subject": {
->
-> "id": 108,
->
-> "name": "React"
->
-> },
->
-> "total": 15,
->
-> },
->
-> \]
->
-> }
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: directionId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: groupId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: subjectId must be integer" }
+```
+```json
+{ "message": "At least one leaderboard scope is required groupId+subjectId or directionId+subjectId" }
+```
 
-- **400 Bad Request** некорректное тело запроса
+  - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: directionId must be integer”}
->
-> {“message”: ”Invalid path parameter: groupId must be integer”}
->
-> {“message”: ”Invalid path parameter: subjectId must be integer”}
->
-> {“message”: ”At least one leaderboard scope is required (groupId+subjectId or directionId+subjectId”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** отсутствует Authorization
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view this resource in this organization." }
+```
 
-> {“message”: ”Authorization header missing”}
-
-- **401 Unauthorized** токен просрочен
-
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view this resource in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”Direction not found”}
->
-> {“message”: ”Group not found”}
->
-> {“message”: ”Subject not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Group not found" }
+```
+```json
+{ "message": "Subject not found" }
+```
+```json
+{ "message": "Direction not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка группы
->
-> SELECT 1 FROM groups
->
-> WHERE id = :group_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка предмета
->
-> SELECT 1 FROM subjects
->
-> WHERE id = :subject_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> Проверка направления
->
-> SELECT 1 FROM directions
->
-> WHERE id = :direction_id AND org_id = :org_id
->
-> LIMIT 1;
->
-> **Вариант по groupId+subjectId**
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM penguin_balances
->
-> JOIN users ON users.id = penguin_balances.student_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.group_id = :group_id
->
-> AND penguin_balances.subject_id = :subject_id
->
-> AND users.status \<\> 'deleted';
->
-> page
->
-> penguin_balances.student_id,
->
-> users.full_name AS student_name,
->
-> penguin_balances.group_id, groups.code, groups.name AS group_name,
->
-> penguin_balances.subject_id, subjects.name AS subject_name,
->
-> penguin_balances.total
->
-> FROM penguin_balances
->
-> JOIN users ON users.id = penguin_balances.student_id
->
-> JOIN groups ON groups.id = penguin_balances.group_id
->
-> JOIN subjects ON subjects.id = penguin_balances.subject_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.group_id = :group_id
->
-> AND penguin_balances.subject_id = :subject_id
->
-> AND users.status \<\> 'deleted'
->
-> ORDER BY penguin_balances.total DESC, users.full_name ASC, penguin_balances.student_id ASC
->
-> LIMIT @limit OFFSET @offset;
->
-> **Вариант по directionId+subjectId**
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM penguin_balances
->
-> JOIN users ON users.id = penguin_balances.student_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.direction_id = :direction_id
->
-> AND penguin_balances.subject_id = :subject_id
->
-> AND users.status \<\> 'deleted';
->
-> page
->
-> penguin_balances.student_id,
->
-> users.full_name AS student_name,
->
-> penguin_balances.direction_id, directions.code, directions.name AS direction_name,
->
-> penguin_balances.subject_id, subjects.name AS subject_name,
->
-> penguin_balances.total
->
-> FROM penguin_balances
->
-> JOIN users ON users.id = penguin_balances.student_id
->
-> JOIN directions ON directions.id = penguin_balances.direction_id
->
-> JOIN subjects ON subjects.id = penguin_balances.subject_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.direction_id = :direction_id
->
-> AND penguin_balances.subject_id = :subject_id
->
-> AND users.status \<\> 'deleted'
->
-> ORDER BY penguin_balances.total DESC, users.full_name ASC, penguin_balances.student_id ASC
->
-> LIMIT @limit OFFSET @offset;
->
-> **Вариант по directionId**
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM (
->
-> SELECT penguin_balances.student_id
->
-> FROM penguin_balances
->
-> JOIN users
->
-> ON users.id = penguin_balances.student_id
->
-> AND users.status \<\> 'deleted'
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.direction_id = :direction_id
->
-> GROUP BY penguin_balances.student_id
->
-> ) t;
->
-> page
->
-> SELECT
->
-> penguin_balances.student_id,
->
-> users.full_name AS student_name,
->
-> penguin_balances.direction_id,
->
-> directions.code AS direction_code,
->
-> directions.name AS direction_name,
->
-> SUM(penguin_balances.total) AS total
->
-> FROM penguin_balances
->
-> JOIN users
->
-> ON users.id = penguin_balances.student_id
->
-> AND users.status \<\> 'deleted'
->
-> JOIN directions
->
-> ON directions.id = penguin_balances.direction_id
->
-> AND directions.org_id = :org_id
->
-> WHERE penguin_balances.org_id = :org_id
->
-> AND penguin_balances.direction_id = :direction_id
->
-> GROUP BY
->
-> penguin_balances.student_id, users.full_name,
->
-> penguin_balances.direction_id, directions.code, directions.name
->
-> ORDER BY total DESC, users.full_name ASC, penguin_balances.student_id ASC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-#### Оповещения notifications
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
 
-GET /orgs/:orgId/notifications?is_read=&page=&limit=  
-получить уведомления текущего пользователя
+--Проверка группы
+SELECT 1 FROM groups 
+WHERE id = :group_id AND org_id = :org_id 
+LIMIT 1;
 
-PUT /orgs/:orgId/notifications/:id/read  
-пометить уведомление прочитанным
+--Проверка предмета
+SELECT 1 FROM subjects 
+WHERE id = :subject_id AND org_id = :org_id 
+LIMIT 1;
 
-##### Получить уведомления текущего пользователя:
+--Проверка направления
+SELECT 1 FROM directions
+WHERE id = :direction_id AND org_id = :org_id 
+LIMIT 1;
+
+--Вариант по groupId+subjectId
+
+--total
+SELECT COUNT(*) AS total
+FROM penguin_balances
+JOIN users ON users.id = penguin_balances.student_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.group_id = :group_id
+  AND penguin_balances.subject_id = :subject_id
+  AND users.status <> 'deleted';
+
+--page
+SELECT penguin_balances.student_id,
+  users.full_name AS student_name,
+  penguin_balances.group_id, groups.code, groups.name AS group_name,
+  penguin_balances.subject_id, subjects.name AS subject_name,
+  penguin_balances.total
+FROM penguin_balances
+JOIN users ON users.id = penguin_balances.student_id
+JOIN groups ON groups.id = penguin_balances.group_id
+JOIN subjects ON subjects.id = penguin_balances.subject_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.group_id = :group_id
+  AND penguin_balances.subject_id = :subject_id
+  AND users.status <> 'deleted'
+ORDER BY penguin_balances.total DESC, users.full_name ASC, penguin_balances.student_id ASC
+LIMIT @limit OFFSET @offset;
+
+--Вариант по directionId+subjectId
+
+--total
+SELECT COUNT(*) AS total
+FROM penguin_balances
+JOIN users ON users.id = penguin_balances.student_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.direction_id = :direction_id
+  AND penguin_balances.subject_id = :subject_id
+  AND users.status <> 'deleted';
+
+--page
+SELECT penguin_balances.student_id,
+  users.full_name AS student_name,
+  penguin_balances.direction_id, directions.code, directions.name AS direction_name,
+  penguin_balances.subject_id, subjects.name AS subject_name,
+  penguin_balances.total
+FROM penguin_balances
+JOIN users ON users.id = penguin_balances.student_id
+JOIN directions ON directions.id = penguin_balances.direction_id
+JOIN subjects ON subjects.id = penguin_balances.subject_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.direction_id = :direction_id
+  AND penguin_balances.subject_id = :subject_id
+  AND users.status <> 'deleted'
+ORDER BY penguin_balances.total DESC, users.full_name ASC, penguin_balances.student_id ASC
+LIMIT @limit OFFSET @offset;
+
+--Вариант по directionId
+
+--total
+SELECT COUNT(*) AS total
+FROM (
+  SELECT penguin_balances.student_id
+  FROM penguin_balances
+  JOIN users 
+    ON users.id = penguin_balances.student_id
+   AND users.status <> 'deleted'
+  WHERE penguin_balances.org_id = :org_id
+    AND penguin_balances.direction_id = :direction_id
+  GROUP BY penguin_balances.student_id
+) t;
+
+--page
+SELECT
+  penguin_balances.student_id,
+  users.full_name AS student_name,
+  penguin_balances.direction_id,
+  directions.code AS direction_code,
+  directions.name AS direction_name,
+  SUM(penguin_balances.total) AS total
+FROM penguin_balances 
+JOIN users 
+  ON users.id = penguin_balances.student_id
+ AND users.status <> 'deleted'
+JOIN directions
+  ON directions.id = penguin_balances.direction_id
+ AND directions.org_id = :org_id
+WHERE penguin_balances.org_id = :org_id
+  AND penguin_balances.direction_id = :direction_id
+GROUP BY
+  penguin_balances.student_id, users.full_name,
+  penguin_balances.direction_id, directions.code, directions.name
+ORDER BY total DESC, users.full_name ASC, penguin_balances.student_id ASC
+LIMIT @limit OFFSET @offset;
+
+```
+
+
+### Оповещения notifications
+
+`GET /orgs/:orgId/notifications?is_read=&page=&limit=`  получить уведомления текущего пользователя
+
+`PUT /orgs/:orgId/notifications/:id/read`  пометить уведомление прочитанным
+
+#### Получить уведомления текущего пользователя:  `GET /orgs/:orgId/notifications?is_read=&page=&limit=`
 
 суперадмин, админ, преподаватель, сотрудник организации, студент
 
-- GET /orgs/:orgId/notifications?is_read=&page=&limit=
+  `is_read`     
+  `page` - номер страницы, по умолчанию 1  
+  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
 
-> is_read - о
->
-> page - номер страницы, по умолчанию 1
->
-> limit - количество на странице (по умолчанию 50, ≤ 200)
+- **Content-type:** `application/json`
 
-- **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-- **Authorization:** Bearer \<jwt\>
-
-- **Body:** {}
+- **Body:** `{}`
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - is_read - boolean
-
-  - page - целое число \>= 1, по умолчанию 1
-
-  - limit- целое число, 1..200, по умолчанию 50
+  - `orgId` - целое число
+  - `is_read` - boolean
+  - `page` - целое число \>= 1, по умолчанию 1
+  - `limit` - целое число, 1..200, по умолчанию 50
 
 - **Бизнес-правила:**
 
-  - Возвращаем только персональные (user_id = текущий) в этой организации
+  - Возвращаем только персональные (`user_id` = текущий) в этой организации
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
-
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - is_read - boolean
-
-  - page - целое число, \>=1, по умолчанию - 1
-
-  - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `is_read` - `boolean`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `is_read` - `boolean`
+    - `page` - целое число, \>=1, по умолчанию - 1
+    - `limit` - целое число, 1..200, по умолчанию - 50
 
-    - is_read - boolean
+- **Responses**:
 
-    - page - целое число, \>=1, по умолчанию - 1
+  - **200 OK**
+```json
+{ 
+  "total": 2,
+  "page": 1,
+  "limit": 50,
+  "notifications": [
+    {
+      "id": 50001,
+      "type": "penguin_award",
+      "payload": { 
+        "delta": 3, 
+        "reason": "Homework week 3", 
+        "subject_id": 108, 
+        "batch_id": 90001 
+        },
+      "is_read": false,
+      "created_at": "2025-09-02T10:11:12Z"
+    },
+  ]
+}
+```
 
-    - limit - целое число, 1..200, по умолчанию - 50
-
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
-
-> {
->
-> "total": 2,
->
-> "page": 1,
->
-> "limit": 50,
->
-> "notifications": \[
->
-> {
->
-> "id": 50001,
->
-> "type": "penguin_award",
->
-> "payload": {
->
-> "delta": 3,
->
-> "reason": "Homework week 3",
->
-> "subject_id": 108,
->
-> "batch_id": 90001 },
->
-> "is_read": false,
->
-> "created_at": "2025-09-02T10:11:12Z"
->
-> },
->
-> \]
->
-> },
-
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
 
 - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** токен просрочен
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: You are not allowed to view notifications in this organization." }
+```
 
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: You are not allowed to view notifications in this organization.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {“message”: ”User not found”}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "User not found" }
+```
 
 - **SQL**
 
-> SET @page = GREATEST(COALESCE(:page, 1), 1);
->
-> SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
->
-> SET @offset = (@page - 1) \* @limit;
->
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> total
->
-> SELECT COUNT(\*) AS total
->
-> FROM notifications
->
-> WHERE org_id = :org_id
->
-> AND user_id = :current_user_id
->
-> AND (COALESCE(:is_read, -1) = -1 OR is_read = :is_read);
->
-> page
->
-> SELECT id, type, payload, is_read, created_at
->
-> FROM notifications
->
-> WHERE org_id = :org_id
->
-> AND user_id = :current_user_id
->
-> AND (COALESCE(:is_read, -1) = -1 OR is_read = :is_read)
->
-> ORDER BY created_at DESC, id DESC
->
-> LIMIT @limit OFFSET @offset;
+```sql
+SET @page  = GREATEST(COALESCE(:page, 1), 1);
+SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
+SET @offset = (@page - 1) * @limit;
 
-##### Пометить уведомление прочитанным:
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--total
+SELECT COUNT(*) AS total
+FROM notifications
+WHERE org_id = :org_id
+  AND user_id = :current_user_id
+  AND (COALESCE(:is_read, -1) = -1 OR is_read = :is_read);
+
+--page
+SELECT id, type, payload, is_read, created_at
+FROM notifications
+WHERE org_id = :org_id
+  AND user_id = :current_user_id
+  AND (COALESCE(:is_read, -1) = -1 OR is_read = :is_read)
+ORDER BY created_at DESC, id DESC
+LIMIT @limit OFFSET @offset;
+
+```
+
+#### Пометить уведомление прочитанным:  `PUT /orgs/:orgId/notifications/:id/read`
 
 владелец уведомления
 
-- PUT /orgs/:orgId/notifications/:id/read
+- **Content-type:** `application/json`
 
-  - **Content-type:** application/json
+- **Authorization:** `Bearer <jwt>`
 
-  - **Authorization:** Bearer \<jwt\>
+- **Body:**
 
-  - **Body:**
-
-> {
->
-> "id": 50001,
->
-> "is_read": true
->
-> }
+```json
+{ 
+  "id": 50001, 
+  "is_read": true
+}
+```
 
 - **Path / Query params:**
 
-  - orgId - целое число
-
-  - id - целое число
+  - `orgId` - целое число
+  - `id` - целое число
 
 - **Backend-правила:**
 
-  - orgId из пути должен совпадать с org в JWT  
-    (для superadmin - любой org)
-
-  - Организация orgId существует и status IN ('active','pending')
+  - `orgId` из пути:
+    - должен совпадать с `org` в JWT
+    - для `superadmin` — любой `org`
+  - Организация `orgId` существует и `status IN ('active','pending')`
 
 - **Validation**:
 
   - Frontend:
 
-<!-- -->
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
-- orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
-
-  <!-- -->
 
   - Backend:
 
-    - orgId - /^\[1-9\]\d{0,9}\$/ - в path, обязательно, число
+    - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
+    - `id` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
 
-    - id - /^\[1-9\]\d{0,9}\$/ - в path, обязательно
+- **Responses**:
 
-  <!-- -->
-
-  - **Responses**:
-
-    - **200 OK**
+  - **200 OK**
 
 ```json
  {
@@ -11977,63 +11529,61 @@ PUT /orgs/:orgId/notifications/:id/read
  },
 ```
 
-- **400 Bad Request** некорректное тело запроса
-
-> {“message”: ”Invalid path parameter: orgId must be integer”}
->
-> {“message”: ”Invalid path parameter: id must be integer”}
+  - **400 Bad Request** некорректное тело запроса
+```json
+{ "message": "Invalid path parameter: orgId must be integer" }
+```
+```json
+{ "message": "Invalid path parameter: id must be integer" }
+```
 
 - **401 Unauthorized** отсутствует Authorization
+```json
+{ "message": "Authorization header missing" }
+```
 
-> {“message”: ”Authorization header missing”}
+  - **401 Unauthorized** токен просрочен
+```json
+{ "message": "jwt expired" }
+```
 
-- **401 Unauthorized** токен просрочен
+  - **403 Forbidden** отказано в доступе
+```json
+{ "message": "Permission denied: ou can only modify your own notifications." }
+```
 
-> {“message”: ”jwt expired”}
-
-- **403 Forbidden** отказано в доступе
-
-> {“message”: ”Permission denied: ou can only modify your own notifications.”}
-
-- **404 Not Found** объект не найден
-
-> {“message”: ”Organization not found”}
->
-> {"message": "Notification not found"}
+  - **404 Not Found** объект не найден
+```json
+{ "message": "Organization not found" }
+```
+```json
+{ "message": "Notification not found" }
+```
 
 - **SQL**
 
-> Проверка организации
->
-> SELECT 1 FROM organizations
->
-> WHERE id = :org_id AND status IN ('active','pending')
->
-> LIMIT 1;
->
-> Проверка что уведомление принадлежит текущему юзеру
->
-> SELECT id FROM penguin_rules
->
-> WHERE org_id = :org_id AND code = :code AND id \<\> :id
->
-> LIMIT 1;
->
-> Обновление
->
-> UPDATE notifications
->
-> SET is_read = 1
->
-> WHERE id = :id AND org_id = :org_id AND user_id = :current_user_id;
->
-> Для ответа
->
-> SELECT id, type, payload, is_read, created_at FROM notifications
->
-> WHERE id = :id AND org_id = :org_id AND user_id = :current_user_id
->
-> LIMIT 1;
+```sql
+--Проверка организации
+SELECT 1 FROM organizations 
+WHERE id = :org_id AND status IN ('active','pending') 
+LIMIT 1;
+
+--Проверка что уведомление принадлежит текущему юзеру
+SELECT id FROM penguin_rules
+WHERE org_id = :org_id AND code = :code AND id <> :id
+LIMIT 1;
+
+--Обновление 
+UPDATE notifications
+SET is_read = 1
+WHERE id = :id AND org_id = :org_id AND user_id = :current_user_id;
+
+--Для ответа
+SELECT id, type, payload, is_read, created_at FROM notifications 
+WHERE id = :id AND org_id = :org_id AND user_id = :current_user_id
+LIMIT 1;
+
+```
 
 #### Billing
 
