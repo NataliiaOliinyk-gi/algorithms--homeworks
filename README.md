@@ -11585,84 +11585,115 @@ LIMIT 1;
 
 ```
 
-#### Billing
+### Billing
 
-- **Планы:**
 
-  - 
 
-- **Подписки:  **
-
-  - 
-
-- **Инвойсы:  **
-
-  - 
-
-- **Оплаты:  **
-
-  - 
-
-#### Настройки пользователя, сессии, MFA
+### Настройки пользователя, сессии, MFA
 
 - 
 
-### Валидации
+## Валидации (Общие правила)
 
+**Формат валидации для всех endpoints:**
+
+```
 const validationRules = {
+  email: {
+    pattern: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+    message: "email mast contain @, dot and no contain spaces"
+  },
+password: {
+    pattern: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])\S{8,64}$/,
+    message: "Password must be 8-64 characters and include 1 letter, 1 number and 1 special symbol"
+  },
 
-> email: {
->
-> pattern: /^\[A-Za-z0-9.\_%+-\]+@\[A-Za-z0-9.-\]+\\\[A-Za-z\]{2,}\$/,
->
-> message: "email mast contain @, dot and no contain spaces"
->
-> },
->
-> password: {
->
-> pattern: /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/,
->
-> message: "Password must be 8-64 characters and include 1 letter, 1 number and 1 special symbol"
->
-> },
->
-> orgId: {
->
-> pattern: /^\[1-9\]\d{0,9}\$/,
->
-> message: "Invalid organization ID"
->
-> },
->
-> id: {
->
-> pattern: /^\[1-9\]\d{0,9}\$/,
->
-> message: "Invalid ID parameter"
->
-> },
->
-> page: {
->
-> min: 1,
->
-> default: 1,
->
-> message: "Page must be integer \>= 1"
->
-> },
->
-> limit: {
->
-> min: 1,
->
-> max: 200,
->
-> default: 50,
->
-> message: "Limit must be integer between 1 and 200"
->
-> }
-
+  orgId: {
+    pattern: /^[1-9]\d{0,9}$/,
+    message: "Invalid parameter: orgId must be integer"
+  },
+  id: {
+    pattern: /^[1-9]\d{0,9}$/,
+    message: "Invalid path parameter: id must be integer"
+  },
+  page: {
+    min: 1,
+    default: 1,
+    message: "Page must be integer >= 1"
+  },
+  limit: {
+    min: 1,
+    max: 200,
+    default: 50,
+    message: "Limit must be integer between 1 and 200"
+  }
 };
+
+```
+
+**ENUM валидации (ПОЛНЫЙ СПИСОК из моделей)**
+
+```
+const enumValidations = {
+  // organizations
+  organization_status: ['pending', 'active', 'suspended', 'deleted'],
+  
+  // org_addresses
+  address_type: ['registered', 'office', 'campus', 'billing', 'other'],
+  
+  // org_billing_profiles
+  billing_provider: ['stripe', 'paypal', 'manual'],
+  
+  // org_subscriptions
+  subscription_status: ['trialing', 'active', 'past_due', 'canceled', 'expired', 'paused'],
+  subscription_provider: ['stripe', 'paypal', 'manual'],
+  
+  // invoices
+  invoice_status: ['draft', 'open', 'paid', 'void', 'uncollectible', 'refunded'],
+  
+  // payments
+  payment_status: ['succeeded', 'failed', 'pending', 'refunded'],
+  payment_provider: ['stripe', 'paypal', 'manual'],
+  
+  // users
+  user_status: ['active', 'on_break', 'blocked', 'deleted'],
+  user_language: ['ru', 'de', 'en'],
+  
+  // user_mfa
+  mfa_type: ['totp', 'sms', 'email', 'webauthn'],
+  
+  // org_invitations
+  invitation_status: ['pending', 'accepted', 'revoked', 'expired'],
+  
+  // groups
+  group_status: ['planned', 'active', 'archived'],
+  
+  // group_members
+  member_status: ['active', 'inactive', 'archived'],
+  
+  // group_subjects
+  subject_source: ['direction', 'manual'],
+  
+  // penguin_rules
+  rule_active: [true, false], // boolean, но для consistency
+  
+  // notifications
+  notification_type: ['penguin_award', 'penguin_deduct', 'announcement', 'system'],
+  
+  // auth_logs
+  auth_success: [true, false] // boolean
+};
+
+// Функция валидации ENUM
+function validateEnum(value, enumName) {
+  if (!value) return true; // опциональные поля
+  return enumValidations[enumName].includes(value);
+}
+
+// Пример использования
+if (!validateEnum(req.query.status, 'invoice_status')) {
+  return res.status(400).json({ message: "Invalid status value" });
+}
+
+```
+
