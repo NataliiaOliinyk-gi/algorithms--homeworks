@@ -1,7 +1,7 @@
 
 ## Контракты: эндпоинты по доменам
 
-### Авторизация
+### Авторизация [Auth](./auth/README.md)
 
 `POST /auth/login` вход в систему
 
@@ -13,7 +13,7 @@
 
 `POST /auth/password/reset` сброс пароля (по токену из email)
 
-[Auth](./auth/README.md)
+
 
 ### Организации
 
