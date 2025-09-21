@@ -16,7 +16,9 @@
 
 
 
-### Регистрация пользователя:  `POST /orgs/:orgsId/users`
+### Регистрация пользователя:  
+
+`POST /orgs/:orgsId/users`
 
 суперадмин, админ - регистрация преподавателя, сотрудника организации, студента;
 
@@ -242,7 +244,9 @@ LIMIT 1;
 
 ```
 
-### Получить профиль юзера:  `GET /orgs/:orgId/users/:userId`
+### Получить профиль юзера:  
+
+`GET /orgs/:orgId/users/:userId`
 
 суперадмин, админ, сотрудник организации, преподаватель
 
@@ -389,7 +393,9 @@ ORDER BY roles.code ASC;
 
 ```
 
-### Удалить пользователя в организации:  `DELETE /orgs/:orgsId/users/:userId`
+### Удалить пользователя в организации:  
+
+`DELETE /orgs/:orgsId/users/:userId`
 
 суперадмин, админ
 
@@ -530,7 +536,9 @@ WHERE user_roles.org_id = :org_id AND user_roles.user_id = :user_id
 
 ```
 
-### Получить список пользователей согласно роли: `GET /orgs/:org_id/users?role=&q=&include_revoked=&page=&limit=`
+### Получить список пользователей согласно роли: 
+
+`GET /orgs/:org_id/users?role=&q=&include_revoked=&page=&limit=`
 
 суперадмин, админ, сотрудник организации, преподаватель
 
@@ -715,7 +723,9 @@ WHERE user_roles.org_id = :org_id
 ```
 
 
-### Получить свой профиль:  `GET /orgs/:orgsId/users/me`
+### Получить свой профиль:  
+
+`GET /orgs/:orgsId/users/me`
 
 зарегистрированный пользователь
 
@@ -854,7 +864,9 @@ ORDER BY roles.code ASC;
 
 ```
 
-### Редактировать свой профиль:  `PUT /orgs/:orgsId/users/me`
+### Редактировать свой профиль:  
+
+`PUT /orgs/:orgsId/users/me`
 
 зарегистрированный пользователь
 
@@ -1067,7 +1079,9 @@ ON DUPLICATE KEY UPDATE
 ```
 
 
-### Сменить пароль (свой):  `POST /orgs/:orgId/users/me/password`
+### Сменить пароль (свой):  
+
+`POST /orgs/:orgId/users/me/password`
 
 зарегистрированный пользователь
 

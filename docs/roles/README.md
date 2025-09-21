@@ -6,7 +6,9 @@
 
 `DELETE /orgs/:orgId/users/:userId/roles/:role_id` отозвать роль
 
-### Получить все роли (список ролей): `GET /roles`
+### Получить все роли (список ролей): 
+
+`GET /roles`
 
 суперадмин, админ
 
@@ -78,7 +80,9 @@ ORDER BY code ASC;
 ```
 
 
-### Назначить роль: `POST /orgs/:orgId/users/:userId/roles/:role_id`
+### Назначить роль: 
+
+`POST /orgs/:orgId/users/:userId/roles/:role_id`
 
 Связываем **пользователь - роль - учебное заведение**
 
@@ -273,7 +277,9 @@ WHERE user_roles.user_id = :user_id AND user_roles.org_id = :org_id AND user_rol
 
 ```
 
-### Отозвать роль: `DELETE /orgs/:orgId/users/:userId/roles/:role_id`
+### Отозвать роль: 
+
+`DELETE /orgs/:orgId/users/:userId/roles/:role_id`
 
 Роли отзывает суперадмин, админ
 

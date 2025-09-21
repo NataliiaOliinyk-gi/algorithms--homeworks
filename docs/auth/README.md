@@ -10,7 +10,9 @@
 
 `POST /auth/password/reset` сброс пароля (по токену из email)
 
-### Вход в систему: `POST /auth/login`
+### Вход в систему: 
+
+`POST /auth/login`
 
 Публично (без авторизации)
 
@@ -154,7 +156,9 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 ```
 
 
-### Подтверждение MFA: `POST /auth/mfa/verify`
+### Подтверждение MFA: 
+
+`POST /auth/mfa/verify`
 
 Публично (по mfa_token)
 
@@ -288,7 +292,9 @@ WHERE id = :id;
 
 ```
 
-### Выход: `POST /auth/logout`
+### Выход: 
+
+`POST /auth/logout`
 
 Авторизован (любой пользователь)
 
@@ -333,7 +339,9 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 
 ```
 
-### Забыли пароль (инициировать сброс): `POST /auth/password/forgot`
+### Забыли пароль (инициировать сброс): 
+
+`POST /auth/password/forgot`
 
 публично (без авторизации)
 
@@ -401,7 +409,9 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 
 ```
 
-### Сброс пароля по токену из email: `POST /auth/password/reset`
+### Сброс пароля по токену из email: 
+
+`POST /auth/password/reset`
 
 Публично (без авторизации)
 
