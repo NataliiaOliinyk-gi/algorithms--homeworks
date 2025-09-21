@@ -1,6 +1,6 @@
-## Группы  
+## Группы
 
-`GET /orgs/:orgId/groups?q=&status=&direction_id=&page=&limit=`  получить список групп
+`GET /orgs/:orgId/groups?q=&status=&direction_id=&page=&limit=` получить список групп
 
 `GET /orgs/:orgId/groups/:groupId` получить группу по id
 
@@ -10,18 +10,17 @@
 
 `DELETE /orgs/:orgId/groups/:groupId` удалить группу
 
-
-### Получить список групп:  
+### Получить список групп:
 
 `GET /orgs/:orgId/groups?q=&status=&direction_id=&page=&limit=`
 
 суперадмин, админ, сотрудник учебной организации, учитель
 
-  `q` - поиск по `name/code`  
-  `status` - `planned |active | archived` - фильтр по статусу группы  
-  `direction_id` - фильтр по направлению  
-  `page` - номер страницы, по умолчанию 1  
-  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
+`q` - поиск по `name/code`  
+ `status` - `planned |active | archived` - фильтр по статусу группы  
+ `direction_id` - фильтр по направлению  
+ `page` - номер страницы, по умолчанию 1  
+ `limit` - количество на странице (по умолчанию 50, ≤ 200)
 
 - **Content-type:** `application/json`
 
@@ -68,51 +67,58 @@
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ 
+{
   "total": 1,
   "page": 1,
   "limit": 50,
-  "groups": 
-  [ 
+  "groups": [
     {
-  	"id": 108,
-  		"direction_id": 12,
-  		"name": "Web-Development-2025-10",
-  		"code": "281025-wdm",
-  		"status": "planned",     
-  		"avatar_url": null,
-  		"start_date": "2025-10-28", 
-  		"end_date": "2026-08-15",
-  		"created_by": 1054,
-  		"created_at": "2025-09-02T10:11:12Z",
-  		"updated_at": "2025-09-02T10:11:12Z",
-    },
-  ],
+      "id": 108,
+      "direction_id": 12,
+      "name": "Web-Development-2025-10",
+      "code": "281025-wdm",
+      "status": "planned",
+      "avatar_url": null,
+      "start_date": "2025-10-28",
+      "end_date": "2026-08-15",
+      "created_by": 1054,
+      "created_at": "2025-09-02T10:11:12Z",
+      "updated_at": "2025-09-02T10:11:12Z"
+    }
+  ]
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to view groups in this organization." }
+{
+  "message": "Permission denied: You are not allowed to view groups in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
@@ -125,8 +131,8 @@ SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
 SET @offset = (@page - 1) * @limit;
 
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --total
@@ -158,7 +164,7 @@ LIMIT @limit OFFSET @offset;
 
 ```
 
-### Получить группу по id:  
+### Получить группу по id:
 
 `GET /orgs/:orgId/groups/:groupId`
 
@@ -197,49 +203,59 @@ LIMIT @limit OFFSET @offset;
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ 
+{
   "id": 108,
   "direction_id": 12,
   "name": "Web-Development-2025-10",
   "code": "281025-wdm",
-  "status": "planned",     
+  "status": "planned",
   "avatar_url": null,
-  "start_date": "2025-10-28", 
+  "start_date": "2025-10-28",
   "end_date": "2026-08-15",
   "created_by": 1054,
   "created_at": "2025-09-02T10:11:12Z",
-  "updated_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z"
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
+
 ```json
 { "message": "Invalid path parameter: groupId must be integer" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to view groups in this organization." }
+{
+  "message": "Permission denied: You are not allowed to view groups in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
+
 ```json
 { "message": "Group not found" }
 ```
@@ -248,8 +264,8 @@ LIMIT @limit OFFSET @offset;
 
 ```sql
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --Выборка
@@ -260,7 +276,7 @@ LIMIT 1;
 
 ```
 
-### Создать группу:  
+### Создать группу:
 
 `POST /orgs/:orgId/groups`
 
@@ -273,13 +289,13 @@ LIMIT 1;
 - **Body:**
 
 ```json
-{ 
+{
   "direction_id": 12,
   "name": "Web-Development-2025-10",
   "code": "281025-wdm",
-  "status": "planned",     
+  "status": "planned",
   "avatar_url": null,
-  "start_date": "2025-10-28", 
+  "start_date": "2025-10-28",
   "end_date": "2026-08-15"
 }
 ```
@@ -315,8 +331,8 @@ LIMIT 1;
     - `name` - `string[1..100]`, `trim` - обязательное поле
     - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim` - обязательное поле
     - `status` - `planned|active|archived` (по умолчанию `active`)
-    - `start_date` - `YYYY-MM-DD` 
-    - `end_date` - `YYYY-MM-DD` 
+    - `start_date` - `YYYY-MM-DD`
+    - `end_date` - `YYYY-MM-DD`
     - `end_date >= start_date`
 
   - Backend:
@@ -326,8 +342,8 @@ LIMIT 1;
     - `name` - `string[1..100]`, `trim` - обязательное поле
     - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim` - обязательное поле
     - `status` - `planned|active|archived` (по умолчанию `active`)
-    - `start_date` - `YYYY-MM-DD` 
-    - `end_date` - `YYYY-MM-DD` 
+    - `start_date` - `YYYY-MM-DD`
+    - `end_date` - `YYYY-MM-DD`
     - `end_date >= start_date`
 
   - DB:
@@ -337,62 +353,75 @@ LIMIT 1;
 - **Responses**:
 
   - **201 Created** группа создана
+
 ```json
-{ 
+{
   "id": 108,
   "direction_id": 12,
   "name": "Web-Development-2025-10",
   "code": "281025-wdm",
-  "status": "planned",     
+  "status": "planned",
   "avatar_url": null,
-  "start_date": "2025-10-28", 
+  "start_date": "2025-10-28",
   "end_date": "2026-08-15",
   "created_by": 1054,
   "created_at": "2025-09-02T10:11:12Z",
-  "updated_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z"
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
+
 ```json
 { "message": "code is required" }
 ```
+
 ```json
 { "message": "name is required" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to create a group in this organization." }
+{
+  "message": "Permission denied: You are not allowed to create a group in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
+
 ```json
 { "message": "Direction not found" }
 ```
 
-  - **409 Conflict** дубликат
+- **409 Conflict** дубликат
+
 ```json
 { "message": "Groups code '281025-wdm' is already in use in this organization" }
 ```
 
-  - **409 Conflict** превышен лимит (согласно тарифного плана)
+- **409 Conflict** превышен лимит (согласно тарифного плана)
+
 ```json
 { "message": "Plan limits exceeded for groups." }
 ```
@@ -401,8 +430,8 @@ LIMIT 1;
 
 ```sql
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --Проверка направления - принадлежит той же организации
@@ -441,8 +470,8 @@ SELECT :org_id, @group_id, direction_subjects.subject_id, NOW(), 'direction'
 FROM direction_subjects
 JOIN subjects ON subjects.id = direction_subjects.subject_id
 WHERE subjects.org_id     = :org_id
-  AND direction_subjects.direction_id = :direction_id     
-  AND direction_subjects.effective_to IS NULL;          
+  AND direction_subjects.direction_id = :direction_id
+  AND direction_subjects.effective_to IS NULL;
   -- Если важно учитывать дату начала группы:
   AND direction_subjects.effective_from <= COALESCE(:start_date, CURDATE())
 
@@ -453,7 +482,7 @@ FROM groups WHERE id = LAST_INSERT_ID();
 
 ```
 
-### Редактировать группу:  
+### Редактировать группу:
 
 `PUT /orgs/:orgId/groups/:groupId`
 
@@ -466,14 +495,14 @@ FROM groups WHERE id = LAST_INSERT_ID();
 - **Body:**
 
 ```json
-{ 
+{
   "direction_id": 12,
   "name": "Web-Development-2025-10",
   "code": "281025-wdm",
-  "status": "planned",     
+  "status": "planned",
   "avatar_url": null,
-  "start_date": "2025-10-28", 
-  "end_date": "2026-08-15",
+  "start_date": "2025-10-28",
+  "end_date": "2026-08-15"
 }
 ```
 
@@ -492,7 +521,7 @@ FROM groups WHERE id = LAST_INSERT_ID();
   - `code` уникален в рамках организации `(org_id, code)`
   - `end_date ≥ start_date` (если обе заданы)
   - Смена `status` допустима (`planned` -\> `active` -\> `archived`)  
-    *Архивация группы* — это перевод в `status='archived'`
+    _Архивация группы_ — это перевод в `status='archived'`
 
 - **Validation**:
 
@@ -503,7 +532,7 @@ FROM groups WHERE id = LAST_INSERT_ID();
     - `name` - `string[1..100]`, `trim` - обязательное поле
     - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim`
     - `status` - `planned|active|archived` (по умолчанию `active`)
-    - `start_date` - `YYYY-MM-DD` 
+    - `start_date` - `YYYY-MM-DD`
     - `end_date` - `YYYY-MM-DD`
     - `end_date >= start_date`
 
@@ -514,7 +543,7 @@ FROM groups WHERE id = LAST_INSERT_ID();
     - `name` - `string[1..100]`, `trim` - обязательное поле
     - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$, `toLowerCase()`, `trim`
     - `status` - `planned|active|archived` (по умолчанию `active`)
-    - `start_date` - `YYYY-MM-DD` 
+    - `start_date` - `YYYY-MM-DD`
     - `end_date` - `YYYY-MM-DD`
     - `end_date >= start_date`
 
@@ -525,57 +554,69 @@ FROM groups WHERE id = LAST_INSERT_ID();
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ 
+{
   "id": 108,
   "direction_id": 12,
   "name": "Web-Development-2025-10",
   "code": "281025-wdm",
-  "status": "planned",     
+  "status": "planned",
   "avatar_url": null,
-  "start_date": "2025-10-28", 
+  "start_date": "2025-10-28",
   "end_date": "2026-08-15",
   "created_by": 1054,
   "created_at": "2025-09-02T10:11:12Z",
-  "updated_at": "2025-09-02T10:11:12Z",
+  "updated_at": "2025-09-02T10:11:12Z"
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
+
 ```json
 { "message": "Invalid path parameter: groupId must be integer" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to edit a group in this organization." }
+{
+  "message": "Permission denied: You are not allowed to edit a group in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
+
 ```json
 { "message": "Direction not found" }
 ```
+
 ```json
 { "message": "Group not found" }
 ```
 
-  - **409 Conflict** дубликат
+- **409 Conflict** дубликат
+
 ```json
 { "message": "Groups code '281025-wdm' is already in use in this organization" }
 ```
@@ -584,8 +625,8 @@ FROM groups WHERE id = LAST_INSERT_ID();
 
 ```sql
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --Проверка направления - принадлежит той же организации (если меняем)
@@ -610,7 +651,7 @@ WHERE id = :group_id AND org_id = :org_id;
 
 ```
 
-### Удалить группу:  
+### Удалить группу:
 
 `DELETE /orgs/:orgId/groups/:groupId`
 
@@ -654,47 +695,58 @@ WHERE id = :group_id AND org_id = :org_id;
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ 
+{
   "id": 108,
   "code": "281025-wdm",
-  "status": "archived",     
-  "archived_at": "2025-09-02T10:11:12Z",
+  "status": "archived",
+  "archived_at": "2025-09-02T10:11:12Z"
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
+
 ```json
 { "message": "Invalid path parameter: subjectId must be integer" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to remove a subject in this organization." }
+{
+  "message": "Permission denied: You are not allowed to remove a subject in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
+
 ```json
 { "message": "Subject not found" }
 ```
 
-  - **409 Conflict** есть связи
+- **409 Conflict** есть связи
+
 ```json
 { "message": "Subject is in use" }
 ```
@@ -703,8 +755,8 @@ WHERE id = :group_id AND org_id = :org_id;
 
 ```sql
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --Архивация группы

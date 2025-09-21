@@ -10,7 +10,7 @@
 
 `POST /auth/password/reset` сброс пароля (по токену из email)
 
-### Вход в систему: 
+### Вход в систему:
 
 `POST /auth/login`
 
@@ -23,9 +23,9 @@
 ```json
 {
   "email": "user@example.com",
-  "password": "********",
- }
- ```
+  "password": "********"
+}
+```
 
 - **Бизнес-правила:**
 
@@ -59,41 +59,49 @@
   - **200 OK** (MFA не требуется):
 
 ```json
-{ "user": 
-  { 
-    "id": 1054, 
-    "email": "user@example.com", 
-    "full_name": "Ivan Petrov" 
+{
+  "user": {
+    "id": 1054,
+    "email": "user@example.com",
+    "full_name": "Ivan Petrov"
   },
   "access_token": "<jwt>",
-  "token_type": "Bearer",
- }
+  "token_type": "Bearer"
+}
 ```
 
-  - **200 OK** (MFA требуется):
+- **200 OK** (MFA требуется):
 
 ```json
-{ "mfa_required": true,
+{
+  "mfa_required": true,
   "mfa_token": "<opaque-or-jwt-mfa-token>",
-  "available_types": ["totp","sms","email","webauthn"]
- }
+  "available_types": ["totp", "sms", "email", "webauthn"]
+}
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
- {"message": "Invalid request body"}
+{ "message": "Invalid request body" }
 ```
-  - **401 Unauthorized** не различаем неверный email/пароль
+
+- **401 Unauthorized** не различаем неверный email/пароль
+
 ```json
- {"message": "Invalid email or password"}
+{ "message": "Invalid email or password" }
 ```
-  - **403 Forbidden** аккаунт заблокирован/удален
+
+- **403 Forbidden** аккаунт заблокирован/удален
+
 ```json
- {"message": "Account is not allowed to sign in."}
+{ "message": "Account is not allowed to sign in." }
 ```
-  - **429 Too Many Requests**
+
+- **429 Too Many Requests**
+
 ```json
- {"message": "Too many login attempts. Please try again later."}
+{ "message": "Too many login attempts. Please try again later." }
 ```
 
 - **SQL**
@@ -155,8 +163,7 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
 ```
 
-
-### Подтверждение MFA: 
+### Подтверждение MFA:
 
 `POST /auth/mfa/verify`
 
@@ -168,8 +175,8 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
 
 ```json
 {
-  "type": "totp|sms|email|webauthn|backup_code", 
-  "code": "123456", 
+  "type": "totp|sms|email|webauthn|backup_code",
+  "code": "123456",
   "mfa_token": "<token>"
 }
 ```
@@ -204,37 +211,41 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGIN_SUCCESS', NOW());
   - **200 OK**
 
 ```json
-{ "user": 
-    { 
-    "id": 1054, 
-    "email": "user@example.com", 
-    "full_name": "Ivan Petrov" 
-    },
+{
+  "user": {
+    "id": 1054,
+    "email": "user@example.com",
+    "full_name": "Ivan Petrov"
+  },
   "access_token": "<jwt>",
-  "token_type": "Bearer",
- }
+  "token_type": "Bearer"
+}
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
 
 ```json
 { "message": "Invalid MFA token" }
 ```
 
-  - **401 Unauthorized**
+- **401 Unauthorized**
+
 ```json
 { "message": "Invalid or incorrect MFA code" }
 ```
+
 ```json
 { "message": "MFA code has expired" }
 ```
 
-  - **403 Forbidden**
+- **403 Forbidden**
+
 ```json
 { "message": "MFA is not enabled for this account" }
 ```
 
-  - **429 Too Many Requests**
+- **429 Too Many Requests**
+
 ```json
 { "message": "Too many login attempts. Please try again later." }
 ```
@@ -253,7 +264,7 @@ FROM user_mfa_backup_codes
 WHERE user_id = :user_id
   AND code_hash = :code_hash
 LIMIT 1;
---Если found && used_at IS NULL -> OK 
+--Если found && used_at IS NULL -> OK
 
 --Неудачная проверка кода -> инкремент + лог
 UPDATE user_auth_counters
@@ -292,7 +303,7 @@ WHERE id = :id;
 
 ```
 
-### Выход: 
+### Выход:
 
 `POST /auth/logout`
 
@@ -312,14 +323,19 @@ WHERE id = :id;
 - **Responses**:
 
   - **200 OK**
+
 ```json
 { "message": "Logged out" }
 ```
-  - **401 Unauthorized** отсутствует Authorization
+
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
-  - **401 Unauthorized** токен просрочен
+
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
@@ -339,7 +355,7 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 
 ```
 
-### Забыли пароль (инициировать сброс): 
+### Забыли пароль (инициировать сброс):
 
 `POST /auth/password/forgot`
 
@@ -376,16 +392,21 @@ VALUES (:user_id, :email, :ip, :ua, TRUE, 'LOGOUT', NOW());
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ "message": "If an account with this email exists, you will receive a password reset link shortly." }
+{
+  "message": "If an account with this email exists, you will receive a password reset link shortly."
+}
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid request body" }
 ```
 
-  - **429 Too Many Requests**
+- **429 Too Many Requests**
+
 ```json
 { "message": "Too many login attempts. Please try again later." }
 ```
@@ -409,7 +430,7 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 
 ```
 
-### Сброс пароля по токену из email: 
+### Сброс пароля по токену из email:
 
 `POST /auth/password/reset`
 
@@ -420,10 +441,10 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 - **Body:**
 
 ```json
-{ 
+{
   "token": "<raw-token>",
-  "password": "********",
- }
+  "password": "********"
+}
 ```
 
 - **Бизнес-правила:**
@@ -441,6 +462,7 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 - **Validation**:
 
   - Frontend:
+
     - password - /^(?=.\*\[A-Za-z\])(?=.\*\d)(?=.\*\[^A-Za-z\d\])\S{8,64}\$/ - обязательное поле, `trim`
 
   - Backend:
@@ -450,21 +472,25 @@ VALUES (:user_id_or_null, :email, :ip, :ua, TRUE, 'PASSWORD_RESET_REQUESTED', NO
 - **Responses**:
 
   - **200 OK** :
+
 ```json
 { "message": "Password has been reset successfully. You can now sign in." }
 ```
 
-  - **400 Bad Request**
+- **400 Bad Request**
+
 ```json
 { "message": "Invalid request body" }
 ```
 
-  - **401 Unauthorized**
+- **401 Unauthorized**
+
 ```json
 { "message": "Reset token has expired or has already been used" }
 ```
 
-  - **404 Not Found**
+- **404 Not Found**
+
 ```json
 { "message": "Invalid or unknown reset token" }
 ```

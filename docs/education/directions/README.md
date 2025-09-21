@@ -10,16 +10,15 @@
 
 `DELETE /orgs/:orgId/directions/:directionId` удалить направление
 
-### Получить список направлений: 
+### Получить список направлений:
 
 `GET /orgs/:orgId/directions?q=&page=&limit=`
 
 суперадмин, админ, сотрудник учебной организации
 
-
-  `q` - поиск по `code/name`  
-  `page` - номер страницы, по умолчанию 1  
-  `limit` - количество на странице (по умолчанию 50, ≤ 200)  
+`q` - поиск по `code/name`  
+ `page` - номер страницы, по умолчанию 1  
+ `limit` - количество на странице (по умолчанию 50, ≤ 200)
 
 - **Content-type:** `application/json`
 
@@ -60,13 +59,13 @@
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ 
+{
   "total": 1,
   "page": 1,
   "limit": 50,
-  "directions": 
-  [ 
+  "directions": [
     {
       "id": 101,
       "code": "web-dev",
@@ -74,32 +73,39 @@
       "description": "Web Development, Full-Stack",
       "created_at": "2025-09-02T10:11:12Z",
       "updated_at": "2025-09-02T10:11:12Z"
-    },
-  ],
+    }
+  ]
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to view directions in this organization." }
+{
+  "message": "Permission denied: You are not allowed to view directions in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
@@ -112,8 +118,8 @@ SET @limit = LEAST(GREATEST(COALESCE(:limit, 50), 1), 200);
 SET @offset = (@page - 1) * @limit;
 
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --total
@@ -140,8 +146,7 @@ LIMIT @limit OFFSET @offset;
 
 ```
 
-
-### Получить направление по id:  
+### Получить направление по id:
 
 `GET /orgs/:orgId/directions/:directionId`
 
@@ -155,8 +160,8 @@ LIMIT @limit OFFSET @offset;
 
 - **Path / Query params:**
 
-    - `orgId` - целое число
-    - `directionId` - целое число
+  - `orgId` - целое число
+  - `directionId` - целое число
 
   - **Backend-правила:**
 
@@ -180,8 +185,9 @@ LIMIT @limit OFFSET @offset;
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ 
+{
   "id": 101,
   "code": "web-dev",
   "name": "Web Development",
@@ -191,33 +197,42 @@ LIMIT @limit OFFSET @offset;
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
+
 ```json
 { "message": "Invalid path parameter: directionId must be integer" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to view directions in this organization." }
+{
+  "message": "Permission denied: You are not allowed to view directions in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
+
 ```json
 { "message": "Direction not found" }
 ```
@@ -226,8 +241,8 @@ LIMIT @limit OFFSET @offset;
 
 ```sql
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --Выборка
@@ -238,8 +253,7 @@ LIMIT 1;
 
 ```
 
-
-### Создать направление:  
+### Создать направление:
 
 `POST /orgs/:orgId/directions`
 
@@ -252,7 +266,7 @@ LIMIT 1;
 - **Body:**
 
 ```json
-{ 
+{
   "code": "web-dev",
   "name": "Web Development",
   "description": "Web Development, Full-Stack"
@@ -300,8 +314,9 @@ LIMIT 1;
 - **Responses**:
 
   - **201 Created** направление создано
+
 ```json
-{ 
+{
   "id": 101,
   "code": "web-dev",
   "name": "Web Development",
@@ -311,38 +326,48 @@ LIMIT 1;
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
+
 ```json
 { "message": "code is required" }
 ```
+
 ```json
 { "message": "name is required" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to create a direction in this organization." }
+{
+  "message": "Permission denied: You are not allowed to create a direction in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
 
-  - **409 Conflict** дубликат
+- **409 Conflict** дубликат
+
 ```json
 { "message": "Direction code 'web-dev' is already in use in this organization" }
 ```
@@ -351,13 +376,13 @@ LIMIT 1;
 
 ```sql
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --Проверка уникальности кода направления
 SELECT id FROM directions
-WHERE org_id = :org_id AND code = :code 
+WHERE org_id = :org_id AND code = :code
 LIMIT 1;
 
 --Создание
@@ -371,7 +396,7 @@ WHERE id = LAST_INSERT_ID();
 
 ```
 
-### Редактировать направление: 
+### Редактировать направление:
 
 `PUT /orgs/:orgId/directions/:directionId`
 
@@ -384,7 +409,7 @@ WHERE id = LAST_INSERT_ID();
 - **Body:**
 
 ```json
-{ 
+{
   "code": "web-dev",
   "name": "Web Development",
   "description": "Web Development, Full-Stack"
@@ -414,8 +439,8 @@ WHERE id = LAST_INSERT_ID();
 
     - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
     - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно
-    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$ - `toLowerCase()`, `trim` 
-    - `name` - `string[1..150]`, `trim` 
+    - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$ - `toLowerCase()`, `trim`
+    - `name` - `string[1..150]`, `trim`
     - `description` - `string[0..1000]`
 
   - Backend:
@@ -423,7 +448,7 @@ WHERE id = LAST_INSERT_ID();
     - `orgId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
     - `directionId` - /^\[1-9\]\d{0,9}\$/ - в `path`, обязательно, число
     - `code` - ^\[A-Za-z0-9.\_-\]{2,50}\$ - `toLowerCase()`, `trim`
-    - `name` - `string[1..150]`, `trim` 
+    - `name` - `string[1..150]`, `trim`
     - `description` - `string[0..1000]`
 
   - DB:
@@ -433,8 +458,9 @@ WHERE id = LAST_INSERT_ID();
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ 
+{
   "id": 101,
   "code": "web-dev",
   "name": "Web Development",
@@ -444,38 +470,48 @@ WHERE id = LAST_INSERT_ID();
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
+
 ```json
 { "message": "Invalid path parameter: directionId must be integer" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to edit a direction in this organization." }
+{
+  "message": "Permission denied: You are not allowed to edit a direction in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
+
 ```json
 { "message": "Direction not found" }
 ```
 
-  - **409 Conflict** дубликат
+- **409 Conflict** дубликат
+
 ```json
 { "message": "Direction code 'web-dev' is already in use in this organization" }
 ```
@@ -484,8 +520,8 @@ WHERE id = LAST_INSERT_ID();
 
 ```sql
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --Проверка уникальности нового кода направления
@@ -503,7 +539,7 @@ WHERE id = :direction_id AND org_id = :org_id;
 
 ```
 
-### Удалить направление:  
+### Удалить направление:
 
 `DELETE /orgs/:orgId/directions/:directionId`
 
@@ -546,8 +582,9 @@ WHERE id = :direction_id AND org_id = :org_id;
 - **Responses**:
 
   - **200 OK**
+
 ```json
-{ 
+{
   "id": 101,
   "code": "web-dev",
   "name": "Web Development",
@@ -557,49 +594,58 @@ WHERE id = :direction_id AND org_id = :org_id;
 }
 ```
 
-  - **400 Bad Request** некорректное тело запроса
+- **400 Bad Request** некорректное тело запроса
+
 ```json
 { "message": "Invalid path parameter: orgId must be integer" }
 ```
+
 ```json
 { "message": "Invalid path parameter: directionId must be integer" }
 ```
 
-  - **401 Unauthorized** отсутствует Authorization
+- **401 Unauthorized** отсутствует Authorization
+
 ```json
 { "message": "Authorization header missing" }
 ```
 
-  - **401 Unauthorized** токен просрочен
+- **401 Unauthorized** токен просрочен
+
 ```json
 { "message": "jwt expired" }
 ```
 
-  - **403 Forbidden** отказано в доступе
+- **403 Forbidden** отказано в доступе
+
 ```json
-{ "message": "Permission denied: You are not allowed to remove a direction in this organization." }
+{
+  "message": "Permission denied: You are not allowed to remove a direction in this organization."
+}
 ```
 
-  - **404 Not Found** объект не найден
+- **404 Not Found** объект не найден
+
 ```json
 { "message": "Organization not found" }
 ```
+
 ```json
 { "message": "Direction not found" }
 ```
 
-  - **409 Conflict** есть связи
+- **409 Conflict** есть связи
+
 ```json
 { "message": "Direction is in use" }
 ```
 
 - **SQL**
 
-
 ```sql
 --Проверка организации
-SELECT 1 FROM organizations 
-WHERE id = :org_id AND status IN ('active','pending') 
+SELECT 1 FROM organizations
+WHERE id = :org_id AND status IN ('active','pending')
 LIMIT 1;
 
 --Проверка на связи
