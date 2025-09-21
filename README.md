@@ -16,7 +16,7 @@
 
 ## Введение
 
-**Базовый URL**: `https://penguin-tracker-backend/api` ( `http://localhost:3001/api` )
+**Базовый URL**: `https://penguin-tracker-backend/api` ( `http://localhost:3000/api` )
 
 **Формат дат**: `ISO-8601` в UTC, например `2025-09-01T14:35:00Z`
 
